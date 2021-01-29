@@ -1,0 +1,192 @@
+#!/bin/bash
+
+export DOCKERHOST=${APPLICATION_URL-$(docker run --rm --net=host eclipse/che-ip)}
+export MSYS_NO_PATHCONV=1
+set -e
+
+SCRIPT_HOME="$( cd "$( dirname "$0" )" && pwd )"
+
+# =================================================================================================================
+# Usage:
+# -----------------------------------------------------------------------------------------------------------------
+
+usage() {
+  cat <<-EOF
+
+  Usage: $0 [command] [options]
+
+  Commands:
+
+  build - Build the docker images for the project.
+          You need to do this first, since the builds require
+          a combination of Docker images.
+
+  up  - Creates the application container from the built images
+        and starts the services based on the docker-compose.yml file.
+  start - Same as up
+
+  logs - Display the logs from the docker compose run (ctrl-c to exit).
+
+  stop - Stops the services.  This is a non-destructive process.  The volumes and containers
+         are not deleted so they will be reused the next time you run start.
+
+  down - Brings down the services and removes the volumes (storage) and containers.
+  rm - Same as down
+
+EOF
+exit 1
+}
+
+# -----------------------------------------------------------------------------------------------------------------
+# Default Settings:
+# -----------------------------------------------------------------------------------------------------------------
+
+DEFAULT_CONTAINERS=""
+
+# -----------------------------------------------------------------------------------------------------------------
+# Functions:
+# -----------------------------------------------------------------------------------------------------------------
+
+configureEnvironment () {
+
+  if [ -f .env ]; then
+    while read line; do
+      if [[ ! "$line" =~ ^\# ]] && [[ "$line" =~ .*= ]]; then
+        export $line
+      fi
+    done < .env
+  fi
+
+  for arg in $@; do
+    case "$arg" in
+      *=*)
+        export ${arg}
+        ;;
+    esac
+  done
+
+  # global
+  export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-vcr-issuer-agency}"
+  export LEDGER_URL=${LEDGER_URL-http://$DOCKERHOST:9000}
+  export LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+
+  # agent
+  export AGENCY_NAME="VCR Issuer Agency (Main)"
+  export AGENCY_ADMIN_PORT="8044"
+  export AGENCY_HTTP_IN_PORT="8041"
+  export AGENCY_WS_IN_PORT="8043"
+  export AGENCY_ENDPOINT=${AGENCY_ENDPOINT:-http://$DOCKERHOST:$AGENCY_HTTP_IN_PORT}
+  export AGENCY_WALLET_NAME="issuer_agency_main"
+  export AGENCY_WALLET_ENCRYPTION_KEY="key"
+  export AGENCY_WALLET_SEED=${AGENCY_WALLET_SEED:-"vcr-issuer-agency_00000000000000"}
+  export AGENCY_WALLET_STORAGE_TYPE="postgres_storage"
+  export AGENCY_ADMIN_API_KEY=${AGENT_ADMIN_API_KEY:-"agency-api-key"}
+  export AGENCY_ADMIN_MODE="admin-insecure-mode"
+  if [ ! -z "${AGENCY_ADMIN_API_KEY}" ]; then
+    AGENCY_ADMIN_MODE="admin-api-key ${AGENCY_ADMIN_API_KEY}"
+  fi
+  export AGENCY_LOG_LEVEL=${AGENCY_LOG_LEVEL:-"error"}
+  export AGENCY_WEBHOOK_URL=http://controller:8000
+  export AGENCY_JWT_SECRET=${AGENCY_JWT_SECRET:-"supersecret"}
+
+  # wallet
+  export POSTGRESQL_DATABASE="VCR_AGENCY"
+  export POSTGRESQL_USER="DB_USER"
+  export POSTGRESQL_PASSWORD="DB_PASSWORD"
+  export WALLET_TYPE="postgres_storage"
+  export WALLET_ENCRYPTION_KEY="key"
+  export POSTGRESQL_WALLET_HOST="wallet"
+  export POSTGRESQL_WALLET_PORT="5432"
+  export POSTGRESQL_ADMIN_USER="postgres"
+  export POSTGRESQL_ADMIN_PASSWORD="mysecretpassword"
+  export WALLET_SEED_VONX=${WALLET_SEED_VONX:-"vcr-issuer_000000000000000000000"}
+
+  # controller
+  export CONTROLLER_PORT=3030
+  export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agent:$AGENCY_ADMIN_PORT}
+  export DB_SERVICE="db"
+
+  # db
+  export MONGODB_ADMIN_PASSWORD="admin"
+  export MONGODB_USER="mongouser"
+  export MONGODB_PASSWORD="mongopwd"
+  export MONGODB_DATABASE="issuer_agency"
+  export MONGODB_PORT="27017"
+
+}
+
+getStartupParams() {
+  CONTAINERS=""
+  ARGS=""
+  if [ "$COMMAND" == "start" ]; then
+    ARGS+="--force-recreate"
+  fi
+
+  for arg in $@; do
+    case "$arg" in
+      *=*)
+        # Skip it
+        ;;
+     -*)
+        ARGS+=" $arg";;
+      *)
+        CONTAINERS+=" $arg";;
+    esac
+  done
+
+  if [ -z "$CONTAINERS" ]; then
+    CONTAINERS="$DEFAULT_CONTAINERS"
+  fi
+
+  echo ${ARGS} ${CONTAINERS}
+}
+
+build() {
+  # Build all containers in the docker-compose file
+  echo -e "\nBuilding containers ..."
+  echo docker-compose build $@
+  docker-compose build $@
+}
+
+deleteVolumes() {
+  _projectName=${COMPOSE_PROJECT_NAME:-docker}
+
+  echo "Stopping and removing any running containers ..."
+  docker-compose down -v
+}
+
+# =================================================================================================================
+
+pushd ${SCRIPT_HOME} >/dev/null
+COMMAND=$1
+shift || true
+
+case "$COMMAND" in
+  start|up)
+    _startupParams=$(getStartupParams $@)
+    configureEnvironment $@
+    docker-compose up -d ${_startupParams}
+    docker-compose logs -f
+    ;;
+  logs)
+    configureEnvironment $@
+    docker-compose logs -f
+    ;;
+  stop)
+    configureEnvironment $@
+    docker-compose stop
+    ;;
+  rm|down)
+    configureEnvironment $@
+    deleteVolumes
+    ;;
+  build)
+    _startupParams=$(getStartupParams $@)
+    configureEnvironment $@
+    build ${_startupParams}
+    ;;
+  *)
+    usage
+esac
+
+popd >/dev/null
