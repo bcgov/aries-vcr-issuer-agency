@@ -5,6 +5,7 @@ import issuerProfile from './issuer-profile/issuer-profile.service';
 import issuerAuthentication from './issuer-authentication/issuer-authentication.service';
 import taaRead from './taa-read/taa-read.service';
 import taaAccept from './taa-accept/taa-accept.service';
+import schemas from './schemas/schemas.service';
 // Don't remove this comment. It's needed to format import lines nicely.
 
 export function services(app: Application): void {
@@ -13,6 +14,7 @@ export function services(app: Application): void {
   app.configure(issuerAuthentication);
   app.configure(taaRead);
   app.configure(taaAccept);
+  app.configure(schemas);
 }
 
 export function internalServices(app: Application): void {
