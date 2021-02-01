@@ -1,5 +1,6 @@
 import { Application } from '../declarations';
 import admin from './admin/admin.service';
+import ariesAgent from './aries-agent/aries-agent.service';
 import credentials from './credentials/credentials.service';
 import issuerAuthentication from './issuer-authentication/issuer-authentication.service';
 import issuerModel from './issuer-model/issuer-model.service';
@@ -21,4 +22,5 @@ export function services(app: Application): void {
 
 export function internalServices(app: Application): void {
   app.configure(issuerModel);
+  app.configure(ariesAgent);
 }
