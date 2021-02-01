@@ -1,8 +1,8 @@
 import { NotImplemented } from '@feathersjs/errors';
-import { Id, NullableId, Paginated, Params } from '@feathersjs/feathers';
+import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
-  ServiceSwaggerOptions,
+  ServiceSwaggerOptions
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
 
@@ -26,13 +26,13 @@ export class TaaAccept implements ServiceSwaggerAddon {
 
   docs: ServiceSwaggerOptions = {
     refs: {
-      createResponse: 'empty_response',
+      createResponse: 'empty_body',
     },
     definitions: {
-      empty_response: {
-        title: 'Empty service response',
+      empty_body: {
+        title: 'empty',
         type: 'object',
-        required: ['name'],
+        required: [],
         properties: {},
       },
     },

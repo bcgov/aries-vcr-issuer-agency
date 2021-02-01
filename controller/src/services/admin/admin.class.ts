@@ -34,12 +34,12 @@ export class Admin implements ServiceSwaggerAddon {
       'Creation and deletion of issuer profiles, used by Agency administrators.',
     idType: 'string',
     refs: {
-      createResponse: 'create_response',
-      removeResponse: 'empty_response',
+      createResponse: 'admin_create_response',
+      removeResponse: 'empty_body',
     },
     definitions: {
-      create_response: {
-        title: 'Create service response',
+      admin_create_response: {
+        title: 'admin',
         type: 'object',
         required: ['name', 'api-key'],
         properties: {
@@ -49,14 +49,14 @@ export class Admin implements ServiceSwaggerAddon {
           },
           'api-key': {
             type: 'string',
-            description: 'The api-key generated for this issuer',
+            description: 'The new api-key generated for this issuer.',
           },
         },
       },
-      empty_response: {
-        title: 'Empty service response',
+      empty_body: {
+        title: 'empty',
         type: 'object',
-        required: ['name'],
+        required: [],
         properties: {},
       },
     },
@@ -64,7 +64,6 @@ export class Admin implements ServiceSwaggerAddon {
   };
 
   model = {
-    title: 'Issuer',
     description: 'Base Issuer Model',
     type: 'object',
     required: ['name'],

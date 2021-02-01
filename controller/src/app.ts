@@ -104,6 +104,9 @@ app.configure(
         };
       },
     },
+    ignore: {
+      tags: ['internal']
+    }
   })
 );
 

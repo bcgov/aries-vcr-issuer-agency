@@ -60,11 +60,11 @@ export class TaaRead implements ServiceSwaggerAddon {
 
   docs: ServiceSwaggerOptions = {
     refs: {
-      findResponse: 'find_response',
+      findResponse: 'get_taa',
     },
     definitions: {
-      find_response: {
-        title: 'Find service response',
+      get_taa: {
+        title: 'get taa',
         type: 'object',
         required: [],
         properties: this.model.properties,

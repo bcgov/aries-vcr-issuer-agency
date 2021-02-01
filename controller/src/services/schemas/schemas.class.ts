@@ -33,7 +33,6 @@ export class Schemas implements ServiceSwaggerAddon {
   }
 
   model = {
-    title: 'Schema',
     description: 'Aries Schema Model',
     type: 'object',
     required: [],
@@ -124,12 +123,12 @@ export class Schemas implements ServiceSwaggerAddon {
   docs: ServiceSwaggerOptions = {
     description: 'Schema management endpoints.',
     refs: {
-      createRequest: 'create_request',
-      createResponse: 'create_response',
+      createRequest: 'create_schema_request',
+      createResponse: 'create_schema_response',
     },
     definitions: {
-      create_request: {
-        title: 'Create service request',
+      create_schema_request: {
+        title: 'schemas request',
         type: 'object',
         required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
         properties: Object.assign({}, this.model.properties, {
@@ -143,8 +142,8 @@ export class Schemas implements ServiceSwaggerAddon {
           },
         }),
       },
-      create_response: {
-        title: 'Create service response',
+      create_schema_response: {
+        title: 'schemas response',
         type: 'object',
         required: [],
         properties: {

@@ -1,6 +1,5 @@
 import { NotImplemented } from '@feathersjs/errors';
-import { rest } from '@feathersjs/express';
-import { NullableId, Params } from '@feathersjs/feathers';
+import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
@@ -31,8 +30,7 @@ export class IssuerProfile implements ServiceSwaggerAddon {
   }
 
   model = {
-    title: 'Issuer',
-    description: 'Base Issuer Model',
+    description: 'Issuer Profile Model',
     type: 'object',
     required: ['name', 'abbreviation', 'url', 'email', 'logo'],
     properties: {
@@ -76,11 +74,11 @@ export class IssuerProfile implements ServiceSwaggerAddon {
       update: 'name',
     },
     refs: {
-      findResponse: 'find_response',
+      findResponse: 'issuer_find_response',
     },
     definitions: {
-      find_response: {
-        title: 'Find service response',
+      issuer_find_response: {
+        title: 'issuer find',
         type: 'object',
         required: [],
         properties: this.model.properties,

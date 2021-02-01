@@ -32,7 +32,7 @@ export class IssuerAuthentication implements ServiceSwaggerAddon {
     },
     definitions: {
       empty_body: {
-        title: 'Empty service body',
+        title: 'empty',
         type: 'object',
         required: [],
         properties: {},
@@ -43,7 +43,7 @@ export class IssuerAuthentication implements ServiceSwaggerAddon {
   };
 
   model = {
-    title: 'Issuer Authentication',
+    title: 'authentication',
     description: 'Issuer Authentication - API Key',
     type: 'object',
     required: ['api-key'],

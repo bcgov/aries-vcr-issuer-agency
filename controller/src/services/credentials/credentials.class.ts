@@ -1,10 +1,4 @@
-import {
-  Id,
-  NullableId,
-  Paginated,
-  Params,
-  ServiceMethods,
-} from '@feathersjs/feathers';
+import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
@@ -34,7 +28,7 @@ export class Credentials implements ServiceSwaggerAddon {
   }
 
   model = {
-    title: 'Issue Credential',
+    title: 'issue credential',
     description: 'Issue Credential Model',
     type: 'object',
     required: ['schema_name', 'schema_version', 'attributes'],
@@ -67,7 +61,7 @@ export class Credentials implements ServiceSwaggerAddon {
     },
     definitions: {
       issue_credential_request: {
-        title: 'Create service request',
+        title: 'issue credential request',
         type: 'object',
         required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
         properties: Object.assign({}, this.model.properties, {
@@ -82,7 +76,7 @@ export class Credentials implements ServiceSwaggerAddon {
         }),
       },
       issue_credential_response: {
-        title: 'Create service response',
+        title: 'issue credential response',
         type: 'object',
         required: [],
         properties: {
