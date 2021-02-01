@@ -6,28 +6,7 @@
     "default": 10,
     "max": 50
   },
-  "authentication": {
-    "entity": "issuer",
-    "service": "issuers",
-    "secret": "VRSvGG1Ys/rS/FKIDEL3nzTKh+g=",
-    "authStrategies": [
-      "jwt",
-      "local"
-    ],
-    "jwtOptions": {
-      "header": {
-        "typ": "access"
-      },
-      "audience": "https://yourdomain.com",
-      "issuer": "feathers",
-      "algorithm": "HS256",
-      "expiresIn": "1d"
-    },
-    "local": {
-      "usernameField": "email",
-      "passwordField": "password"
-    }
-  },
+  "authentication": {},
   "mongodb": {
     "host": "DB_SERVICE",
     "db": "DB_NAME",

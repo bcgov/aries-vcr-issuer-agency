@@ -1,8 +1,8 @@
 import app from '../../src/app';
 
-describe('\'issuers\' service', () => {
+describe('\'issuer-profile\' service', () => {
   it('registered the service', () => {
-    const service = app.service('issuers');
+    const service = app.service('issuer/profile');
     expect(service).toBeTruthy();
   });
 });
