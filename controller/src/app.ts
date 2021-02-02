@@ -78,11 +78,17 @@ app.configure(
             name: 'x-api-key',
             in: 'header',
           },
+          IssuerAPIKeyHeader: {
+            type: 'apiKey',
+            name: 'issuer-api-key',
+            in: 'header',
+          },
         },
       },
       security: [
         {
           APIKeyHeader: [],
+          IssuerAPIKeyHeader: [],
         },
       ],
     },
@@ -105,8 +111,8 @@ app.configure(
       },
     },
     ignore: {
-      tags: ['internal']
-    }
+      tags: ['internal'],
+    },
   })
 );
 
