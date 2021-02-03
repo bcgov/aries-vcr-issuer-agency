@@ -9,8 +9,6 @@ import { Application } from '../../declarations';
 import logger from '../../logger';
 import { BaseIssuerProfile } from '../../models/issuer-model';
 
-import { hashSync } from 'bcrypt';
-
 interface Data extends BaseIssuerProfile {}
 
 interface ServiceOptions {}
@@ -38,11 +36,9 @@ export class Admin implements ServiceSwaggerAddon {
     }
 
     const issuerKey = uuidv4();
-    const saltedKey = hashSync(issuerKey, 10);
-
     const result = await this.app.service('issuer-model').create({
       name: data.name,
-      'api-key': saltedKey,
+      'api-key': issuerKey,
     } as BaseIssuerProfile);
 
     logger.debug(`Created new profile with name ${data.name}`);

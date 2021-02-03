@@ -1,5 +1,6 @@
-import { Forbidden } from '@feathersjs/errors';
-import { HookContext, Service } from '@feathersjs/feathers';
+import { BadRequest, Forbidden } from '@feathersjs/errors';
+import { HookContext, Paginated, Service } from '@feathersjs/feathers';
+import { BaseIssuerProfile } from '../../models/issuer-model';
 
 export async function authenticateAdmin(
   context: HookContext
@@ -11,5 +12,26 @@ export async function authenticateAdmin(
   if (!apiKeyHeader || adminApiKey !== apiKeyHeader) {
     throw new Forbidden('The x-api-key header is invalid or missing');
   }
+  return context;
+}
+
+export async function authenticateIssuer(
+  context: HookContext
+): Promise<HookContext<any, Service<any>>> {
+  const headers = context.params.headers || {};
+  const apiKeyHeader = headers['issuer-api-key'] as string;
+
+  if (!apiKeyHeader) {
+    throw new Forbidden('The issuer-api-key header is missing');
+  }
+
+  const issuer = (await context.app.service('issuer-model').find({
+    query: { 'api-key': apiKeyHeader },
+  })) as Paginated<BaseIssuerProfile>;
+
+  if (issuer.data.length !== 1) {
+    throw new Forbidden('The provided issuer-api-key is invalid');
+  }
+
   return context;
 }
