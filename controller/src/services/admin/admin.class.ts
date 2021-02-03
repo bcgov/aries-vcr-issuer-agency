@@ -1,12 +1,17 @@
-import { NotImplemented } from '@feathersjs/errors';
-import { NullableId, Params } from '@feathersjs/feathers';
+import { Conflict } from '@feathersjs/errors';
+import { NullableId, Paginated, Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
+import { v4 as uuidv4 } from 'uuid';
 import { Application } from '../../declarations';
+import logger from '../../logger';
+import { BaseIssuerProfile } from '../../models/issuer-model';
 
-interface Data {}
+import { hashSync } from 'bcrypt';
+
+interface Data extends BaseIssuerProfile {}
 
 interface ServiceOptions {}
 
@@ -21,12 +26,34 @@ export class Admin implements ServiceSwaggerAddon {
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<any> {
-    return new NotImplemented();
+    const existingUsers = (await this.app.service('issuer-model').find({
+      query: { name: data.name },
+      collation: { locale: 'en', strength: 1 },
+    })) as Paginated<Data>;
+
+    if (existingUsers.data.length > 0) {
+      return new Conflict(
+        `A user with name '${data.name}' has already been created`
+      );
+    }
+
+    const issuerKey = uuidv4();
+    const saltedKey = hashSync(issuerKey, 10);
+
+    const result = await this.app.service('issuer-model').create({
+      name: data.name,
+      'api-key': saltedKey,
+    } as BaseIssuerProfile);
+
+    logger.debug(`Created new profile with name ${data.name}`);
+
+    return Object.assign({}, result, { 'api-key': issuerKey });
   }
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove(id: NullableId, params: Params): Promise<any> {
-    return new NotImplemented();
+    await this.app.service('issuer-model').remove(id);
+    return {};
   }
 
   docs: ServiceSwaggerOptions = {

@@ -6,7 +6,9 @@
     "default": 10,
     "max": 50
   },
-  "authentication": {},
+  "authentication": {
+    "adminApiKey": "CONTROLLER_ADMIN_API_KEY"
+  },
   "mongodb": {
     "host": "DB_SERVICE",
     "db": "DB_NAME",
@@ -15,8 +17,8 @@
     "password": "DB_PASSWORD"
   },
   "agent": {
-    "adminUrl": "AGENT_ADMIN_URL",
-    "adminApiKey": "AGENT_ADMIN_API_KEY"
+    "adminUrl": "AGENCY_ADMIN_URL",
+    "adminApiKey": "AGENCY_ADMIN_API_KEY"
   },
   "logging": {
     "logLevel": "LOG_LEVEL"

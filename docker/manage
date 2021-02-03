@@ -105,6 +105,7 @@ configureEnvironment () {
   export CONTROLLER_PORT=3030
   export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agent:$AGENCY_ADMIN_PORT}
   export DB_SERVICE="db"
+  export CONTROLLER_ADMIN_API_KEY=${CONTROLLER_ADMIN_API_KEY:-"controller-api-key"}
 
   # db
   export MONGODB_ADMIN_PASSWORD="admin"
