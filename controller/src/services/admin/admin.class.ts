@@ -7,7 +7,20 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { Application } from '../../declarations';
 import logger from '../../logger';
+import { ConnectionServiceResponse } from '../../models/connection';
+import {
+  ConnectionServiceAction,
+  MultitenancyServiceAction,
+  ServiceType,
+  WalletServiceAction,
+} from '../../models/enums';
 import { BaseIssuerProfile } from '../../models/issuer-model';
+import {
+  MultitenancyServiceRequest,
+  MultitenancyServiceResponse,
+} from '../../models/multitenancy';
+import { WalletServiceResponse } from '../../models/wallet';
+import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data extends BaseIssuerProfile {}
 
@@ -24,26 +37,68 @@ export class Admin implements ServiceSwaggerAddon {
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<any> {
-    const existingUsers = (await this.app.service('issuer-model').find({
+    const existingProfiles = (await this.app.service('issuer-model').find({
       query: { name: data.name },
       collation: { locale: 'en', strength: 1 },
     })) as Paginated<Data>;
 
-    if (existingUsers.data.length > 0) {
+    if (existingProfiles.data.length > 0) {
       return new Conflict(
-        `A user with name '${data.name}' has already been created`
+        `A profile with name '${data.name}' has already been created`
       );
     }
 
-    const issuerKey = uuidv4();
+    // Create sub-wallet
+    const subWalletRequestData = {
+      label: data.name,
+      wallet_name: data.name.toLowerCase().replace(/\\/g, '_'),
+      wallet_key: data.name.toLowerCase().replace(/\\/g, '_'),
+      wallet_type: 'indy',
+      key_management_mode: 'managed',
+      wallet_dispatch_type: 'default',
+      wallet_webhook_urls: this.app.get('defaultWebhookHosts'),
+    } as MultitenancyServiceRequest;
+    const subWallet = (await this.app.service('aries-agent').create({
+      service: ServiceType.Multitenancy,
+      action: MultitenancyServiceAction.Create,
+      data: subWalletRequestData,
+    } as AriesAgentData)) as MultitenancyServiceResponse;
+
+    // Create wallet DID
+    const subWalletDid = (await this.app.service('aries-agent').create({
+      service: ServiceType.Wallet,
+      action: WalletServiceAction.Create,
+      token: subWallet.token,
+    } as AriesAgentData)) as WalletServiceResponse;
+
+    // Connect to credential registry
+    const connection = (await this.app.service('aries-agent').create({
+      service: ServiceType.Connection,
+      action: ConnectionServiceAction.Create,
+      token: subWallet.token,
+      data: {
+        alias: data.name,
+      },
+    } as AriesAgentData)) as ConnectionServiceResponse;
+
+    // Create profile
+    const issuerApiKey = uuidv4();
     const result = await this.app.service('issuer-model').create({
       name: data.name,
-      'api-key': issuerKey,
+      'api-key': issuerApiKey,
+      wallet: {
+        id: subWallet.wallet_id,
+        name: subWallet.settings['wallet.name'],
+        token: subWallet.token,
+      },
+      did: subWalletDid.result.did,
+      verkey: subWalletDid.result.verkey,
+      vcr_connection_id: connection.connection_id,
     } as BaseIssuerProfile);
 
     logger.debug(`Created new profile with name ${data.name}`);
 
-    return Object.assign({}, result, { 'api-key': issuerKey });
+    return result;
   }
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars

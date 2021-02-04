@@ -1,4 +1,4 @@
-import { BadRequest, Forbidden } from '@feathersjs/errors';
+import { Forbidden } from '@feathersjs/errors';
 import { HookContext, Paginated, Service } from '@feathersjs/feathers';
 import { BaseIssuerProfile } from '../../models/issuer-model';
 

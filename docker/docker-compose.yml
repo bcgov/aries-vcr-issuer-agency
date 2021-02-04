@@ -87,6 +87,9 @@ services:
       - DB_USER=${MONGODB_USER}
       - DB_PASSWORD=${MONGODB_PASSWORD}
       - DB_PORT=${MONGODB_PORT}
+      - REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL}
+      - REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
+      - REGISTRY_ALIAS=${REGISTRY_ALIAS}
       - LOG_LEVEL=${LOG_LEVEL}
     volumes:
       - ../controller:/usr/src/controller

@@ -106,6 +106,9 @@ configureEnvironment () {
   export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agent:$AGENCY_ADMIN_PORT}
   export DB_SERVICE="db"
   export CONTROLLER_ADMIN_API_KEY=${CONTROLLER_ADMIN_API_KEY:-"controller-api-key"}
+  export REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL:-http://$DOCKERHOST:8024}
+  export REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
+  export REGISTRY_ALIAS=${REGISTRY_ALIAS:-"aries-vcr"}
 
   # db
   export MONGODB_ADMIN_PASSWORD="admin"

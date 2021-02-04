@@ -20,7 +20,15 @@
     "adminUrl": "AGENCY_ADMIN_URL",
     "adminApiKey": "AGENCY_ADMIN_API_KEY"
   },
+  "aries-vcr": {
+    "adminUrl": "REGISTRY_ADMIN_URL",
+    "adminApiKey": "REGISTRY_ADMIN_API_KEY",
+    "alias": "REGISTRY_ALIAS"
+  },
   "logging": {
     "logLevel": "LOG_LEVEL"
-  }
+  },
+  "defaultWebhookHosts": [
+    "http://controller:3030/webhooks"
+  ]
 }
