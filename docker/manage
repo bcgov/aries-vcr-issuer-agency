@@ -86,7 +86,6 @@ configureEnvironment () {
     AGENCY_ADMIN_MODE="admin-api-key ${AGENCY_ADMIN_API_KEY}"
   fi
   export AGENCY_LOG_LEVEL=${AGENCY_LOG_LEVEL:-"error"}
-  export AGENCY_WEBHOOK_URL=http://controller:8000
   export AGENCY_JWT_SECRET=${AGENCY_JWT_SECRET:-"supersecret"}
 
   # wallet
@@ -104,9 +103,10 @@ configureEnvironment () {
   # controller
   export CONTROLLER_PORT=3030
   export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agent:$AGENCY_ADMIN_PORT}
+  export AGENCY_WEBHOOK_URL=${AGENCY_WEBHOOK_URL:-http://$DOCKERHOST:$CONTROLLER_PORT/webhooks}
   export DB_SERVICE="db"
   export CONTROLLER_ADMIN_API_KEY=${CONTROLLER_ADMIN_API_KEY:-"controller-api-key"}
-  export REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL:-http://$DOCKERHOST:8024}
+  export REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL:-http://vcr-agent:8024}
   export REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
   export REGISTRY_ALIAS=${REGISTRY_ALIAS:-"aries-vcr"}
 

@@ -8,6 +8,7 @@ import issuerProfile from './issuer-profile/issuer-profile.service';
 import schemas from './schemas/schemas.service';
 import taaAccept from './taa-accept/taa-accept.service';
 import taaRead from './taa-read/taa-read.service';
+import webHooks from './webhooks/webhooks.service';
 // Don't remove this comment. It's needed to format import lines nicely.
 
 export function services(app: Application): void {
@@ -23,4 +24,5 @@ export function services(app: Application): void {
 export function internalServices(app: Application): void {
   app.configure(issuerModel);
   app.configure(ariesAgent);
+  app.configure(webHooks);
 }

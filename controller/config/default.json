@@ -29,6 +29,6 @@
     "logLevel": "LOG_LEVEL"
   },
   "defaultWebhookHosts": [
-    "http://controller:3030/webhooks"
+    "AGENCY_WEBHOOK_URL"
   ]
 }
