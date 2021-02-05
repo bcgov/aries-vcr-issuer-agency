@@ -1,11 +1,10 @@
 import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
-import Axios, { AxiosRequestConfig } from 'axios';
+import Axios from 'axios';
 import { Application } from '../../declarations';
 import logger from '../../logger';
 import {
   AriesConnection,
-  AriesInvitation,
   ConnectionServiceResponse,
 } from '../../models/connection';
 import {

@@ -90,7 +90,7 @@ export class Admin implements ServiceSwaggerAddon {
 
     // Create profile
     const issuerApiKey = uuidv4();
-    const result = await this.app.service('issuer-model').create({
+    await this.app.service('issuer-model').create({
       name: data.name,
       normalizedName: normalizedName,
       'api-key': issuerApiKey,
@@ -106,7 +106,7 @@ export class Admin implements ServiceSwaggerAddon {
 
     logger.debug(`Created new profile with name ${data.name}`);
 
-    return result;
+    return { name: data.name, 'api-key': issuerApiKey };
   }
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
