@@ -12,8 +12,8 @@ export enum CredExServiceAction {
 }
 
 export enum LedgerServiceAction {
-  Fetch,
-  Accept,
+  TAA_Fetch,
+  TAA_Accept,
 }
 
 export enum MultitenancyServiceAction {

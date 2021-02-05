@@ -82,8 +82,10 @@ export class AriesAgent {
       case ServiceType.Connection:
         if (data.action === ConnectionServiceAction.Create) {
           return this.newRegistryConnection(data.data.alias, data.token);
-        } else {
-          return this.getConnection(data.data.connection_id);
+        }
+      case ServiceType.Ledger:
+        if (data.action === LedgerServiceAction.TAA_Fetch) {
+          return this.fetchTAA(data.token);
         }
       case ServiceType.CredEx:
         if (data.action === CredExServiceAction.Create) {
@@ -149,6 +151,16 @@ export class AriesAgent {
       this.acaPyUtils.getRequestConfig(token)
     );
     return response.data as ConnectionServiceResponse;
+  }
+
+  private async fetchTAA(token: string | undefined): Promise<any> {
+    logger.debug('Fetching TAA');
+    const url = `${this.acaPyUtils.getAdminUrl()}/ledger/taa`;
+    const response = await Axios.get(
+      url,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data.result;
   }
 
   private async getConnection(id: string): Promise<ConnectionServiceResponse> {
