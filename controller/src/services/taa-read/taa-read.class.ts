@@ -1,11 +1,10 @@
-import { Paginated, Params } from '@feathersjs/feathers';
+import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
 import { LedgerServiceAction, ServiceType } from '../../models/enums';
-import { DuplicatedProfileError } from '../../models/errors';
 import { TAAServiceResponse } from '../../models/ledger';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
@@ -24,24 +23,11 @@ export class TaaRead implements ServiceSwaggerAddon {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async find(params: Params): Promise<TAAServiceResponse> {
-    const headers = params.headers || {};
-    const apiKeyHeader = headers['issuer-api-key'] as string;
-
-    const findProfile = (await this.app.service('issuer-model').find({
-      query: { 'api-key': apiKeyHeader },
-      collation: { locale: 'en', strength: 1 },
-    })) as Paginated<any>;
-
-    if (findProfile.total > 1 || findProfile.data.length !== 1) {
-      throw new DuplicatedProfileError(
-        'The request returned inconsistent data, please contact an administrator.'
-      );
-    }
-    const taa = (await this.app.service('aries-agent').create({
+    const taa = await this.app.service('aries-agent').create({
       service: ServiceType.Ledger,
       action: LedgerServiceAction.TAA_Fetch,
-      token: findProfile.data[0].wallet.token,
-    } as AriesAgentData));
+      token: params.data[0].wallet.token,
+    } as AriesAgentData);
     return {
       aml: taa.aml_record || {},
       taa_accepted: taa.taa_accepted || {},
