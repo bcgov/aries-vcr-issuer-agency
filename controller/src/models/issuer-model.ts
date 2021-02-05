@@ -3,4 +3,13 @@ export interface BaseIssuerProfile {
   'api-key': string;
 }
 
-export interface IssuerProfile extends BaseIssuerProfile {}
+export interface IssuerProfile {
+  _id?: string;
+  did: string;
+  verkey: string;
+  name: string;
+  abbreviation: string;
+  url: string;
+  email: string;
+  logo: string;
+}
