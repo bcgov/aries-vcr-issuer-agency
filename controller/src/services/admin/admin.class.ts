@@ -37,22 +37,29 @@ export class Admin implements ServiceSwaggerAddon {
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<any> {
+    // Remove special characters and replace spaces with "_", useful for matching existing users
+    // as well as having a suitable name for the issuer's wallet schema
+    const normalizedName = data.name
+      .normalize('NFD')
+      .replace(/[^a-zA-Z0-9\s]+/g, '')
+      .replace(/\s+/g, '_');
+
     const existingProfiles = (await this.app.service('issuer-model').find({
-      query: { name: data.name },
+      query: { normalizedName: normalizedName },
       collation: { locale: 'en', strength: 1 },
     })) as Paginated<Data>;
 
     if (existingProfiles.data.length > 0) {
       return new Conflict(
-        `A profile with name '${data.name}' has already been created`
+        `A profile with a matching normalized name of '${normalizedName}' has already been created`
       );
     }
 
     // Create sub-wallet
     const subWalletRequestData = {
       label: data.name,
-      wallet_name: data.name.toLowerCase().replace(/\\/g, '_'),
-      wallet_key: data.name.toLowerCase().replace(/\\/g, '_'),
+      wallet_name: normalizedName,
+      wallet_key: normalizedName,
       wallet_type: 'indy',
       key_management_mode: 'managed',
       wallet_dispatch_type: 'default',
@@ -85,6 +92,7 @@ export class Admin implements ServiceSwaggerAddon {
     const issuerApiKey = uuidv4();
     const result = await this.app.service('issuer-model').create({
       name: data.name,
+      normalizedName: normalizedName,
       'api-key': issuerApiKey,
       wallet: {
         id: subWallet.wallet_id,
