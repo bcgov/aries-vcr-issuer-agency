@@ -1,12 +1,18 @@
-import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
-  ServiceSwaggerOptions
+  ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
+import { LedgerServiceAction, ServiceType } from '../../models/enums';
+import { TAAServiceResponse } from '../../models/ledger';
+import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface Data {}
+interface Data {
+  mechanism: string;
+  text: string;
+  version: string;
+}
 
 interface ServiceOptions {}
 
@@ -20,8 +26,27 @@ export class TaaAccept implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<Data> {
-    return new NotImplemented();
+  async create(data: Data, params?: Params): Promise<any> {
+    const taa = (await this.app.service('aries-agent').create({
+      service: ServiceType.Ledger,
+      action: LedgerServiceAction.TAA_Accept,
+      token: params?.data[0].wallet.token,
+      data: data,
+    } as AriesAgentData)) as TAAServiceResponse;
+
+    if (!taa.taa_required) {
+      // Just return success without doing anything as it is not required
+      return {};
+    }
+
+    // TODO: verify ACA-Py will update the TAA if submitted more than once
+    await this.app.service('aries-agent').create({
+      service: ServiceType.Ledger,
+      action: LedgerServiceAction.TAA_Accept,
+      token: params?.data[0].wallet.token,
+      data: data,
+    } as AriesAgentData);
+    return {};
   }
 
   docs: ServiceSwaggerOptions = {

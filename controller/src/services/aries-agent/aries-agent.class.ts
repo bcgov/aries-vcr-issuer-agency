@@ -86,6 +86,13 @@ export class AriesAgent {
       case ServiceType.Ledger:
         if (data.action === LedgerServiceAction.TAA_Fetch) {
           return this.fetchTAA(data.token);
+        } else if (data.action === LedgerServiceAction.TAA_Accept) {
+          return this.acceptTAA(
+            data.token,
+            data.data.mechanism,
+            data.data.text,
+            data.data.version
+          );
         }
       case ServiceType.CredEx:
         if (data.action === CredExServiceAction.Create) {
@@ -161,6 +168,26 @@ export class AriesAgent {
       this.acaPyUtils.getRequestConfig(token)
     );
     return response.data.result;
+  }
+
+  private async acceptTAA(
+    token: string | undefined,
+    mechanism: string,
+    text: string,
+    version: string
+  ): Promise<any> {
+    logger.debug('Fetching TAA');
+    const url = `${this.acaPyUtils.getAdminUrl()}/ledger/taa/accept`;
+    const response = await Axios.post(
+      url,
+      {
+        mechanism: mechanism,
+        text: text,
+        version: version,
+      },
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data;
   }
 
   private async getConnection(id: string): Promise<ConnectionServiceResponse> {
