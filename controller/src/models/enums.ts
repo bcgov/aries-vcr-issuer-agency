@@ -1,46 +1,46 @@
 export enum ConnectionServiceAction {
-  Create,
+  Create = 'Create',
 }
 
 export enum CredDefServiceAction {
-  Create,
-  List,
+  Create = 'Create',
+  Details = 'Details',
 }
 
 export enum CredExServiceAction {
-  Create,
+  Create = 'Create',
 }
 
 export enum LedgerServiceAction {
-  TAA_Fetch,
-  TAA_Accept,
+  TAA_Fetch = 'TAA Fetch',
+  TAA_Accept = 'TAA Accept',
 }
 
 export enum MultitenancyServiceAction {
-  Create,
-  Remove,
-  Details,
+  Create = 'Create',
+  Remove = 'Remove',
+  Details = 'Details',
 }
 
 export enum SchemasServiceAction {
-  Create,
-  List,
-  Details,
+  Create = 'Create',
+  List = 'List',
+  Details = 'Details',
 }
 
 export enum WalletServiceAction {
-  Create,
-  Publish,
+  Create = 'Create',
+  Publish = 'Publish',
 }
 
 export enum ServiceType {
-  Connection,
-  CredDef,
-  CredEx,
-  Schemas,
-  Ledger,
-  Multitenancy,
-  Wallet,
+  Connection = 'Connection',
+  CredDef = 'Credential Definition',
+  CredEx = 'Credential Exchange',
+  Schemas = 'Schemas',
+  Ledger = 'Ledger',
+  Multitenancy = 'Multitenancy',
+  Wallet = 'Wallet',
 }
 
 export enum WebhookTopic {
