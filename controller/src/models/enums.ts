@@ -31,6 +31,7 @@ export enum SchemasServiceAction {
 export enum WalletServiceAction {
   Create = 'Create',
   Publish = 'Publish',
+  Fetch = 'Fetch',
 }
 
 export enum ServiceType {

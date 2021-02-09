@@ -4,8 +4,13 @@ import {
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
-import { LedgerServiceAction, ServiceType } from '../../models/enums';
+import {
+  LedgerServiceAction,
+  ServiceType,
+  WalletServiceAction,
+} from '../../models/enums';
 import { TAAServiceResponse } from '../../models/ledger';
+import { WalletServiceResponse } from '../../models/wallet';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data {
@@ -37,6 +42,22 @@ export class TaaAccept implements ServiceSwaggerAddon {
     if (!taa.taa_required) {
       // Just return success without doing anything as it is not required
       return {};
+    }
+
+    const isDIDPublic = (await this.app.service('aries-agent').create({
+      service: ServiceType.Wallet,
+      action: WalletServiceAction.Fetch,
+      token: params?.profile.wallet.token,
+      data: {},
+    } as AriesAgentData)) as WalletServiceResponse;
+    if (!isDIDPublic.result) {
+      // DID needs to be made public
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Wallet,
+        action: WalletServiceAction.Publish,
+        token: params?.profile.wallet.token,
+        data: params?.profile.did,
+      } as AriesAgentData);
     }
 
     // TODO: verify ACA-Py will update the TAA if submitted more than once

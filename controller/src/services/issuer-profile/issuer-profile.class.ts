@@ -55,7 +55,7 @@ export class IssuerProfile implements ServiceSwaggerAddon {
       url: updatedProfile.url || '',
       email: updatedProfile.email || '',
       logo: updatedProfile.logo || '',
-    };
+    } as IssuerProfileModel;
   }
 
   model = {
@@ -76,6 +76,7 @@ export class IssuerProfile implements ServiceSwaggerAddon {
       name: {
         type: 'string',
         description: "The issuer's name.",
+        readOnly: true,
       },
       abbreviation: {
         type: 'string',

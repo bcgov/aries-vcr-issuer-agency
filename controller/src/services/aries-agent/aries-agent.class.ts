@@ -3,10 +3,7 @@ import { Params } from '@feathersjs/feathers';
 import Axios from 'axios';
 import { Application } from '../../declarations';
 import logger from '../../logger';
-import {
-  AriesConnection,
-  ConnectionServiceResponse,
-} from '../../models/connection';
+import { ConnectionServiceResponse } from '../../models/connection';
 import {
   AriesCredentialAttribute,
   AriesCredentialExchange,
@@ -78,6 +75,10 @@ export class AriesAgent {
       case ServiceType.Wallet:
         if (data.action === WalletServiceAction.Create) {
           return this.newDID(data.token);
+        } else if (data.action === WalletServiceAction.Fetch) {
+          return this.getPublicDID(data.token);
+        } else if (data.action === WalletServiceAction.Publish) {
+          this.publishDID(data.data.did, data.token);
         }
       case ServiceType.Connection:
         if (data.action === ConnectionServiceAction.Create) {
@@ -100,6 +101,23 @@ export class AriesAgent {
             data.data.credential_exchange_id,
             data.data.attributes
           );
+        }
+      case ServiceType.CredDef:
+        if (data.action === CredDefServiceAction.Details) {
+          return this.getCredDefDetailsForSchema(
+            data.token,
+            data.data.schema_id
+          );
+        } else if (data.action === CredDefServiceAction.Create) {
+          // TODO
+        }
+      case ServiceType.Schemas:
+        if (data.action === SchemasServiceAction.Details) {
+          return this.getSchemaDetails(data.token, data.data.schema_id);
+        } else if (data.action === SchemasServiceAction.List) {
+          return this.getCreatedSchemas(data.token);
+        } else if (data.action === SchemasServiceAction.Create) {
+          // TODO
         }
       default:
         return new NotImplemented(
@@ -126,6 +144,32 @@ export class AriesAgent {
   ): Promise<WalletServiceResponse> {
     logger.debug(`Creating new ${token ? 'sub-' : 'main '}wallet DID`);
     const url = `${this.acaPyUtils.getAdminUrl()}/wallet/did/create`;
+    const response = await Axios.post(
+      url,
+      {},
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data as WalletServiceResponse;
+  }
+
+  private async getPublicDID(
+    token: string | undefined
+  ): Promise<WalletServiceResponse> {
+    logger.debug('Retrieving wallet DID');
+    const url = `${this.acaPyUtils.getAdminUrl()}/wallet/did/public`;
+    const response = await Axios.get(
+      url,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data as WalletServiceResponse;
+  }
+
+  private async publishDID(
+    did: string,
+    token: string | undefined
+  ): Promise<WalletServiceResponse> {
+    logger.debug(`Setting DID ${did} as public`);
+    const url = `${this.acaPyUtils.getAdminUrl()}/wallet/did/public?did=${did}`;
     const response = await Axios.post(
       url,
       {},
@@ -176,7 +220,7 @@ export class AriesAgent {
     text: string,
     version: string
   ): Promise<any> {
-    logger.debug('Fetching TAA');
+    logger.debug('Accepting TAA');
     const url = `${this.acaPyUtils.getAdminUrl()}/ledger/taa/accept`;
     const response = await Axios.post(
       url,
@@ -190,15 +234,42 @@ export class AriesAgent {
     return response.data;
   }
 
-  private async getConnection(id: string): Promise<ConnectionServiceResponse> {
-    logger.debug(`Getting info for connection [${id}]`);
-    const url = `${this.acaPyUtils.getAdminUrl()}/connections/${id}`;
-    const response = await Axios.get(url, this.acaPyUtils.getRequestConfig());
-    const data = response.data as AriesConnection;
-    return {
-      connection_id: data.connection_id,
-      state: data.state,
-    } as ConnectionServiceResponse;
+  private async getCreatedSchemas(
+    token: string | undefined
+  ): Promise<string[]> {
+    logger.debug('Fetching all created schemas');
+    const url = `${this.acaPyUtils.getAdminUrl()}/schemas/created`;
+    const response = await Axios.get(
+      url,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data.schema_ids;
+  }
+
+  private async getSchemaDetails(
+    token: string | undefined,
+    schema_id: string
+  ): Promise<any> {
+    logger.debug(`Fetching details for schema with id: ${schema_id}`);
+    const url = `${this.acaPyUtils.getAdminUrl()}/schemas/${schema_id}`;
+    const response = await Axios.get(
+      url,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data.schema;
+  }
+
+  private async getCredDefDetailsForSchema(
+    token: string | undefined,
+    schema_id: string
+  ): Promise<any> {
+    logger.debug(`Fetching credential definition for schema ${schema_id}`);
+    const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created?schema_id=${schema_id}`;
+    const response = await Axios.get(
+      url,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data.credential_definition_ids[0];
   }
 
   private async newCredentialExchange(
@@ -247,25 +318,5 @@ export class AriesAgent {
       credential_exchange_id: credExData.credential_exchange_id,
       state: credExData.state,
     } as CredExServiceResponse;
-  }
-
-  private async revokeCredential(
-    revocation_id: string,
-    revoc_reg_id: string
-  ): Promise<boolean> {
-    logger.debug(
-      `Attempting revocation for id [${revocation_id}] on registry [${revoc_reg_id}]`
-    );
-    const url = `${this.acaPyUtils.getAdminUrl()}/revocation/revoke`;
-    const response = await Axios.post(
-      url,
-      {
-        cred_rev_id: revocation_id,
-        rev_reg_id: revoc_reg_id,
-        publish: true,
-      },
-      this.acaPyUtils.getRequestConfig()
-    );
-    return response.status === 200;
   }
 }
