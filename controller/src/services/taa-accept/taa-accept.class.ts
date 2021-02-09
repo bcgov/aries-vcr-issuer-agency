@@ -29,8 +29,8 @@ export class TaaAccept implements ServiceSwaggerAddon {
   async create(data: Data, params?: Params): Promise<any> {
     const taa = (await this.app.service('aries-agent').create({
       service: ServiceType.Ledger,
-      action: LedgerServiceAction.TAA_Accept,
-      token: params?.data[0].wallet.token,
+      action: LedgerServiceAction.TAA_Fetch,
+      token: params?.profile.wallet.token,
       data: data,
     } as AriesAgentData)) as TAAServiceResponse;
 
@@ -43,7 +43,7 @@ export class TaaAccept implements ServiceSwaggerAddon {
     await this.app.service('aries-agent').create({
       service: ServiceType.Ledger,
       action: LedgerServiceAction.TAA_Accept,
-      token: params?.data[0].wallet.token,
+      token: params?.profile.wallet.token,
       data: data,
     } as AriesAgentData);
     return {};

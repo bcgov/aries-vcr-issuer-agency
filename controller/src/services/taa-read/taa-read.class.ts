@@ -26,7 +26,7 @@ export class TaaRead implements ServiceSwaggerAddon {
     const taa = await this.app.service('aries-agent').create({
       service: ServiceType.Ledger,
       action: LedgerServiceAction.TAA_Fetch,
-      token: params.data[0].wallet.token,
+      token: params.profile.wallet.token,
     } as AriesAgentData);
     return {
       aml: taa.aml_record || {},
