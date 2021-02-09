@@ -72,7 +72,7 @@ services:
     networks:
       - vcr-issuer-agency
     ports:
-      - 5435:5432
+      - 5436:5432
     volumes:
       - agency-wallet:/var/lib/pgsql/data
 
