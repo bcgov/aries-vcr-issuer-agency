@@ -1,9 +1,13 @@
-import { Paginated, Params } from '@feathersjs/feathers';
+import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
+import { AriesCredentialDefinition } from '../../models/credential-definition';
+import { SchemasServiceAction, ServiceType } from '../../models/enums';
+import { SchemaServiceModel, SchemaServiceRequest } from '../../models/schema';
+import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data {}
 
@@ -19,8 +23,8 @@ export class Schemas implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async find(params?: Params): Promise<Data[] | Paginated<Data>> {
-    return [];
+  async find(params?: Params): Promise<SchemaServiceModel[]> {
+    return params?.schemas || [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -29,7 +33,61 @@ export class Schemas implements ServiceSwaggerAddon {
       return Promise.all(data.map((current) => this.create(current, params)));
     }
 
-    return data;
+    let schemaList = (params?.schemas || []) as SchemaServiceModel[];
+    const schema = data as SchemaServiceModel;
+    let isNewSchema = true;
+
+    if (schemaList.length > 0) {
+      // find and update existing schema, if necessary - only metadata object can be updated
+      schemaList = schemaList.map((existingSchema: SchemaServiceModel) => {
+        if (
+          existingSchema.schema_name === schema.schema_name &&
+          existingSchema.schema_version === schema.schema_version
+        ) {
+          existingSchema.metadata = schema.metadata;
+          isNewSchema = false;
+        }
+        return existingSchema;
+      });
+    }
+
+    if (isNewSchema) {
+      // post schema on ledger
+      const schemaId = await this.app.service('aries-agent').create({
+        service: ServiceType.Schemas,
+        action: SchemasServiceAction.Create,
+        token: params?.profile.wallet.token,
+        data: {
+          schema_name: schema.schema_name,
+          schema_version: schema.schema_version,
+          attributes: schema.attributes,
+        } as SchemaServiceRequest,
+      } as AriesAgentData);
+      schema.schema_id = schemaId;
+
+      // create credential definition based on schema
+      const credDefId = await this.app.service('aries-agent').create({
+        service: ServiceType.CredDef,
+        action: SchemasServiceAction.Create,
+        token: params?.profile.wallet.token,
+        data: {
+          schema_id: schemaId,
+          tag: params?.profile.normalizedName,
+          support_revocation: false,
+        } as AriesCredentialDefinition,
+      } as AriesAgentData);
+      schema.credential_definition_id = credDefId;
+
+      // add the new schema to the profile
+      schemaList.push(schema);
+    }
+
+    // Save data to controller db
+    await this.app.service('issuer-model').patch(params?.profile._id, {
+      schemas: schemaList,
+    });
+
+    return schemaList;
   }
 
   model = {

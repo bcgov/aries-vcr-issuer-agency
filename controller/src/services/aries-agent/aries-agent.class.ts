@@ -5,9 +5,12 @@ import { Application } from '../../declarations';
 import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
 import {
+  AriesCredentialDefinition,
+  CredDefServiceResponse,
+} from '../../models/credential-definition';
+import {
   AriesCredentialAttribute,
   AriesCredentialExchange,
-  AriesCredentialOffer,
   CredExServiceResponse,
 } from '../../models/credential-exchange';
 import {
@@ -24,6 +27,7 @@ import {
   MultitenancyServiceRequest,
   MultitenancyServiceResponse,
 } from '../../models/multitenancy';
+import { AriesSchema, SchemaServiceRequest } from '../../models/schema';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AcaPyUtils } from '../../utils/aca-py';
 import { formatCredentialPreview } from '../../utils/credential-exchange';
@@ -109,7 +113,7 @@ export class AriesAgent {
             data.data.schema_id
           );
         } else if (data.action === CredDefServiceAction.Create) {
-          // TODO
+          this.publishCredentialDefinition(data.data, data.token);
         }
       case ServiceType.Schemas:
         if (data.action === SchemasServiceAction.Details) {
@@ -117,7 +121,7 @@ export class AriesAgent {
         } else if (data.action === SchemasServiceAction.List) {
           return this.getCreatedSchemas(data.token);
         } else if (data.action === SchemasServiceAction.Create) {
-          // TODO
+          this.publishSchema(data.data, data.token);
         }
       default:
         return new NotImplemented(
@@ -249,7 +253,7 @@ export class AriesAgent {
   private async getSchemaDetails(
     token: string | undefined,
     schema_id: string
-  ): Promise<any> {
+  ): Promise<AriesSchema> {
     logger.debug(`Fetching details for schema with id: ${schema_id}`);
     const url = `${this.acaPyUtils.getAdminUrl()}/schemas/${schema_id}`;
     const response = await Axios.get(
@@ -262,7 +266,7 @@ export class AriesAgent {
   private async getCredDefDetailsForSchema(
     token: string | undefined,
     schema_id: string
-  ): Promise<any> {
+  ): Promise<string> {
     logger.debug(`Fetching credential definition for schema ${schema_id}`);
     const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created?schema_id=${schema_id}`;
     const response = await Axios.get(
@@ -272,34 +276,35 @@ export class AriesAgent {
     return response.data.credential_definition_ids[0];
   }
 
-  private async newCredentialExchange(
-    data: AriesCredentialOffer
-  ): Promise<any> {
-    logger.debug('Creating new credential exchange');
-    const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential/send-offer`;
+  async publishSchema(
+    schema: SchemaServiceRequest,
+    token: string | undefined
+  ): Promise<AriesSchema> {
+    const url = `${this.acaPyUtils.getAdminUrl()}/schemas`;
+    logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
     const response = await Axios.post(
       url,
-      data,
-      this.acaPyUtils.getRequestConfig()
+      schema,
+      this.acaPyUtils.getRequestConfig(token)
     );
-    const credExData = response.data as AriesCredentialExchange;
-    return {
-      credential_exchange_id: credExData.credential_exchange_id,
-      state: credExData.state,
-    } as CredExServiceResponse;
+    const schemaResponse = response.data as AriesSchema;
+    return schemaResponse;
   }
 
-  private async getCredentialExchange(
-    id: string
-  ): Promise<CredExServiceResponse> {
-    logger.debug(`Fetching data for credential exchange [${id}]`);
-    const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential/records/${id}`;
-    const response = await Axios.get(url, this.acaPyUtils.getRequestConfig());
-    const credExData = response.data as AriesCredentialExchange;
-    return {
-      credential_exchange_id: credExData.credential_exchange_id,
-      state: credExData.state,
-    } as CredExServiceResponse;
+  async publishCredentialDefinition(
+    credDef: AriesCredentialDefinition,
+    token: string | undefined
+  ): Promise<CredDefServiceResponse> {
+    logger.debug(
+      `Publishing credential definition to ledger: ${JSON.stringify(credDef)}`
+    );
+    const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions`;
+    const response = await Axios.post(
+      url,
+      credDef,
+      this.acaPyUtils.getRequestConfig(token)
+    );
+    return response.data as CredDefServiceResponse;
   }
 
   private async issueCredential(

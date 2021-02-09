@@ -1,11 +1,14 @@
 import { authenticateIssuer } from '../../utils/hooks/authentication';
+import { checkValidIssuerProfile } from '../../utils/hooks/issuer-profile';
+import { autoSyncIssuerRegistration } from '../../utils/hooks/issuer-registration';
+import { validateSchemaModel } from '../../utils/hooks/schemas';
 
 export default {
   before: {
-    all: [authenticateIssuer],
+    all: [authenticateIssuer, checkValidIssuerProfile],
     find: [],
     get: [],
-    create: [],
+    create: [validateSchemaModel],
     update: [],
     patch: [],
     remove: [],
@@ -15,7 +18,7 @@ export default {
     all: [],
     find: [],
     get: [],
-    create: [],
+    create: [autoSyncIssuerRegistration],
     update: [],
     patch: [],
     remove: [],

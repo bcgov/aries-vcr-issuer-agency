@@ -1,3 +1,5 @@
+import { CredentialMetadata } from './issuer-registration';
+
 /**
  * Example:
  * "schema_id": "GSqQTPcQVdLtBYYSgBJXai:2:prefs:1.0",
@@ -24,13 +26,17 @@ export interface AriesSchema {
   };
 }
 
-export interface SchemaDefinition {
-  id?: string;
-  schema_version?: string;
-  schema_name?: string;
-  attributes?: string[];
-  revocable?: boolean;
-  tag?: string;
-  default?: boolean;
-  public?: boolean;
+export interface SchemaServiceRequest {
+  schema_version: string;
+  schema_name: string;
+  attributes: string[];
+}
+
+export interface SchemaServiceModel {
+  schema_id?: string;
+  credential_definition_id?: string;
+  schema_name: string;
+  schema_version: string;
+  attributes: string[];
+  metadata: CredentialMetadata;
 }

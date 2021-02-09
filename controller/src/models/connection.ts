@@ -49,26 +49,26 @@ export interface AriesInvitation {
  *   "state": "active",
  *   "updated_at": "2020-05-23 00:40:24Z"
  * }
- */
-export interface AriesConnection {
-  created_at: string;
-  inbound_connection_id: string;
-  alias: string;
-  my_did: string;
-  their_role: string;
-  request_id: string;
-  initiator: string;
-  their_label: string;
-  invitation_key: string;
-  invitation_mode: string;
-  their_did: string;
-  routing_state: string;
-  connection_id: string;
-  accept: string;
-  error_msg: string;
-  state: string;
-  updated_at: string;
-}
+//  */
+// export interface AriesConnection {
+//   created_at: string;
+//   inbound_connection_id: string;
+//   alias: string;
+//   my_did: string;
+//   their_role: string;
+//   request_id: string;
+//   initiator: string;
+//   their_label: string;
+//   invitation_key: string;
+//   invitation_mode: string;
+//   their_did: string;
+//   routing_state: string;
+//   connection_id: string;
+//   accept: string;
+//   error_msg: string;
+//   state: string;
+//   updated_at: string;
+// }
 
 export interface ConnectionServiceResponse {
   connection_id: string;

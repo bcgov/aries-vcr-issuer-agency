@@ -32,18 +32,6 @@ export class TaaAccept implements ServiceSwaggerAddon {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<any> {
-    const taa = (await this.app.service('aries-agent').create({
-      service: ServiceType.Ledger,
-      action: LedgerServiceAction.TAA_Fetch,
-      token: params?.profile.wallet.token,
-      data: data,
-    } as AriesAgentData)) as TAAServiceResponse;
-
-    if (!taa.taa_required) {
-      // Just return success without doing anything as it is not required
-      return {};
-    }
-
     const isDIDPublic = (await this.app.service('aries-agent').create({
       service: ServiceType.Wallet,
       action: WalletServiceAction.Fetch,
@@ -56,8 +44,20 @@ export class TaaAccept implements ServiceSwaggerAddon {
         service: ServiceType.Wallet,
         action: WalletServiceAction.Publish,
         token: params?.profile.wallet.token,
-        data: params?.profile.did,
+        data: { did: params?.profile.did },
       } as AriesAgentData);
+    }
+
+    const taa = (await this.app.service('aries-agent').create({
+      service: ServiceType.Ledger,
+      action: LedgerServiceAction.TAA_Fetch,
+      token: params?.profile.wallet.token,
+      data: data,
+    } as AriesAgentData)) as TAAServiceResponse;
+
+    if (!taa.taa_required) {
+      // Just return success without doing anything as it is not required
+      return {};
     }
 
     // TODO: verify ACA-Py will update the TAA if submitted more than once
