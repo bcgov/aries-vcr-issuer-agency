@@ -144,7 +144,6 @@ export class Schemas implements ServiceSwaggerAddon {
                 },
               },
             },
-            // ],
           },
           cardinality: {
             type: 'array',
@@ -154,16 +153,60 @@ export class Schemas implements ServiceSwaggerAddon {
               type: 'string',
             },
           },
-          effective_date: {
-            type: 'string',
-            description:
-              'The name of the field to be mapped to the credential effective date.',
+          date_fields: {
+            type: 'object',
+            properties: {
+              effective_date: {
+                type: 'string',
+                description:
+                  'The name of the field to be mapped to the credential effective date.',
+              },
+              revoked_date: {
+                type: 'string',
+                description:
+                  'The name of the field to be mapped to the credential revoked date.',
+              },
+              other_date_fields: {
+                type: 'array',
+                description: 'List of fields representing dates.',
+                items: {
+                  type: 'string',
+                },
+              },
+            },
           },
-          other_date_fields: {
-            type: 'array',
-            description: 'List of fields representing dates.',
-            items: {
-              type: 'string',
+          address_fields: {
+            type: 'object',
+            properties: {
+              addressee: {
+                type: 'string',
+                description: 'The name of the field to be used as addressee.',
+              },
+              civic_address: {
+                type: 'string',
+                description:
+                  'The name of the field to be used as civic_address.',
+              },
+              city: {
+                type: 'string',
+                description:
+                  'The name of the field to be used as civic_address.',
+              },
+              province: {
+                type: 'string',
+                description:
+                  'The name of the field to be used as civic_address.',
+              },
+              postal_code: {
+                type: 'string',
+                description:
+                  'The name of the field to be used as civic_address.',
+              },
+              country: {
+                type: 'string',
+                description:
+                  'The name of the field to be used as civic_address.',
+              },
             },
           },
           search_fields: {
@@ -171,6 +214,66 @@ export class Schemas implements ServiceSwaggerAddon {
             description: 'List of fields that will be indexed for searching.',
             items: {
               type: 'string',
+            },
+          },
+          labels: {
+            type: 'object',
+            properties: {
+              schema: {
+                type: 'object',
+                description: 'The localizations for the schema name.',
+                properties: {
+                  lan_1: {
+                    type: 'string',
+                    description: 'The schema name for lan_1',
+                  },
+                  lan_2: {
+                    type: 'string',
+                    description: 'The schema name for lan_2',
+                  },
+                },
+              },
+              attributes: {
+                type: 'array',
+                description:
+                  'The localizations for the schema attribute labels.',
+                items: {
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'The name of the field to be localized.',
+                    },
+                    translations: {
+                      type: 'object',
+                      description: 'The translations for this attribute label.',
+                      properties: {
+                        lan_1: {
+                          type: 'object',
+                          properties: {
+                            label: {
+                              type: 'string',
+                            },
+                            description: {
+                              type: 'string',
+                            },
+                          },
+                        },
+                        lan_2: {
+                          type: 'object',
+                          properties: {
+                            label: {
+                              type: 'string',
+                            },
+                            description: {
+                              type: 'string',
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },

@@ -62,7 +62,7 @@ export interface CredentialTypePayload {
 export interface IssuerRegistrationPayload {
   connection_id: string;
   issuer_registration: {
-    credential_types: CredentialPayload[];
+    credential_types: CredentialTypePayload[];
     issuer: IssuerPayload;
   };
 }
