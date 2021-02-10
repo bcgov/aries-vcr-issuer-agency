@@ -36,83 +36,94 @@ export class Admin implements ServiceSwaggerAddon {
   }
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<any> {
-    // Remove special characters and replace spaces with "_", useful for matching existing users
-    // as well as having a suitable name for the issuer's wallet schema
-    const normalizedName = data.name
-      .normalize('NFD')
-      .replace(/[^a-zA-Z0-9\s]+/g, '')
-      .replace(/\s+/g, '_');
+  async create(
+    data: Data,
+    params?: Params
+  ): Promise<BaseIssuerProfile | Error> {
+    try {
+      // Remove special characters and replace spaces with "_", useful for matching existing users
+      // as well as having a suitable name for the issuer's wallet schema
+      const normalizedName = data.name
+        .normalize('NFD')
+        .replace(/[^a-zA-Z0-9\s]+/g, '')
+        .replace(/\s+/g, '_');
 
-    const existingProfiles = (await this.app.service('issuer-model').find({
-      query: { normalizedName: normalizedName },
-      collation: { locale: 'en', strength: 1 },
-    })) as Paginated<Data>;
+      const existingProfiles = (await this.app.service('issuer-model').find({
+        query: { normalizedName: normalizedName },
+        collation: { locale: 'en', strength: 1 },
+      })) as Paginated<Data>;
 
-    if (existingProfiles.data.length > 0) {
-      return new Conflict(
-        `A profile with a matching normalized name of '${normalizedName}' has already been created`
-      );
-    }
+      if (existingProfiles.data.length > 0) {
+        return new Conflict(
+          `A profile with a matching normalized name of '${normalizedName}' has already been created`
+        );
+      }
 
-    // Create sub-wallet
-    const subWalletRequestData = {
-      label: data.name,
-      wallet_name: normalizedName,
-      wallet_key: normalizedName,
-      wallet_type: 'indy',
-      key_management_mode: 'managed',
-      wallet_dispatch_type: 'default',
-      wallet_webhook_urls: this.app.get('defaultWebhookHosts'),
-    } as MultitenancyServiceRequest;
-    const subWallet = (await this.app.service('aries-agent').create({
-      service: ServiceType.Multitenancy,
-      action: MultitenancyServiceAction.Create,
-      data: subWalletRequestData,
-    } as AriesAgentData)) as MultitenancyServiceResponse;
+      // Create sub-wallet
+      const subWalletRequestData = {
+        label: data.name,
+        wallet_name: normalizedName,
+        wallet_key: normalizedName,
+        wallet_type: 'indy',
+        key_management_mode: 'managed',
+        wallet_dispatch_type: 'default',
+        wallet_webhook_urls: this.app.get('defaultWebhookHosts'),
+      } as MultitenancyServiceRequest;
+      const subWallet = (await this.app.service('aries-agent').create({
+        service: ServiceType.Multitenancy,
+        action: MultitenancyServiceAction.Create,
+        data: subWalletRequestData,
+      } as AriesAgentData)) as MultitenancyServiceResponse;
 
-    // Create wallet DID
-    const subWalletDid = (await this.app.service('aries-agent').create({
-      service: ServiceType.Wallet,
-      action: WalletServiceAction.Create,
-      token: subWallet.token,
-    } as AriesAgentData)) as WalletServiceResponse;
-
-    // Connect to credential registry
-    const connection = (await this.app.service('aries-agent').create({
-      service: ServiceType.Connection,
-      action: ConnectionServiceAction.Create,
-      token: subWallet.token,
-      data: {
-        alias: data.name,
-      },
-    } as AriesAgentData)) as ConnectionServiceResponse;
-
-    // Create profile
-    const issuerApiKey = uuidv4();
-    await this.app.service('issuer-model').create({
-      name: data.name,
-      normalizedName: normalizedName,
-      'api-key': issuerApiKey,
-      wallet: {
-        id: subWallet.wallet_id,
-        name: subWallet.settings['wallet.name'],
+      // Create wallet DID
+      const subWalletDid = (await this.app.service('aries-agent').create({
+        service: ServiceType.Wallet,
+        action: WalletServiceAction.Create,
         token: subWallet.token,
-      },
-      did: subWalletDid.result.did,
-      verkey: subWalletDid.result.verkey,
-      vcr_connection_id: connection.connection_id,
-    } as BaseIssuerProfile);
+      } as AriesAgentData)) as WalletServiceResponse;
 
-    logger.debug(`Created new profile with name ${data.name}`);
+      // Connect to credential registry
+      const connection = (await this.app.service('aries-agent').create({
+        service: ServiceType.Connection,
+        action: ConnectionServiceAction.Create,
+        token: subWallet.token,
+        data: {
+          alias: data.name,
+        },
+      } as AriesAgentData)) as ConnectionServiceResponse;
 
-    return { name: data.name, 'api-key': issuerApiKey };
+      // Create profile
+      const issuerApiKey = uuidv4();
+      await this.app.service('issuer-model').create({
+        name: data.name,
+        normalizedName: normalizedName,
+        'api-key': issuerApiKey,
+        wallet: {
+          id: subWallet.wallet_id,
+          name: subWallet.settings['wallet.name'],
+          token: subWallet.token,
+        },
+        did: subWalletDid.result.did,
+        verkey: subWalletDid.result.verkey,
+        vcr_connection_id: connection.connection_id,
+      } as BaseIssuerProfile);
+
+      logger.debug(`Created new profile with name ${data.name}`);
+
+      return { name: data.name, 'api-key': issuerApiKey };
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove(id: NullableId, params: Params): Promise<any> {
-    await this.app.service('issuer-model').remove(id);
-    return {};
+    try {
+      await this.app.service('issuer-model').remove(id);
+      return {};
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   docs: ServiceSwaggerOptions = {

@@ -22,18 +22,22 @@ export class TaaRead implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async find(params: Params): Promise<TAAServiceResponse> {
-    const taa = await this.app.service('aries-agent').create({
-      service: ServiceType.Ledger,
-      action: LedgerServiceAction.TAA_Fetch,
-      token: params.profile.wallet.token,
-    } as AriesAgentData);
-    return {
-      aml: taa.aml_record || {},
-      taa_accepted: taa.taa_accepted || {},
-      taa_record: taa.taa_record || {},
-      taa_required: taa.taa_required,
-    } as TAAServiceResponse;
+  async find(params: Params): Promise<TAAServiceResponse | Error> {
+    try {
+      const taa = await this.app.service('aries-agent').create({
+        service: ServiceType.Ledger,
+        action: LedgerServiceAction.TAA_Fetch,
+        token: params.profile.wallet.token,
+      } as AriesAgentData);
+      return {
+        aml: taa.aml_record || {},
+        taa_accepted: taa.taa_accepted || {},
+        taa_record: taa.taa_record || {},
+        taa_required: taa.taa_required,
+      } as TAAServiceResponse;
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   model = {

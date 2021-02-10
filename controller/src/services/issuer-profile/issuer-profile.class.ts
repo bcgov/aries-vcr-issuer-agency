@@ -25,37 +25,48 @@ export class IssuerProfile implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async find(params: Params): Promise<IssuerProfileModel> {
-    return {
-      did: params.profile.did,
-      verkey: params.profile.verkey,
-      name: params.profile.name,
-      abbreviation: params.profile.abbreviation || '',
-      url: params.profile.url || '',
-      email: params.profile.email || '',
-      logo: params.profile.logo || '',
-    };
+  async find(params: Params): Promise<IssuerProfileModel | Error> {
+    try {
+      return {
+        did: params.profile.did,
+        verkey: params.profile.verkey,
+        name: params.profile.name,
+        abbreviation: params.profile.abbreviation || '',
+        url: params.profile.url || '',
+        email: params.profile.email || '',
+        logo: params.profile.logo || '',
+      };
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<IssuerProfileModel> {
-    const updatedProfile = await this.app
-      .service('issuer-model')
-      .patch(params?.profile._id, {
-        abbreviation: data.abbreviation || '',
-        url: data.url || '',
-        email: data.email || '',
-        logo: data.logo || '',
-      });
-    return {
-      did: updatedProfile.did,
-      verkey: updatedProfile.verkey,
-      name: updatedProfile.name,
-      abbreviation: updatedProfile.abbreviation || '',
-      url: updatedProfile.url || '',
-      email: updatedProfile.email || '',
-      logo: updatedProfile.logo || '',
-    } as IssuerProfileModel;
+  async create(
+    data: Data,
+    params?: Params
+  ): Promise<IssuerProfileModel | Error> {
+    try {
+      const updatedProfile = await this.app
+        .service('issuer-model')
+        .patch(params?.profile._id, {
+          abbreviation: data.abbreviation || '',
+          url: data.url || '',
+          email: data.email || '',
+          logo: data.logo || '',
+        });
+      return {
+        did: updatedProfile.did,
+        verkey: updatedProfile.verkey,
+        name: updatedProfile.name,
+        abbreviation: updatedProfile.abbreviation || '',
+        url: updatedProfile.url || '',
+        email: updatedProfile.email || '',
+        logo: updatedProfile.logo || '',
+      } as IssuerProfileModel;
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   model = {

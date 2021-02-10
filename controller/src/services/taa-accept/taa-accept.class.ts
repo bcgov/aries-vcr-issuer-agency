@@ -1,3 +1,4 @@
+import { GeneralError } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
@@ -32,42 +33,46 @@ export class TaaAccept implements ServiceSwaggerAddon {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: Data, params?: Params): Promise<any> {
-    const isDIDPublic = (await this.app.service('aries-agent').create({
-      service: ServiceType.Wallet,
-      action: WalletServiceAction.Fetch,
-      token: params?.profile.wallet.token,
-      data: {},
-    } as AriesAgentData)) as WalletServiceResponse;
-    if (!isDIDPublic.result) {
-      // DID needs to be made public
-      await this.app.service('aries-agent').create({
+    try {
+      const isDIDPublic = (await this.app.service('aries-agent').create({
         service: ServiceType.Wallet,
-        action: WalletServiceAction.Publish,
+        action: WalletServiceAction.Fetch,
         token: params?.profile.wallet.token,
-        data: { did: params?.profile.did },
+        data: {},
+      } as AriesAgentData)) as WalletServiceResponse;
+      if (!isDIDPublic.result) {
+        // DID needs to be made public
+        await this.app.service('aries-agent').create({
+          service: ServiceType.Wallet,
+          action: WalletServiceAction.Publish,
+          token: params?.profile.wallet.token,
+          data: { did: params?.profile.did },
+        } as AriesAgentData);
+      }
+
+      const taa = (await this.app.service('aries-agent').create({
+        service: ServiceType.Ledger,
+        action: LedgerServiceAction.TAA_Fetch,
+        token: params?.profile.wallet.token,
+        data: data,
+      } as AriesAgentData)) as TAAServiceResponse;
+
+      if (!taa.taa_required) {
+        // Just return success without doing anything as it is not required
+        return {};
+      }
+
+      // TODO: verify ACA-Py will update the TAA if submitted more than once
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Ledger,
+        action: LedgerServiceAction.TAA_Accept,
+        token: params?.profile.wallet.token,
+        data: data,
       } as AriesAgentData);
-    }
-
-    const taa = (await this.app.service('aries-agent').create({
-      service: ServiceType.Ledger,
-      action: LedgerServiceAction.TAA_Fetch,
-      token: params?.profile.wallet.token,
-      data: data,
-    } as AriesAgentData)) as TAAServiceResponse;
-
-    if (!taa.taa_required) {
-      // Just return success without doing anything as it is not required
       return {};
+    } catch (e) {
+      return e as Error;
     }
-
-    // TODO: verify ACA-Py will update the TAA if submitted more than once
-    await this.app.service('aries-agent').create({
-      service: ServiceType.Ledger,
-      action: LedgerServiceAction.TAA_Accept,
-      token: params?.profile.wallet.token,
-      data: data,
-    } as AriesAgentData);
-    return {};
   }
 
   docs: ServiceSwaggerOptions = {

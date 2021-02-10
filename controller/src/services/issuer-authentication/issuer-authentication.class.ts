@@ -22,13 +22,17 @@ export class IssuerAuthentication implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<Data> {
-    const newApiKey = uuidv4();
-    await this.app.service('issuer-model').patch(params?.profile._id, {
-      'api-key': newApiKey,
-    });
+  async create(data: Data, params?: Params): Promise<Data | Error> {
+    try {
+      const newApiKey = uuidv4();
+      await this.app.service('issuer-model').patch(params?.profile._id, {
+        'api-key': newApiKey,
+      });
 
-    return { 'api-key': newApiKey };
+      return { 'api-key': newApiKey };
+    } catch (e) {
+      return e as Error;
+    }
   }
 
   docs: ServiceSwaggerOptions = {
