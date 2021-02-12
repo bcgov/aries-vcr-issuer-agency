@@ -151,8 +151,9 @@ function formatMappings(
   });
   // prepare mapping for standard/date attributes
   for (const attribute in standardAttributes) {
+    const isSearchable = metadata.search_fields.includes(attribute);
     const mapping = {
-      model: 'attribute',
+      model: isSearchable ? 'name' : 'attribute',
       fields: {
         type: {
           input: attribute,
