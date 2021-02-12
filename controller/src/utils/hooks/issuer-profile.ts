@@ -1,7 +1,7 @@
 import { GeneralError } from '@feathersjs/errors';
 import { HookContext, Paginated, Service } from '@feathersjs/feathers';
 import { DuplicatedProfileError } from '../../models/errors';
-import { IssuerProfile } from '../../models/issuer-model';
+import { IssuerProfileDbModel } from '../../models/issuer-model';
 
 export async function checkValidIssuerProfile(
   context: HookContext
@@ -12,7 +12,7 @@ export async function checkValidIssuerProfile(
   const result = (await context.app.service('issuer-model').find({
     query: { 'api-key': apiKeyHeader },
     collation: { locale: 'en', strength: 1 },
-  })) as Paginated<IssuerProfile>;
+  })) as Paginated<IssuerProfileDbModel>;
 
   if (result.total > 1 || result.data.length !== 1) {
     throw new DuplicatedProfileError(

@@ -1,4 +1,4 @@
-import { GeneralError, NotImplemented } from '@feathersjs/errors';
+import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import Axios, { AxiosError } from 'axios';
 import { Application } from '../../declarations';
@@ -17,6 +17,7 @@ import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredExServiceAction,
+  IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
   SchemasServiceAction,
@@ -24,11 +25,12 @@ import {
   WalletServiceAction,
 } from '../../models/enums';
 import { AriesAgentError } from '../../models/errors';
+import { IssuerRegistrationPayload } from '../../models/issuer-registration';
 import {
   MultitenancyServiceRequest,
   MultitenancyServiceResponse,
 } from '../../models/multitenancy';
-import { AriesSchema, SchemaServiceRequest } from '../../models/schema';
+import { AriesSchema, AriesSchemaServiceRequest } from '../../models/schema';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AcaPyUtils } from '../../utils/aca-py';
 import { formatCredentialPreview } from '../../utils/credential-exchange';
@@ -42,7 +44,8 @@ export interface AriesAgentData {
     | LedgerServiceAction
     | MultitenancyServiceAction
     | SchemasServiceAction
-    | WalletServiceAction;
+    | WalletServiceAction
+    | IssuerRegistrationServiceAction;
   token?: string;
   data: any;
 }
@@ -123,6 +126,10 @@ export class AriesAgent {
           return this.getCreatedSchemas(data.token);
         } else if (data.action === SchemasServiceAction.Create) {
           return this.publishSchema(data.data, data.token);
+        }
+      case ServiceType.IssuerRegistration:
+        if (data.action === IssuerRegistrationServiceAction.Submit) {
+          return this.handleIssuerRegistration(data.data, data.token);
         }
       default:
         return new NotImplemented(
@@ -368,7 +375,7 @@ export class AriesAgent {
   }
 
   async publishSchema(
-    schema: SchemaServiceRequest,
+    schema: AriesSchemaServiceRequest,
     token: string | undefined
   ): Promise<AriesSchema> {
     try {
@@ -406,6 +413,35 @@ export class AriesAgent {
         this.acaPyUtils.getRequestConfig(token)
       );
       return response.data as CredDefServiceResponse;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async handleIssuerRegistration(
+    payload: IssuerRegistrationPayload,
+    token: string | undefined
+  ): Promise<any> {
+    try {
+      const issuerName = payload.issuer_registration.issuer.name;
+      const schemaName = payload.issuer_registration.credential_types[0].schema;
+      const schemaVersion =
+        payload.issuer_registration.credential_types[0].version;
+      logger.debug(
+        `Processing issuer registration request for ${issuerName}, ${schemaName}:${schemaVersion}`
+      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/issuer_registration/send`;
+      const response = await Axios.post(
+        url,
+        payload,
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      return response.data;
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(

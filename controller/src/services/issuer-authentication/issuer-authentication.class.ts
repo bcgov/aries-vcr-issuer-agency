@@ -1,10 +1,10 @@
-import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { v4 as uuidv4 } from 'uuid';
 import { Application } from '../../declarations';
+import { IssuerServiceParams } from '../../models/service-params';
 
 interface Data {
   'api-key': string;
@@ -22,10 +22,10 @@ export class IssuerAuthentication implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<Data | Error> {
+  async create(data: Data, params: IssuerServiceParams): Promise<Data | Error> {
     try {
       const newApiKey = uuidv4();
-      await this.app.service('issuer-model').patch(params?.profile._id, {
+      await this.app.service('issuer-model').patch(params.profile._id, {
         'api-key': newApiKey,
       });
 

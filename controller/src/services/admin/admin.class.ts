@@ -14,7 +14,7 @@ import {
   ServiceType,
   WalletServiceAction,
 } from '../../models/enums';
-import { BaseIssuerProfile } from '../../models/issuer-model';
+import { IssuerProfileModel } from '../../models/issuer-model';
 import {
   MultitenancyServiceRequest,
   MultitenancyServiceResponse,
@@ -22,7 +22,7 @@ import {
 import { WalletServiceResponse } from '../../models/wallet';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface Data extends BaseIssuerProfile {}
+interface Data extends IssuerProfileModel {}
 
 interface ServiceOptions {}
 
@@ -38,8 +38,8 @@ export class Admin implements ServiceSwaggerAddon {
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(
     data: Data,
-    params?: Params
-  ): Promise<BaseIssuerProfile | Error> {
+    params: Params
+  ): Promise<Partial<IssuerProfileModel> | Error> {
     try {
       // Remove special characters and replace spaces with "_", useful for matching existing users
       // as well as having a suitable name for the issuer's wallet schema
@@ -106,7 +106,7 @@ export class Admin implements ServiceSwaggerAddon {
         did: subWalletDid.result.did,
         verkey: subWalletDid.result.verkey,
         vcr_connection_id: connection.connection_id,
-      } as BaseIssuerProfile);
+      } as IssuerProfileModel);
 
       logger.debug(`Created new profile with name ${data.name}`);
 

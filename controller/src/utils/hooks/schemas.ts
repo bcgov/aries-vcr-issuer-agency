@@ -6,7 +6,6 @@ export async function validateSchemaModel(
   context: HookContext
 ): Promise<HookContext<any, Service<any>>> {
   const data = (context.data || {}) as SchemaServiceModel;
-
   if (
     !data.schema_name ||
     !data.schema_version ||
@@ -30,14 +29,13 @@ export async function validateSchemaModel(
       );
     }
     if (
-      metadata.date_fields.effective_date ||
-      metadata.date_fields.revoked_date
+      !metadata.date_fields.effective_date ||
+      !metadata.date_fields.revoked_date
     ) {
       throw new BadRequest(
         'Effective Date and Revoked Date field mappings must be provided in the schema metadata.'
       );
     }
   }
-
   return context;
 }

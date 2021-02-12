@@ -1,10 +1,10 @@
-import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
-import { IssuerProfile as IssuerProfileModel } from '../../models/issuer-model';
+import { IssuerProfileModel } from '../../models/issuer-model';
+import { IssuerServiceParams } from '../../models/service-params';
 
 interface Data {
   abbreviation: string;
@@ -24,8 +24,9 @@ export class IssuerProfile implements ServiceSwaggerAddon {
     this.app = app;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async find(params: Params): Promise<IssuerProfileModel | Error> {
+  async find(
+    params: IssuerServiceParams
+  ): Promise<Partial<IssuerProfileModel> | Error> {
     try {
       return {
         did: params.profile.did,
@@ -41,20 +42,19 @@ export class IssuerProfile implements ServiceSwaggerAddon {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(
     data: Data,
-    params?: Params
+    params: IssuerServiceParams
   ): Promise<IssuerProfileModel | Error> {
     try {
       const updatedProfile = await this.app
         .service('issuer-model')
-        .patch(params?.profile._id, {
+        .patch(params.profile._id, {
           abbreviation: data.abbreviation || '',
           url: data.url || '',
           email: data.email || '',
           logo: data.logo || '',
-        });
+        } as Partial<IssuerProfileModel>);
       return {
         did: updatedProfile.did,
         verkey: updatedProfile.verkey,

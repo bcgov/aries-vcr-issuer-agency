@@ -15,6 +15,16 @@ export interface SchemaTopic {
   topic_type: string;
 }
 
+interface Translation {
+  label: string;
+  description: string;
+}
+
+export interface SchemaAttributes {
+  name: string;
+  translations: Record<string, Translation>;
+}
+
 export interface CredentialMetadata {
   topic: SchemaTopic[];
   cardinality: string[];
@@ -33,20 +43,22 @@ export interface CredentialMetadata {
   };
   search_fields: string[];
   labels: {
-    schema: {
-      en: string;
-    };
-    attributes: [
-      {
-        name: string;
-        translations: {
-          en: {
-            label: string;
-            description: string;
-          };
-        };
-      }
-    ];
+    schema: Record<string, string>;
+    attributes: SchemaAttributes[];
+  };
+}
+
+interface Mapping {
+  input: string;
+  from: string;
+}
+
+export interface ModelMapping {
+  model: string;
+  fields: {
+    type: Mapping;
+    format?: Mapping;
+    value: Mapping;
   };
 }
 
@@ -54,9 +66,16 @@ export interface CredentialTypePayload {
   schema: string;
   version: string;
   credential_def_id: string;
-  name: string;
-  logo: string;
-  metadata: CredentialMetadata;
+  topic: SchemaTopic[];
+  logo_b64: string;
+  labels: Record<string, string>;
+  credential: {
+    effective_date: Record<string, string>;
+    revoked_date: Record<string, string>;
+  };
+  mapping: ModelMapping[];
+  claim_labels: Record<string, Record<string, string>>;
+  claim_descriptions: Record<string, Record<string, string>>;
 }
 
 export interface IssuerRegistrationPayload {

@@ -1,4 +1,3 @@
-import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
@@ -6,9 +5,8 @@ import {
 import { Application } from '../../declarations';
 import { LedgerServiceAction, ServiceType } from '../../models/enums';
 import { TAAServiceResponse } from '../../models/ledger';
+import { IssuerServiceParams } from '../../models/service-params';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
-
-interface Data {}
 
 interface ServiceOptions {}
 
@@ -21,8 +19,7 @@ export class TaaRead implements ServiceSwaggerAddon {
     this.app = app;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async find(params: Params): Promise<TAAServiceResponse | Error> {
+  async find(params: IssuerServiceParams): Promise<TAAServiceResponse | Error> {
     try {
       const taa = await this.app.service('aries-agent').create({
         service: ServiceType.Ledger,

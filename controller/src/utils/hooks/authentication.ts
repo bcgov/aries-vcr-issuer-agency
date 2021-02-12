@@ -1,6 +1,6 @@
 import { Forbidden } from '@feathersjs/errors';
 import { HookContext, Paginated, Service } from '@feathersjs/feathers';
-import { BaseIssuerProfile } from '../../models/issuer-model';
+import { IssuerProfileDbModel } from '../../models/issuer-model';
 
 export async function authenticateAdmin(
   context: HookContext
@@ -27,7 +27,7 @@ export async function authenticateIssuer(
 
   const issuer = (await context.app.service('issuer-model').find({
     query: { 'api-key': apiKeyHeader },
-  })) as Paginated<BaseIssuerProfile>;
+  })) as Paginated<IssuerProfileDbModel>;
 
   if (issuer.data.length !== 1) {
     throw new Forbidden('The provided issuer-api-key is invalid');

@@ -26,17 +26,14 @@ export interface AriesSchema {
   };
 }
 
-export interface SchemaServiceRequest {
+export interface AriesSchemaServiceRequest {
   schema_version: string;
   schema_name: string;
   attributes: string[];
 }
 
-export interface SchemaServiceModel {
-  schema_id?: string;
-  credential_definition_id?: string;
-  schema_name: string;
-  schema_version: string;
-  attributes: string[];
+export interface SchemaServiceModel extends AriesSchemaServiceRequest {
+  schema_id: string;
+  credential_definition_id: string;
   metadata: CredentialMetadata;
 }

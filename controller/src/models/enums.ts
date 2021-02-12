@@ -34,6 +34,10 @@ export enum WalletServiceAction {
   Fetch = 'Fetch',
 }
 
+export enum IssuerRegistrationServiceAction {
+  Submit = 'Submit',
+}
+
 export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
@@ -42,6 +46,7 @@ export enum ServiceType {
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',
   Wallet = 'Wallet',
+  IssuerRegistration = 'IssuerRegistration',
 }
 
 export enum WebhookTopic {

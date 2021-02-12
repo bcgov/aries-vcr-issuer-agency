@@ -1,15 +1,21 @@
-export interface BaseIssuerProfile {
+import { SchemaServiceModel } from './schema';
+
+export interface IssuerProfileModel {
+  _id: string;
   name: string;
   'api-key': string;
-}
-
-export interface IssuerProfile {
-  _id?: string;
+  normalizedName: string;
+  wallet: {
+    id: string;
+    name: string;
+    token: string;
+  };
   did: string;
   verkey: string;
-  name: string;
   abbreviation: string;
   url: string;
   email: string;
   logo: string;
+  vcr_connection_id: string;
+  schemas?: SchemaServiceModel[];
 }

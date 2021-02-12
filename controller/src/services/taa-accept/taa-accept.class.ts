@@ -1,5 +1,3 @@
-import { GeneralError } from '@feathersjs/errors';
-import { Params } from '@feathersjs/feathers';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
@@ -11,6 +9,7 @@ import {
   WalletServiceAction,
 } from '../../models/enums';
 import { TAAServiceResponse } from '../../models/ledger';
+import { IssuerServiceParams } from '../../models/service-params';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
@@ -31,13 +30,15 @@ export class TaaAccept implements ServiceSwaggerAddon {
     this.app = app;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<any> {
+  async create(
+    data: Data,
+    params: IssuerServiceParams
+  ): Promise<Record<string, unknown> | Error> {
     try {
       const isDIDPublic = (await this.app.service('aries-agent').create({
         service: ServiceType.Wallet,
         action: WalletServiceAction.Fetch,
-        token: params?.profile.wallet.token,
+        token: params.profile.wallet.token,
         data: {},
       } as AriesAgentData)) as WalletServiceResponse;
       if (!isDIDPublic.result) {
@@ -45,15 +46,15 @@ export class TaaAccept implements ServiceSwaggerAddon {
         await this.app.service('aries-agent').create({
           service: ServiceType.Wallet,
           action: WalletServiceAction.Publish,
-          token: params?.profile.wallet.token,
-          data: { did: params?.profile.did },
+          token: params.profile.wallet.token,
+          data: { did: params.profile.did },
         } as AriesAgentData);
       }
 
       const taa = (await this.app.service('aries-agent').create({
         service: ServiceType.Ledger,
         action: LedgerServiceAction.TAA_Fetch,
-        token: params?.profile.wallet.token,
+        token: params.profile.wallet.token,
         data: data,
       } as AriesAgentData)) as TAAServiceResponse;
 
@@ -66,7 +67,7 @@ export class TaaAccept implements ServiceSwaggerAddon {
       await this.app.service('aries-agent').create({
         service: ServiceType.Ledger,
         action: LedgerServiceAction.TAA_Accept,
-        token: params?.profile.wallet.token,
+        token: params.profile.wallet.token,
         data: data,
       } as AriesAgentData);
       return {};
