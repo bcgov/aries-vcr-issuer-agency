@@ -4,6 +4,7 @@ import {
   IssuerRegistrationServiceAction,
   ServiceType,
 } from '../../models/enums';
+import { IssuerProfileModel } from '../../models/issuer-model';
 import { SchemaServiceModel } from '../../models/schema';
 import { AriesAgentData } from '../../services/aries-agent/aries-agent.class';
 import { formatIssuerRegistrationRequest } from '../issuer-registration';
@@ -15,7 +16,7 @@ export async function autoSyncIssuerRegistration(
     `Synchronizing issuer registration for ${context.params.profile.name}`
   );
   const issuerRegistrationPayload = formatIssuerRegistrationRequest(
-    context.params.profile,
+    context.params.profile as IssuerProfileModel,
     context.data as SchemaServiceModel
   );
   await context.app.service('aries-agent').create({

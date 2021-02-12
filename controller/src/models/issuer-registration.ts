@@ -20,9 +20,18 @@ interface Translation {
   description: string;
 }
 
-export interface SchemaAttributes {
+export interface SchemaAttributeTranslation {
   name: string;
   translations: Record<string, Translation>;
+}
+
+export interface AddressMetadata {
+  addressee: string;
+  civic_address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
 }
 
 export interface CredentialMetadata {
@@ -33,18 +42,11 @@ export interface CredentialMetadata {
     revoked_date: string;
     other_date_fields: string[];
   };
-  address_fields: {
-    addressee?: string;
-    civic_address?: string;
-    city?: string;
-    province?: string;
-    postal_code?: string;
-    country?: string;
-  };
+  address_fields: AddressMetadata[];
   search_fields: string[];
   labels: {
     schema: Record<string, string>;
-    attributes: SchemaAttributes[];
+    attributes: SchemaAttributeTranslation[];
   };
 }
 
@@ -55,6 +57,10 @@ interface Mapping {
 
 export interface ModelMapping {
   model: string;
+  fields: Record<string, Mapping | undefined>;
+}
+
+export interface AttributeMapping extends ModelMapping {
   fields: {
     type: Mapping;
     format?: Mapping;
@@ -62,16 +68,28 @@ export interface ModelMapping {
   };
 }
 
+export interface AddressMapping extends ModelMapping {
+  fields: {
+    addressee: Mapping;
+    civic_address: Mapping;
+    city: Mapping;
+    province: Mapping;
+    postal_code: Mapping;
+    country: Mapping;
+  };
+}
+
 export interface CredentialTypePayload {
   schema: string;
   version: string;
   credential_def_id: string;
-  topic: SchemaTopic[];
+  name: string;
   logo_b64: string;
+  topic: SchemaTopic[];
   labels: Record<string, string>;
   credential: {
-    effective_date: Record<string, string>;
-    revoked_date: Record<string, string>;
+    effective_date: Mapping;
+    revoked_date: Mapping;
   };
   mapping: ModelMapping[];
   claim_labels: Record<string, Record<string, string>>;
