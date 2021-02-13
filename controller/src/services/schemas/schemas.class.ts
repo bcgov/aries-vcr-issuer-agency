@@ -193,36 +193,40 @@ export class Schemas implements ServiceSwaggerAddon {
             },
           },
           address_fields: {
-            type: 'object',
-            properties: {
-              addressee: {
-                type: 'string',
-                description: 'The name of the field to be used as addressee.',
-              },
-              civic_address: {
-                type: 'string',
-                description:
-                  'The name of the field to be used as civic_address.',
-              },
-              city: {
-                type: 'string',
-                description:
-                  'The name of the field to be used as civic_address.',
-              },
-              province: {
-                type: 'string',
-                description:
-                  'The name of the field to be used as civic_address.',
-              },
-              postal_code: {
-                type: 'string',
-                description:
-                  'The name of the field to be used as civic_address.',
-              },
-              country: {
-                type: 'string',
-                description:
-                  'The name of the field to be used as civic_address.',
+            type: 'array',
+            description: 'The list of address field mappings.',
+            items: {
+              type: 'object',
+              properties: {
+                addressee: {
+                  type: 'string',
+                  description: 'The name of the field to be used as addressee.',
+                },
+                civic_address: {
+                  type: 'string',
+                  description:
+                    'The name of the field to be used as civic_address.',
+                },
+                city: {
+                  type: 'string',
+                  description:
+                    'The name of the field to be used as civic_address.',
+                },
+                province: {
+                  type: 'string',
+                  description:
+                    'The name of the field to be used as civic_address.',
+                },
+                postal_code: {
+                  type: 'string',
+                  description:
+                    'The name of the field to be used as civic_address.',
+                },
+                country: {
+                  type: 'string',
+                  description:
+                    'The name of the field to be used as civic_address.',
+                },
               },
             },
           },

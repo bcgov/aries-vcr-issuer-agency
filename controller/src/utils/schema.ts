@@ -2,7 +2,7 @@ import { Application } from '@feathersjs/express';
 import Axios from 'axios';
 import logger from '../logger';
 import { UndefinedAppError } from '../models/errors';
-import { AriesSchema, SchemaDefinition } from '../models/schema';
+import { AriesSchema } from '../models/schema';
 import { AcaPyUtils } from './aca-py';
 
 export class SchemaUtils {
@@ -54,19 +54,19 @@ export class SchemaUtils {
     }
   }
 
-  async publishSchema(schema: SchemaDefinition): Promise<AriesSchema> {
-    const url = `${this.utils.getAdminUrl()}/schemas`;
-    logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
-    const response = await Axios.post(
-      url,
-      schema,
-      this.utils.getRequestConfig()
-    );
-    const schemaResponse = response.data as AriesSchema;
-    logger.debug(`Published schema: ${JSON.stringify(schemaResponse)}`);
-    this.storeSchema(schemaResponse, schema.default, schema.public);
-    return Promise.resolve(schemaResponse);
-  }
+  // async publishSchema(schema: SchemaDefinition): Promise<AriesSchema> {
+  //   const url = `${this.utils.getAdminUrl()}/schemas`;
+  //   logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
+  //   const response = await Axios.post(
+  //     url,
+  //     schema,
+  //     this.utils.getRequestConfig()
+  //   );
+  //   const schemaResponse = response.data as AriesSchema;
+  //   logger.debug(`Published schema: ${JSON.stringify(schemaResponse)}`);
+  //   this.storeSchema(schemaResponse, schema.default, schema.public);
+  //   return Promise.resolve(schemaResponse);
+  // }
 
   async fetchSchema(
     id: string,
