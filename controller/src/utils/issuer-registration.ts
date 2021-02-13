@@ -9,6 +9,8 @@ import {
   IssuerRegistrationPayload,
   ModelMapping,
   SchemaAttributeTranslation,
+  SchemaTopic,
+  TopicMapping,
 } from '../models/issuer-registration';
 import { SchemaServiceModel } from '../models/schema';
 
@@ -52,7 +54,7 @@ function formatCredentialTypePayload(
     credential_def_id: schema.credential_definition_id,
     name: schema.schema_name,
     logo_b64: profile.logo,
-    topic: schema.metadata.topic,
+    topic: formatTopicMappings(schema.metadata.topic),
     labels: schema.metadata.labels.schema,
     credential: {
       effective_date: {
@@ -72,7 +74,7 @@ function formatCredentialTypePayload(
       TranslationType.Description,
       schema.metadata.labels.attributes
     ),
-    mapping: formatMappings(schema.attributes, schema.metadata),
+    mapping: formatAttributeMappings(schema.attributes, schema.metadata),
   } as CredentialTypePayload;
 }
 
@@ -109,8 +111,8 @@ function isDateField(
 ): boolean {
   return (
     fieldName === dateFields.effective_date ||
-    (fieldName === dateFields.revoked_date &&
-      dateFields.other_date_fields.includes(fieldName))
+    fieldName === dateFields.revoked_date ||
+    dateFields.other_date_fields.includes(fieldName)
   );
 }
 
@@ -140,7 +142,26 @@ function isStandardAttribute(
   return !isAddressField(attribute, metadata.address_fields);
 }
 
-function formatMappings(
+function formatTopicMappings(topics: SchemaTopic[]): TopicMapping[] {
+  const mappings = [] as TopicMapping[];
+
+  for (const topic of topics) {
+    mappings.push({
+      source_id: {
+        input: topic.name,
+        from: 'claim',
+      },
+      type: {
+        input: topic.topic_type,
+        from: 'value',
+      },
+    });
+  }
+
+  return mappings;
+}
+
+function formatAttributeMappings(
   attributes: string[],
   metadata: CredentialMetadata
 ): ModelMapping[] {
@@ -156,16 +177,16 @@ function formatMappings(
       model: isSearchable ? 'name' : 'attribute',
       fields: {
         type: {
-          input: attribute,
+          input: standardAttributes[attribute],
           from: 'claim',
         },
         value: {
-          input: attribute,
+          input: standardAttributes[attribute],
           from: 'claim',
         },
       },
     } as AttributeMapping;
-    if (isDateField(attribute, metadata.date_fields)) {
+    if (isDateField(standardAttributes[attribute], metadata.date_fields)) {
       mapping.fields.format = {
         input: 'datetime',
         from: 'value',

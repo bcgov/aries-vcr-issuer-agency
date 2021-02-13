@@ -15,6 +15,11 @@ export interface SchemaTopic {
   topic_type: string;
 }
 
+export interface TopicMapping {
+  source_id: Mapping;
+  type: Mapping;
+}
+
 interface Translation {
   label: string;
   description: string;
@@ -85,7 +90,7 @@ export interface CredentialTypePayload {
   credential_def_id: string;
   name: string;
   logo_b64: string;
-  topic: SchemaTopic[];
+  topic: TopicMapping[];
   labels: Record<string, string>;
   credential: {
     effective_date: Mapping;

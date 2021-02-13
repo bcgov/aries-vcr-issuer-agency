@@ -45,7 +45,7 @@ export class Schemas implements ServiceSwaggerAddon {
       }
 
       let schemaList = (params.profile.schemas || []) as SchemaServiceModel[];
-      const schema = data as SchemaServiceModel;
+      let schema = data as SchemaServiceModel;
       let isNewSchema = true;
 
       if (schemaList.length > 0) {
@@ -56,6 +56,7 @@ export class Schemas implements ServiceSwaggerAddon {
             existingSchema.schema_version === schema.schema_version
           ) {
             existingSchema.metadata = schema.metadata;
+            schema = existingSchema;
             isNewSchema = false;
           }
           return existingSchema;

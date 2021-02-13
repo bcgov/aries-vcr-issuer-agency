@@ -15,9 +15,19 @@ export async function autoSyncIssuerRegistration(
   logger.debug(
     `Synchronizing issuer registration for ${context.params.profile.name}`
   );
+  const profile = context.params.profile as IssuerProfileModel;
+  const schema = Object.assign(
+    {},
+    context.data,
+    context.result
+  ) as SchemaServiceModel;
   const issuerRegistrationPayload = formatIssuerRegistrationRequest(
-    context.params.profile as IssuerProfileModel,
-    context.data as SchemaServiceModel
+    profile,
+    schema
+  );
+  logger.debug(
+    `Issuer Registration Payload for ${profile.name}/${schema.schema_name}:${schema.schema_version} is:`,
+    issuerRegistrationPayload
   );
   await context.app.service('aries-agent').create({
     service: ServiceType.IssuerRegistration,
