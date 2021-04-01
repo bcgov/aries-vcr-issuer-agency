@@ -5,7 +5,7 @@ import {
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
 import { SchemasServiceAction, ServiceType } from '../../models/enums';
@@ -77,6 +77,7 @@ export class Schemas implements ServiceSwaggerAddon {
         } as AriesAgentData)) as AriesSchema;
         schema.schema_id = schemaResponse.schema_id || schemaResponse.schema.id;
 
+        // TODO: Should this be part of issuing the schema, or as a separate step?
         // create credential definition based on schema
         const credDefId = (await this.app.service('aries-agent').create({
           service: ServiceType.CredDef,
@@ -86,7 +87,7 @@ export class Schemas implements ServiceSwaggerAddon {
             schema_id: schemaResponse.schema_id,
             tag: params.profile.normalizedName,
             support_revocation: false,
-          } as AriesCredentialDefinition,
+          } as AriesCredDefServiceRequest,
         } as AriesAgentData)) as CredDefServiceResponse;
         schema.credential_definition_id = credDefId.credential_definition_id;
 

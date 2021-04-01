@@ -5,7 +5,7 @@ import { Application } from '../../declarations';
 import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
 import {
@@ -399,7 +399,7 @@ export class AriesAgent {
   }
 
   async publishCredentialDefinition(
-    credDef: AriesCredentialDefinition,
+    credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {
     try {
