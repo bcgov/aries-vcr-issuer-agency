@@ -1,8 +1,11 @@
+import { HookContext } from '../../app';
+import { CredServiceModel } from '../../models/credential';
 import { authenticateIssuer } from '../../utils/hooks/authentication';
+import { checkValidIssuerProfile } from '../../utils/hooks/issuer-profile';
 
 export default {
   before: {
-    all: [authenticateIssuer],
+    all: [authenticateIssuer, checkValidIssuerProfile],
     find: [],
     get: [],
     create: [],

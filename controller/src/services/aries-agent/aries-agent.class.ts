@@ -4,8 +4,9 @@ import Axios, { AxiosError } from 'axios';
 import { Application } from '../../declarations';
 import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
+import { AriesCredServiceRequest } from '../../models/credential';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
 import {
@@ -17,6 +18,7 @@ import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredExServiceAction,
+  CredServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
@@ -41,6 +43,7 @@ export interface AriesAgentData {
     | ConnectionServiceAction
     | CredDefServiceAction
     | CredExServiceAction
+    | CredServiceAction
     | LedgerServiceAction
     | MultitenancyServiceAction
     | SchemasServiceAction
@@ -118,6 +121,10 @@ export class AriesAgent {
           );
         } else if (data.action === CredDefServiceAction.Create) {
           return this.publishCredentialDefinition(data.data, data.token);
+        }
+      case ServiceType.Cred:
+        if (data.action === CredServiceAction.Create) {
+          return this.publishCredential(data.data, data.token);
         }
       case ServiceType.Schemas:
         if (data.action === SchemasServiceAction.Details) {
@@ -374,7 +381,7 @@ export class AriesAgent {
     }
   }
 
-  async publishSchema(
+  private async publishSchema(
     schema: AriesSchemaServiceRequest,
     token: string | undefined
   ): Promise<AriesSchema> {
@@ -398,8 +405,8 @@ export class AriesAgent {
     }
   }
 
-  async publishCredentialDefinition(
-    credDef: AriesCredentialDefinition,
+  private async publishCredentialDefinition(
+    credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {
     try {
@@ -442,6 +449,31 @@ export class AriesAgent {
         this.acaPyUtils.getRequestConfig(token)
       );
       return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  // TODO: Need to type response
+  private async publishCredential(
+    credential: AriesCredServiceRequest,
+    token: string | undefined
+  ): Promise<AriesSchema> {
+    try {
+      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential/send`;
+      logger.debug(`Publishing schema to ledger: ${JSON.stringify(credential)}`);
+      const response = await Axios.post(
+        url,
+        credential,
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      const credentialResponse = response.data;
+      return credentialResponse;
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(

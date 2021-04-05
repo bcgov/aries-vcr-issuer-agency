@@ -11,6 +11,10 @@ export enum CredExServiceAction {
   Create = 'Create',
 }
 
+export enum CredServiceAction {
+  Create = 'Create',
+}
+
 export enum LedgerServiceAction {
   TAA_Fetch = 'TAA Fetch',
   TAA_Accept = 'TAA Accept',
@@ -22,6 +26,7 @@ export enum MultitenancyServiceAction {
   Details = 'Details',
 }
 
+// TODO: Singularize for consistency
 export enum SchemasServiceAction {
   Create = 'Create',
   List = 'List',
@@ -38,10 +43,12 @@ export enum IssuerRegistrationServiceAction {
   Submit = 'Submit',
 }
 
+// TODO: Singularize for consistency
 export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
   CredEx = 'Credential Exchange',
+  Cred = 'Credential',
   Schemas = 'Schemas',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',

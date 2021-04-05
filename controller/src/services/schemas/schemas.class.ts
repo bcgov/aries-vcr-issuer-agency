@@ -109,9 +109,10 @@ export class Schemas implements ServiceSwaggerAddon {
   }
 
   model = {
-    description: 'Aries Schema Model',
+    title: 'issue schema',
+    description: 'Issue Schema Model',
     type: 'object',
-    required: [],
+    required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
     properties: {
       schema_id: {
         type: 'string',
@@ -311,7 +312,7 @@ export class Schemas implements ServiceSwaggerAddon {
     },
     definitions: {
       create_schema_request: {
-        title: 'schemas request',
+        title: 'issue schema request',
         type: 'object',
         required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
         properties: Object.assign({}, this.model.properties, {
@@ -326,7 +327,7 @@ export class Schemas implements ServiceSwaggerAddon {
         }),
       },
       create_schema_response: {
-        title: 'schemas response',
+        title: 'issue schema response',
         type: 'object',
         required: [],
         properties: {

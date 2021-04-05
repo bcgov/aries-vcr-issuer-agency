@@ -1,13 +1,16 @@
-import { Params } from '@feathersjs/feathers';
+import { BadRequest } from '@feathersjs/errors';
 import {
   ServiceSwaggerAddon,
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
+import { AriesCredProposalAttribute, AriesCredServiceRequest, CredServiceModel } from '../../models/credential';
+import { CredServiceAction, ServiceType } from '../../models/enums';
+import { SchemaServiceModel } from '../../models/schema';
+import { IssuerServiceParams } from '../../models/service-params';
+import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface Data {}
-
-interface ServiceOptions {}
+interface ServiceOptions { }
 
 export class Credentials implements ServiceSwaggerAddon {
   app: Application;
@@ -19,12 +22,58 @@ export class Credentials implements ServiceSwaggerAddon {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: Data, params?: Params): Promise<Data> {
+  async create(data: CredServiceModel, params?: IssuerServiceParams): Promise<Partial<CredServiceModel> | Error> {
     if (Array.isArray(data)) {
-      return Promise.all(data.map((current) => this.create(current, params)));
+      throw new Error('Not implemented');
     }
 
-    return data;
+    const credential: CredServiceModel = data;
+    const { schema_name: credential_schema_name, schema_version: credential_schema_version } = credential;
+
+    const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
+    const existingSchema = schemas.find((schema: SchemaServiceModel) => {
+      return schema.schema_name === credential_schema_name && schema.schema_version === credential_schema_version;
+    });
+
+    if (!existingSchema) {
+      return new BadRequest(
+        `Schema: ${credential_schema_name} with version: ${credential_schema_version} does not exist.`
+      );
+    }
+
+    const credentialProposalAttributes: AriesCredProposalAttribute[] = [];
+    for (const attribute in credential?.attributes) {
+      if (Object.prototype.hasOwnProperty.call(credential?.attributes, attribute)) {
+        credentialProposalAttributes.push({
+          'name': attribute,
+          'mime-type': 'text/plain',
+          'value': credential?.attributes[attribute].toString()
+        } as AriesCredProposalAttribute);
+      }
+    }
+
+    const credentialOffer: AriesCredServiceRequest = {
+      issuer_did: params?.profile?.did || '',
+      schema_issuer_did: params?.profile?.did || '',
+      schema_id: existingSchema?.schema_id,
+      schema_name: existingSchema?.schema_name,
+      schema_version: existingSchema?.schema_version,
+      cred_def_id: existingSchema?.credential_definition_id,
+      credential_proposal: {
+        '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview',
+        'attributes': credentialProposalAttributes
+      },
+      connection_id: params?.profile?.vcr_connection_id || '',
+    }
+
+    const credResponse = (await this.app.service('aries-agent').create({
+      service: ServiceType.Cred,
+      action: CredServiceAction.Create,
+      token: params?.profile?.wallet?.token,
+      data: credentialOffer,
+    } as AriesAgentData));
+
+    return credResponse;
   }
 
   model = {
@@ -32,6 +81,7 @@ export class Credentials implements ServiceSwaggerAddon {
     description: 'Issue Credential Model',
     type: 'object',
     required: ['schema_name', 'schema_version', 'attributes'],
+    optional: ['metadata'],
     properties: {
       schema_name: {
         type: 'string',
@@ -44,10 +94,10 @@ export class Credentials implements ServiceSwaggerAddon {
         readOnly: true,
       },
       attributes: {
-        type: 'array',
-        description: 'List of attributes associated with this schema.',
+        type: 'object',
+        description: 'Attributes associated with this schema.',
         items: {
-          type: 'string',
+          type: 'object',
         },
       },
     },
@@ -63,7 +113,8 @@ export class Credentials implements ServiceSwaggerAddon {
       issue_credential_request: {
         title: 'issue credential request',
         type: 'object',
-        required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
+        required: ['attributes', 'schema_name', 'schema_version'],
+        optional: ['metadata'],
         properties: Object.assign({}, this.model.properties, {
           schema_name: {
             type: 'string',
