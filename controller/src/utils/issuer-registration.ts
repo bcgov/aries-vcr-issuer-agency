@@ -8,6 +8,7 @@ import {
   IssuerPayload,
   IssuerRegistrationPayload,
   ModelMapping,
+  NameMapping,
   SchemaAttributeTranslation,
   SchemaTopic,
   TopicMapping,
@@ -172,20 +173,39 @@ function formatAttributeMappings(
   });
   // prepare mapping for standard/date attributes
   for (const attribute in standardAttributes) {
-    const isSearchable = metadata.search_fields.includes(attribute);
-    const mapping = {
-      model: isSearchable ? 'name' : 'attribute',
-      fields: {
-        type: {
-          input: standardAttributes[attribute],
-          from: 'claim',
-        },
-        value: {
-          input: standardAttributes[attribute],
-          from: 'claim',
-        },
-      },
-    } as AttributeMapping;
+    const isSearchable = metadata.search_fields.includes(standardAttributes[attribute]);
+
+    let mapping = {} as ModelMapping;
+    if (isSearchable) {
+      mapping = {
+        model: 'name',
+        fields: {
+          type: {
+            input: standardAttributes[attribute],
+            from: 'value',
+          },
+          text: {
+            input: standardAttributes[attribute],
+            from: 'claim',
+          }
+        }
+      } as NameMapping;
+    } else {
+      mapping = {
+        model: 'attribute',
+        fields: {
+          type: {
+            input: standardAttributes[attribute],
+            from: 'claim',
+          },
+          value: {
+            input: standardAttributes[attribute],
+            from: 'claim',
+          }
+        }
+      } as AttributeMapping;
+    }
+
     if (isDateField(standardAttributes[attribute], metadata.date_fields)) {
       mapping.fields.format = {
         input: 'datetime',
