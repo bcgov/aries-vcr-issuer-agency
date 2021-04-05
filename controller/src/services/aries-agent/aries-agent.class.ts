@@ -405,7 +405,7 @@ export class AriesAgent {
     }
   }
 
-  private async publishCredentialDefinition(
+  async publishCredentialDefinition(
     credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {

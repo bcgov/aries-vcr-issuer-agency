@@ -1,4 +1,4 @@
-export interface AriesCredentialDefinition {
+export interface AriesCredDefServiceRequest {
   support_revocation: boolean;
   schema_id: string;
   tag: string;
