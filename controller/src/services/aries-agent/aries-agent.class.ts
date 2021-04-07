@@ -22,7 +22,7 @@ import {
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
-  SchemasServiceAction,
+  SchemaServiceAction,
   ServiceType,
   WalletServiceAction,
 } from '../../models/enums';
@@ -46,7 +46,7 @@ export interface AriesAgentData {
     | CredServiceAction
     | LedgerServiceAction
     | MultitenancyServiceAction
-    | SchemasServiceAction
+    | SchemaServiceAction
     | WalletServiceAction
     | IssuerRegistrationServiceAction;
   token?: string;
@@ -126,12 +126,12 @@ export class AriesAgent {
         if (data.action === CredServiceAction.Create) {
           return this.publishCredential(data.data, data.token);
         }
-      case ServiceType.Schemas:
-        if (data.action === SchemasServiceAction.Details) {
+      case ServiceType.Schema:
+        if (data.action === SchemaServiceAction.Details) {
           return this.getSchemaDetails(data.token, data.data.schema_id);
-        } else if (data.action === SchemasServiceAction.List) {
+        } else if (data.action === SchemaServiceAction.List) {
           return this.getCreatedSchemas(data.token);
-        } else if (data.action === SchemasServiceAction.Create) {
+        } else if (data.action === SchemaServiceAction.Create) {
           return this.publishSchema(data.data, data.token);
         }
       case ServiceType.IssuerRegistration:

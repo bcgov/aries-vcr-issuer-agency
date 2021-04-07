@@ -1,13 +1,13 @@
 // Initializes the `schemas` service on path `/issuer/schemas`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { Schemas } from './schemas.class';
-import hooks from './schemas.hooks';
+import { Schema } from './schema.class';
+import hooks from './schema.hooks';
 
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    'issuer/schemas': Schemas & ServiceAddons<any>;
+    'issuer/schemas': Schema & ServiceAddons<any>;
   }
 }
 
@@ -17,7 +17,7 @@ export default function (app: Application): void {
   };
 
   // Initialize our service with any options it requires
-  app.use('/issuer/schemas', new Schemas(options, app));
+  app.use('/issuer/schemas', new Schema(options, app));
 
   // Get our initialized service so that we can register hooks
   const service = app.service('issuer/schemas');

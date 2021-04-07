@@ -8,7 +8,7 @@ import {
   AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
-import { SchemasServiceAction, ServiceType } from '../../models/enums';
+import { SchemaServiceAction, ServiceType } from '../../models/enums';
 import {
   AriesSchema,
   AriesSchemaServiceRequest,
@@ -17,9 +17,9 @@ import {
 import { IssuerServiceParams } from '../../models/service-params';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
-export class Schemas implements ServiceSwaggerAddon {
+export class Schema implements ServiceSwaggerAddon {
   app: Application;
   options: ServiceSwaggerOptions;
 
@@ -66,8 +66,8 @@ export class Schemas implements ServiceSwaggerAddon {
       if (isNewSchema) {
         // post schema on ledger
         const schemaResponse = (await this.app.service('aries-agent').create({
-          service: ServiceType.Schemas,
-          action: SchemasServiceAction.Create,
+          service: ServiceType.Schema,
+          action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
           data: {
             schema_name: schema.schema_name,
@@ -81,7 +81,7 @@ export class Schemas implements ServiceSwaggerAddon {
         // create credential definition based on schema
         const credDefId = (await this.app.service('aries-agent').create({
           service: ServiceType.CredDef,
-          action: SchemasServiceAction.Create,
+          action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
           data: {
             schema_id: schemaResponse.schema_id,

@@ -11,6 +11,7 @@ export enum CredExServiceAction {
   Create = 'Create',
 }
 
+// TODO: There seems to be overlap between this and CredentialExchange but they use different endpoints
 export enum CredServiceAction {
   Create = 'Create',
 }
@@ -26,8 +27,7 @@ export enum MultitenancyServiceAction {
   Details = 'Details',
 }
 
-// TODO: Singularize for consistency
-export enum SchemasServiceAction {
+export enum SchemaServiceAction {
   Create = 'Create',
   List = 'List',
   Details = 'Details',
@@ -43,13 +43,12 @@ export enum IssuerRegistrationServiceAction {
   Submit = 'Submit',
 }
 
-// TODO: Singularize for consistency
 export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
   CredEx = 'Credential Exchange',
   Cred = 'Credential',
-  Schemas = 'Schemas',
+  Schema = 'Schema',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',
   Wallet = 'Wallet',
@@ -65,4 +64,5 @@ export enum CredExState {
   OfferSent = 'offer_sent',
   RequestReceived = 'request_received',
   Issued = 'credential_issued',
+  Acked = 'credential_acked'
 }
