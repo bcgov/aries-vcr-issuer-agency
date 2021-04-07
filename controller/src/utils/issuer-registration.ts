@@ -166,52 +166,55 @@ function formatAttributeMappings(
   attributes: string[],
   metadata: CredentialMetadata
 ): ModelMapping[] {
+
   const mappings = [] as ModelMapping[];
 
-  const standardAttributes = attributes.filter((attribute) => {
+  const baseAtributeMapping = (attribute: string) => ({
+    model: '',
+    fields: {
+      type: {
+        input: attribute,
+        from: 'value',
+      },
+    }
+  } as ModelMapping);
+
+  const standardAttributes = attributes.filter((attribute: string) => {
     return isStandardAttribute(attribute, metadata);
   });
-  // prepare mapping for standard/date attributes
-  for (const attribute in standardAttributes) {
-    const isSearchable = metadata.search_fields.includes(standardAttributes[attribute]);
 
-    let mapping = {} as ModelMapping;
-    if (isSearchable) {
-      mapping = {
-        model: 'name',
-        fields: {
-          type: {
-            input: standardAttributes[attribute],
-            from: 'value',
-          },
-          text: {
-            input: standardAttributes[attribute],
-            from: 'claim',
-          }
-        }
-      } as NameMapping;
-    } else {
-      mapping = {
-        model: 'attribute',
-        fields: {
-          type: {
-            input: standardAttributes[attribute],
-            from: 'claim',
-          },
-          value: {
-            input: standardAttributes[attribute],
-            from: 'claim',
-          }
-        }
-      } as AttributeMapping;
-    }
+  const searchAttributes = standardAttributes.filter((attribute: string) => {
+    return metadata.search_fields.includes(attribute);
+  });
 
-    if (isDateField(standardAttributes[attribute], metadata.date_fields)) {
+  // prepare standard/date attributes mappings
+  for (const attribute of standardAttributes) {
+    const mapping = baseAtributeMapping(attribute) as AttributeMapping;
+    mapping.model = 'attribute';
+    mapping.fields.value = {
+      input: attribute,
+      from: 'claim',
+    };
+
+    if (isDateField(attribute, metadata.date_fields)) {
       mapping.fields.format = {
         input: 'datetime',
         from: 'value',
       };
     }
+
+    mappings.push(mapping);
+  }
+
+  // prepare name/search mappings
+  for (const attribute of searchAttributes) {
+    const mapping = baseAtributeMapping(attribute) as NameMapping;
+    mapping.model = 'name';
+    mapping.fields.text = {
+      input: attribute,
+      from: 'claim',
+    };
+
     mappings.push(mapping);
   }
 
@@ -246,6 +249,7 @@ function formatAttributeMappings(
         },
       },
     } as AddressMapping;
+
     mappings.push(mapping);
   }
 
