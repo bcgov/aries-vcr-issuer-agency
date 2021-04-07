@@ -1,5 +1,3 @@
-import { HookContext } from '../../app';
-import { CredServiceModel } from '../../models/credential';
 import { authenticateIssuer } from '../../utils/hooks/authentication';
 import { checkValidIssuerProfile } from '../../utils/hooks/issuer-profile';
 

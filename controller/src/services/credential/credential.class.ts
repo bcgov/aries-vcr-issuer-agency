@@ -12,7 +12,7 @@ import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface ServiceOptions { }
 
-export class Credentials implements ServiceSwaggerAddon {
+export class Credential implements ServiceSwaggerAddon {
   app: Application;
   options: ServiceSwaggerOptions;
 

@@ -1,7 +1,7 @@
 import { Application } from '../declarations';
 import admin from './admin/admin.service';
 import ariesAgent from './aries-agent/aries-agent.service';
-import credentials from './credentials/credentials.service';
+import credential from './credential/credential.service';
 import issuerAuthentication from './issuer-authentication/issuer-authentication.service';
 import issuerModel from './issuer-model/issuer-model.service';
 import issuerProfile from './issuer-profile/issuer-profile.service';
@@ -18,7 +18,7 @@ export function services(app: Application): void {
   app.configure(taaRead);
   app.configure(taaAccept);
   app.configure(schemas);
-  app.configure(credentials);
+  app.configure(credential);
 }
 
 export function internalServices(app: Application): void {
