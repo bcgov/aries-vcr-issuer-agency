@@ -123,8 +123,8 @@ export class AriesAgent {
           return this.publishCredentialDefinition(data.data, data.token);
         }
       case ServiceType.Cred:
-        if (data.action === CredServiceAction.Create) {
-          return this.publishCredential(data.data, data.token);
+        if (data.action === CredServiceAction.Send) {
+          return this.sendCredential(data.data, data.token);
         }
       case ServiceType.Schema:
         if (data.action === SchemaServiceAction.Details) {
@@ -460,12 +460,12 @@ export class AriesAgent {
   }
 
   // TODO: Need to type response
-  private async publishCredential(
+  private async sendCredential(
     credential: AriesCredServiceRequest,
     token: string | undefined
   ): Promise<AriesSchema> {
     try {
-      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential/send`;
+      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send`;
       logger.debug(`Publishing schema to ledger: ${JSON.stringify(credential)}`);
       const response = await Axios.post(
         url,

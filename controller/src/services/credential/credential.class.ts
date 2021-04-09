@@ -4,7 +4,7 @@ import {
   ServiceSwaggerOptions,
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
-import { AriesCredProposalAttribute, AriesCredServiceRequest, CredServiceModel } from '../../models/credential';
+import { AriesCredPreview, AriesCredPreviewAttribute, AriesCredServiceRequest, CredServiceModel } from '../../models/credential';
 import { CredServiceAction, ServiceType } from '../../models/enums';
 import { SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
@@ -27,50 +27,64 @@ export class Credential implements ServiceSwaggerAddon {
       throw new Error('Not implemented');
     }
 
-    const credential: CredServiceModel = data;
-    const { schema_name: credential_schema_name, schema_version: credential_schema_version } = credential;
+    const cred: CredServiceModel = data;
+    const { schema_name: credSchemaName, schema_version: credSchemaVersion } = cred;
 
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
     const existingSchema = schemas.find((schema: SchemaServiceModel) => {
-      return schema.schema_name === credential_schema_name && schema.schema_version === credential_schema_version;
+      return schema.schema_name === credSchemaName && schema.schema_version === credSchemaVersion;
     });
 
     if (!existingSchema) {
       return new BadRequest(
-        `Schema: ${credential_schema_name} with version: ${credential_schema_version} does not exist.`
+        `Schema: ${credSchemaName} with version: ${credSchemaVersion} does not exist.`
       );
     }
 
-    const credentialProposalAttributes: AriesCredProposalAttribute[] = [];
-    for (const attribute in credential?.attributes) {
-      if (Object.prototype.hasOwnProperty.call(credential?.attributes, attribute)) {
-        credentialProposalAttributes.push({
+    const credPreviewAttributes: AriesCredPreviewAttribute[] = [];
+    for (const attribute in cred?.attributes) {
+      if (Object.prototype.hasOwnProperty.call(cred?.attributes, attribute)) {
+        credPreviewAttributes.push({
           'name': attribute,
           'mime-type': 'text/plain',
-          'value': credential?.attributes[attribute].toString()
-        } as AriesCredProposalAttribute);
+          'value': cred?.attributes[attribute].toString()
+        } as AriesCredPreviewAttribute);
       }
     }
 
-    const credentialOffer: AriesCredServiceRequest = {
-      issuer_did: params?.profile?.did || '',
-      schema_issuer_did: params?.profile?.did || '',
-      schema_id: existingSchema?.schema_id,
-      schema_name: existingSchema?.schema_name,
-      schema_version: existingSchema?.schema_version,
-      cred_def_id: existingSchema?.credential_definition_id,
-      credential_proposal: {
-        '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview',
-        'attributes': credentialProposalAttributes
-      },
+    const credOffer: AriesCredServiceRequest = {
+      credential_preview: {
+        '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/2.0/credential-preview',
+        'attributes': credPreviewAttributes
+      } as AriesCredPreview,
       connection_id: params?.profile?.vcr_connection_id || '',
+      filter: {
+        indy: {
+          issuer_did: params?.profile?.did || '',
+          schema_issuer_did: params?.profile?.did || '',
+          schema_id: existingSchema?.schema_id,
+          schema_name: existingSchema?.schema_name,
+          schema_version: existingSchema?.schema_version,
+          cred_def_id: existingSchema?.credential_definition_id
+        }
+      }
     }
 
+    // const credOffer = {
+    //   credential_proposal: {
+    //     '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview',
+    //     'attributes': credPreviewAttributes
+    //   } as AriesCredPreview,
+    //   connection_id: params?.profile?.vcr_connection_id || '',
+    //   filter: { indy: { cred_def_id: existingSchema?.credential_definition_id } }
+    // }
+
+    // TOOD: Type response
     const credResponse = (await this.app.service('aries-agent').create({
       service: ServiceType.Cred,
-      action: CredServiceAction.Create,
+      action: CredServiceAction.Send,
       token: params?.profile?.wallet?.token,
-      data: credentialOffer,
+      data: credOffer,
     } as AriesAgentData));
 
     return credResponse;
@@ -103,6 +117,7 @@ export class Credential implements ServiceSwaggerAddon {
     },
   };
 
+  // TODO: Update swagger docs
   docs: ServiceSwaggerOptions = {
     description: 'Issue credentials endpoints.',
     refs: {

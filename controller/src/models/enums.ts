@@ -11,9 +11,8 @@ export enum CredExServiceAction {
   Create = 'Create',
 }
 
-// TODO: There seems to be overlap between this and CredentialExchange but they use different endpoints
 export enum CredServiceAction {
-  Create = 'Create',
+  Send = 'Send'
 }
 
 export enum LedgerServiceAction {
@@ -60,9 +59,15 @@ export enum WebhookTopic {
   IssueCredential = 'issue_credential',
 }
 
+export enum WebhookTopic_2_0 {
+  IssueCredential = 'issue_credential_v2_0',
+  IssueCredentialIndy = 'issue_credential_v2_0_indy',
+}
+
 export enum CredExState {
+  ProposalReceived = 'proposal_received',
   OfferSent = 'offer_sent',
   RequestReceived = 'request_received',
-  Issued = 'credential_issued',
-  Acked = 'credential_acked'
+  CredentialIssued = 'credential_issued',
+  Done = 'credential_acked'
 }

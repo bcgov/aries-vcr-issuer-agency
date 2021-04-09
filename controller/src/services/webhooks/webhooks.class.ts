@@ -1,7 +1,7 @@
 import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { CredExState } from '../../models/enums';
+import { CredExState, WebhookTopic, WebhookTopic_2_0 } from '../../models/enums';
 
 interface Data {
   state?: CredExState;
@@ -11,7 +11,7 @@ interface Data {
   revoc_reg_id?: string;
 }
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
 export class Webhooks {
   app: Application;
@@ -25,6 +25,12 @@ export class Webhooks {
   async create(data: Data, params?: Params): Promise<any> {
     const topic = params?.route?.topic;
     switch (topic) {
+      case WebhookTopic.IssueCredential:
+        return;
+      case WebhookTopic_2_0.IssueCredential:
+        return;
+      case WebhookTopic_2_0.IssueCredentialIndy:
+        return;
       default:
         return new NotImplemented(`Webhook ${topic} is not supported`);
     }

@@ -8,25 +8,23 @@ export interface CredServiceModel {
   attributes: { [key: string]: string };
 }
 
-export interface AriesCredProposalAttribute {
+
+export interface AriesCredPreviewAttribute {
   'name': string;
   'mime-type': string;
   'value': string;
 }
 
-export interface AriesCredProposal {
+export interface AriesCredPreview {
   '@type': string;
-  'attributes': AriesCredProposalAttribute[];
+  'attributes': AriesCredPreviewAttribute[];
 }
 
 export interface AriesCredServiceRequest {
-  issuer_did: string;
-  schema_issuer_did: string;
-  schema_id: string;
-  schema_name: string;
-  schema_version: string;
-  cred_def_id: string;
-  credential_proposal: AriesCredProposal;
+  credential_preview: AriesCredPreview;
   connection_id: string;
+  filter: { [key: string]: { [key: string]: string } },
   comment?: string;
+  auto_issue?: boolean;
+  auto_offer?: boolean;
 }
