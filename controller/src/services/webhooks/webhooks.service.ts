@@ -18,7 +18,5 @@ export default function (app: Application) {
   app.use("/webhooks/topic/:topic", new Webhooks(options, app));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service("webhooks/topic/:topic");
-
-  service.hooks(hooks);
+  app.service("webhooks/topic/:topic").hooks(hooks);
 }

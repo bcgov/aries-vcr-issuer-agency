@@ -7,11 +7,9 @@ export enum CredDefServiceAction {
   Details = 'Details',
 }
 
-export enum CredExServiceAction {
-  Create = 'Create',
-}
-
 export enum CredServiceAction {
+  Create = 'Create',
+  Issue = 'Issue',
   Send = 'Send'
 }
 
@@ -45,7 +43,6 @@ export enum IssuerRegistrationServiceAction {
 export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
-  CredEx = 'Credential Exchange',
   Cred = 'Credential',
   Schema = 'Schema',
   Ledger = 'Ledger',
@@ -64,7 +61,7 @@ export enum WebhookTopic_2_0 {
   IssueCredentialIndy = 'issue_credential_v2_0_indy',
 }
 
-export enum CredExState {
+export enum CredState {
   ProposalReceived = 'proposal_received',
   OfferSent = 'offer_sent',
   RequestReceived = 'request_received',
