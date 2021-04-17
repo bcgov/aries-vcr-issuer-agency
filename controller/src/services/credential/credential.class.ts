@@ -21,13 +21,7 @@ class CredentialBase implements ServiceSwaggerAddon {
     this.app = app;
   }
 
-  protected findSchema(schemas: SchemaServiceModel[], credSchemaName: string, credSchemaVersion: string) {
-    return schemas.find((schema: SchemaServiceModel) => {
-      return schema.schema_name === credSchemaName && schema.schema_version === credSchemaVersion;
-    });
-  }
-
-  protected formatCredentialAttributes(cred: CredServiceModel) {
+  private formatCredAttributes(cred: CredServiceModel) {
     const attributes: AriesCredPreviewAttribute[] = [];
     for (const attribute in cred?.attributes) {
       if (Object.prototype.hasOwnProperty.call(cred?.attributes, attribute)) {
@@ -41,7 +35,7 @@ class CredentialBase implements ServiceSwaggerAddon {
     return attributes;
   }
 
-  protected formatCredentialOffer(attributes: AriesCredPreviewAttribute[], params: IssuerServiceParams | undefined, schema: SchemaServiceModel): AriesCredServiceRequest {
+  private formatCredOffer(attributes: AriesCredPreviewAttribute[], params: IssuerServiceParams | undefined, schema: SchemaServiceModel): AriesCredServiceRequest {
     return {
       credential_preview: {
         '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/2.0/credential-preview',
@@ -61,6 +55,18 @@ class CredentialBase implements ServiceSwaggerAddon {
     };
   }
 
+  protected formatCredServiceRequest(data: CredServiceModel, params: IssuerServiceParams | undefined, existingSchema: SchemaServiceModel) {
+    const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredAttributes(data);
+    const credOffer: AriesCredServiceRequest = this.formatCredOffer(credPreviewAttributes, params, existingSchema);
+    return credOffer;
+  }
+
+  protected findSchema(schemas: SchemaServiceModel[], credSchemaName: string, credSchemaVersion: string) {
+    return schemas.find((schema: SchemaServiceModel) => {
+      return schema.schema_name === credSchemaName && schema.schema_version === credSchemaVersion;
+    });
+  }
+
   protected async dispatch(action: CredServiceAction, params: IssuerServiceParams | undefined, data: AriesCredServiceRequest): Promise<Partial<CredServiceModel> | Error> {
     return await this.app.service('aries-agent').create({
       service: ServiceType.Cred,
@@ -70,12 +76,12 @@ class CredentialBase implements ServiceSwaggerAddon {
     } as AriesAgentData);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(data: CredServiceModel, params?: IssuerServiceParams): Promise<Partial<CredServiceModel> | Error | void> {
-    if (Array.isArray(data)) {
-      throw new Error('Not implemented');
-    }
+  protected async sendCredServiceRequest(params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest): Promise<Partial<CredServiceModel> | Error | void> {
+    return await this.dispatch(CredServiceAction.Send, params, offer);
+  }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async create(data: CredServiceModel, params?: IssuerServiceParams): Promise<Partial<CredServiceModel> | Error | void> {
     const { schema_name: credSchemaName, schema_version: credSchemaVersion } = data;
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
     const existingSchema = this.findSchema(schemas, credSchemaName, credSchemaVersion);
@@ -85,10 +91,12 @@ class CredentialBase implements ServiceSwaggerAddon {
       );
     }
 
-    const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredentialAttributes(data);
-    const credOffer: AriesCredServiceRequest = this.formatCredentialOffer(credPreviewAttributes, params, existingSchema);
+    if (Array.isArray(data)) {
+      throw new Error('Not implemented');
+    }
 
-    return await this.dispatch(CredServiceAction.Send, params, credOffer);
+    const credOffer: AriesCredServiceRequest = this.formatCredServiceRequest(data, params, existingSchema);
+    return await this.sendCredServiceRequest(params, credOffer);
   }
 
   model = {
@@ -168,12 +176,12 @@ export class Credential extends CredentialBase {
     super(options, app);
   }
 
+  protected async sendCredServiceRequest(params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest): Promise<Partial<CredServiceModel> | Error | void> {
+    return await this.dispatch(CredServiceAction.Create, params, offer);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: CredServiceModel, params?: IssuerServiceParams): Promise<Partial<CredServiceModel> | Error | void> {
-    if (Array.isArray(data)) {
-      throw new Error('Not implemented');
-    }
-
     const { schema_name: credSchemaName, schema_version: credSchemaVersion } = data;
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
     const existingSchema = this.findSchema(schemas, credSchemaName, credSchemaVersion);
@@ -183,10 +191,12 @@ export class Credential extends CredentialBase {
       );
     }
 
-    const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredentialAttributes(data);
-    const credOffer: AriesCredServiceRequest = this.formatCredentialOffer(credPreviewAttributes, params, existingSchema);
+    if (Array.isArray(data)) {
+      throw new Error('Not implemented');
+    }
 
-    return await this.dispatch(CredServiceAction.Create, params, credOffer);
+    const credOffer: AriesCredServiceRequest = this.formatCredServiceRequest(data, params, existingSchema);
+    return await this.sendCredServiceRequest(params, credOffer);
   }
 }
 
