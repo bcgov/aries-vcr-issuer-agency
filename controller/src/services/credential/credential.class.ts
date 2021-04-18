@@ -132,7 +132,7 @@ export class Credential extends CredentialBase {
     return attributes;
   }
 
-  private formatCredOffer(
+  private formatCredProposal(
     attributes: AriesCredPreviewAttribute[], params: IssuerServiceParams, schema: SchemaServiceModel
   ): AriesCredServiceRequest {
     return {
@@ -168,7 +168,7 @@ export class Credential extends CredentialBase {
     existingSchema: SchemaServiceModel, data: CredServiceModel, params: IssuerServiceParams
   ): AriesCredServiceRequest {
     const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredAttributes(data);
-    return this.formatCredOffer(credPreviewAttributes, params, existingSchema);
+    return this.formatCredProposal(credPreviewAttributes, params, existingSchema);
   }
 
   findSchema(
@@ -225,7 +225,7 @@ export class Credential extends CredentialBase {
         params.credentials.pending.push(this.deferCredEx(credExId, params));
       } else {
         params.credentials.results.push(new GeneralError(
-          `Could not obtain Credential Exchange ID for request: {data}`
+          `Could not obtain Credential Exchange ID for request: ${data}`
         ));
       }
     }
