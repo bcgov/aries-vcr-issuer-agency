@@ -1,4 +1,4 @@
-import { BadRequest } from '@feathersjs/errors';
+import { BadRequest, GeneralError } from '@feathersjs/errors';
 import { ServiceSwaggerAddon, ServiceSwaggerOptions, } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
 import { AriesCredPreview, AriesCredPreviewAttribute, AriesCredServiceRequest, CredServiceModel } from '../../models/credential';
@@ -11,7 +11,7 @@ interface ServiceOptions { }
 
 abstract class CredentialBase implements ServiceSwaggerAddon {
   protected abstract formatCredServiceRequest(
-    data: CredServiceModel, params: IssuerServiceParams | undefined, existingSchema: SchemaServiceModel
+    existingSchema: SchemaServiceModel, data: CredServiceModel, params: IssuerServiceParams
   ): AriesCredServiceRequest;
 
   protected abstract findSchema(
@@ -19,17 +19,19 @@ abstract class CredentialBase implements ServiceSwaggerAddon {
   ): SchemaServiceModel | undefined;
 
   protected abstract dispatch(
-    action: CredServiceAction, params: IssuerServiceParams | undefined, data: AriesCredServiceRequest
+    action: CredServiceAction, data: AriesCredServiceRequest, params: IssuerServiceParams
   ): Promise<any | Error>;
 
   protected abstract sendCredServiceRequest(
-    params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
+    offer: AriesCredServiceRequest, params: IssuerServiceParams
   ): Promise<any | Error>;
 
-  protected abstract receiveCredServiceResponse(): void;
+  protected abstract receiveCredServiceResponse(
+    params: IssuerServiceParams
+  ): Promise<any[] | Error>;
 
   protected abstract create(
-    data: CredServiceModel, params?: IssuerServiceParams
+    data: CredServiceModel, params: IssuerServiceParams
   ): Promise<any | Error>;
 
   model = {
@@ -107,17 +109,11 @@ abstract class CredentialBase implements ServiceSwaggerAddon {
 export class Credential extends CredentialBase {
   app: Application;
   options: ServiceSwaggerOptions;
-  // TODO: This needs to be attached to the request context instead,
-  // it needs to be ephemeral to the request
-  request: { pending: Promise<void>[], results: any[] }
 
   constructor(options: ServiceOptions = {}, app: Application) {
     super();
     this.options = options;
     this.app = app;
-    // TODO: This needs to be attached to the request context instead,
-    // it needs to be ephemeral to the request
-    this.request = { pending: [], results: [] };
   }
 
   private formatCredAttributes(
@@ -137,7 +133,7 @@ export class Credential extends CredentialBase {
   }
 
   private formatCredOffer(
-    attributes: AriesCredPreviewAttribute[], params: IssuerServiceParams | undefined, schema: SchemaServiceModel
+    attributes: AriesCredPreviewAttribute[], params: IssuerServiceParams, schema: SchemaServiceModel
   ): AriesCredServiceRequest {
     return {
       credential_preview: {
@@ -158,18 +154,18 @@ export class Credential extends CredentialBase {
     };
   }
 
-  private deferCredEx(cred_ex_id: string): Promise<void> {
+  private deferCredEx(cred_ex_id: string, params: IssuerServiceParams): Promise<void> {
     const credService = this.app.service('issuer/credentials');
     return new Promise((resolve) => credService
       .once(cred_ex_id, (data: any) => {
-        this.request.results.push(data);
+        params.credentials.results.push(data);
         resolve(cred_ex_id);
       }))
-      .then(() => {});
+      .then(() => { });
   }
 
   formatCredServiceRequest(
-    data: CredServiceModel, params: IssuerServiceParams | undefined, existingSchema: SchemaServiceModel
+    existingSchema: SchemaServiceModel, data: CredServiceModel, params: IssuerServiceParams
   ): AriesCredServiceRequest {
     const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredAttributes(data);
     const credOffer: AriesCredServiceRequest = this.formatCredOffer(credPreviewAttributes, params, existingSchema);
@@ -185,7 +181,7 @@ export class Credential extends CredentialBase {
   }
 
   async dispatch(
-    action: CredServiceAction, params: IssuerServiceParams | undefined, data: AriesCredServiceRequest
+    action: CredServiceAction, data: AriesCredServiceRequest, params: IssuerServiceParams
   ): Promise<any | Error> {
     return await this.app.service('aries-agent').create({
       service: ServiceType.Cred,
@@ -196,18 +192,18 @@ export class Credential extends CredentialBase {
   }
 
   async sendCredServiceRequest(
-    params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
+    offer: AriesCredServiceRequest, params: IssuerServiceParams
   ): Promise<any | Error> {
-    return await this.dispatch(CredServiceAction.Create, params, offer);
+    return await this.dispatch(CredServiceAction.Create, offer, params);
   }
 
-  async receiveCredServiceResponse(): Promise<any[]> {
-    await Promise.all(this.request.pending);
-    return this.request.results;
+  async receiveCredServiceResponse(params: IssuerServiceParams): Promise<any[]> {
+    await Promise.all(params.credentials.pending);
+    return params.credentials.results;
   }
 
   async create(
-    data: CredServiceModel, params?: IssuerServiceParams
+    data: CredServiceModel, params: IssuerServiceParams
   ): Promise<any | Error> {
     const { schema_name: credSchemaName, schema_version: credSchemaVersion } = data;
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
@@ -222,19 +218,19 @@ export class Credential extends CredentialBase {
       throw new Error('Not implemented');
     }
 
-    const credOffer: AriesCredServiceRequest = this.formatCredServiceRequest(data, params, existingSchema);
-    const request: any = await this.sendCredServiceRequest(params, credOffer);
+    const credOffer: AriesCredServiceRequest = this.formatCredServiceRequest(existingSchema, data, params);
+    const request: any = await this.sendCredServiceRequest(credOffer, params);
     const cred_ex_id: string = request?.cred_ex_id;
 
     if (cred_ex_id) {
-      this.request.pending.push(this.deferCredEx(cred_ex_id));
+      params.credentials.pending.push(this.deferCredEx(cred_ex_id, params));
     } else {
-      // TODO: Gracefully handle the error here
+      return new GeneralError(
+        `Could not obtain Credential Exchange ID from the request`
+      );
     }
 
-    console.log(this.request);
-
-    return await this.receiveCredServiceResponse();
+    return await this.receiveCredServiceResponse(params);
   }
 }
 
@@ -244,8 +240,8 @@ export class CredentialSend extends Credential {
   }
 
   async sendCredServiceRequest(
-    params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
+    offer: AriesCredServiceRequest, params: IssuerServiceParams
   ): Promise<Partial<CredServiceModel> | Error> {
-    return await this.dispatch(CredServiceAction.Send, params, offer);
+    return await this.dispatch(CredServiceAction.Send, offer, params);
   }
 }
