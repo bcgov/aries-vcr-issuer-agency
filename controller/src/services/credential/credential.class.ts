@@ -20,17 +20,17 @@ abstract class CredentialBase implements ServiceSwaggerAddon {
 
   protected abstract dispatch(
     action: CredServiceAction, params: IssuerServiceParams | undefined, data: AriesCredServiceRequest
-  ): Promise<Partial<CredServiceModel> | Error>;
+  ): Promise<any | Error>;
 
   protected abstract sendCredServiceRequest(
     params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
-  ): Promise<Partial<CredServiceModel> | Error | void>;
+  ): Promise<any | Error>;
 
   protected abstract receiveCredServiceResponse(): void;
 
   protected abstract create(
     data: CredServiceModel, params?: IssuerServiceParams
-  ): Promise<Partial<CredServiceModel> | Error | void>;
+  ): Promise<any | Error>;
 
   model = {
     title: 'issue credential',
@@ -107,11 +107,17 @@ abstract class CredentialBase implements ServiceSwaggerAddon {
 export class Credential extends CredentialBase {
   app: Application;
   options: ServiceSwaggerOptions;
+  // TODO: This needs to be attached to the request context instead,
+  // it needs to be ephemeral to the request
+  request: { pending: Promise<void>[], results: any[] }
 
   constructor(options: ServiceOptions = {}, app: Application) {
     super();
     this.options = options;
     this.app = app;
+    // TODO: This needs to be attached to the request context instead,
+    // it needs to be ephemeral to the request
+    this.request = { pending: [], results: [] };
   }
 
   private formatCredAttributes(
@@ -152,6 +158,16 @@ export class Credential extends CredentialBase {
     };
   }
 
+  private deferCredEx(cred_ex_id: string): Promise<void> {
+    const credService = this.app.service('issuer/credentials');
+    return new Promise((resolve) => credService
+      .once(cred_ex_id, (data: any) => {
+        this.request.results.push(data);
+        resolve(cred_ex_id);
+      }))
+      .then(() => {});
+  }
+
   formatCredServiceRequest(
     data: CredServiceModel, params: IssuerServiceParams | undefined, existingSchema: SchemaServiceModel
   ): AriesCredServiceRequest {
@@ -170,7 +186,7 @@ export class Credential extends CredentialBase {
 
   async dispatch(
     action: CredServiceAction, params: IssuerServiceParams | undefined, data: AriesCredServiceRequest
-  ): Promise<Partial<CredServiceModel> | Error> {
+  ): Promise<any | Error> {
     return await this.app.service('aries-agent').create({
       service: ServiceType.Cred,
       action,
@@ -181,15 +197,18 @@ export class Credential extends CredentialBase {
 
   async sendCredServiceRequest(
     params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
-  ): Promise<Partial<CredServiceModel> | Error | void> {
+  ): Promise<any | Error> {
     return await this.dispatch(CredServiceAction.Create, params, offer);
   }
 
-  async receiveCredServiceResponse(): Promise<void> { }
+  async receiveCredServiceResponse(): Promise<any[]> {
+    await Promise.all(this.request.pending);
+    return this.request.results;
+  }
 
   async create(
     data: CredServiceModel, params?: IssuerServiceParams
-  ): Promise<Partial<CredServiceModel> | Error | void> {
+  ): Promise<any | Error> {
     const { schema_name: credSchemaName, schema_version: credSchemaVersion } = data;
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
     const existingSchema = this.findSchema(schemas, credSchemaName, credSchemaVersion);
@@ -204,12 +223,18 @@ export class Credential extends CredentialBase {
     }
 
     const credOffer: AriesCredServiceRequest = this.formatCredServiceRequest(data, params, existingSchema);
-    // TODO: This will return the credential-exchange id that will be used to queue requests
-    return await this.sendCredServiceRequest(params, credOffer);
+    const request: any = await this.sendCredServiceRequest(params, credOffer);
+    const cred_ex_id: string = request?.cred_ex_id;
 
-    // TODO: This will await for all requests to complete
-    // return await this.receiveCredServiceResponse();
+    if (cred_ex_id) {
+      this.request.pending.push(this.deferCredEx(cred_ex_id));
+    } else {
+      // TODO: Gracefully handle the error here
+    }
 
+    console.log(this.request);
+
+    return await this.receiveCredServiceResponse();
   }
 }
 
@@ -220,7 +245,7 @@ export class CredentialSend extends Credential {
 
   async sendCredServiceRequest(
     params: IssuerServiceParams | undefined, offer: AriesCredServiceRequest
-  ): Promise<Partial<CredServiceModel> | Error | void> {
+  ): Promise<Partial<CredServiceModel> | Error> {
     return await this.dispatch(CredServiceAction.Send, params, offer);
   }
 }

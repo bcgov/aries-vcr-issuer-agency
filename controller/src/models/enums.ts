@@ -62,9 +62,13 @@ export enum WebhookTopic_2_0 {
 }
 
 export enum CredState {
-  ProposalReceived = 'proposal_received',
   OfferSent = 'offer_sent',
   RequestReceived = 'request_received',
   CredentialIssued = 'credential_issued',
-  Done = 'credential_acked'
+}
+
+export enum CredState_2_0 {
+  OfferSent = 'offer-sent',
+  RequestReceived = 'request-received',
+  CredentialIssued = 'credential-issued',
 }
