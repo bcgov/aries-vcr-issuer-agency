@@ -154,12 +154,12 @@ export class Credential extends CredentialBase {
     };
   }
 
-  private deferCredEx(cred_ex_id: string, params: IssuerServiceParams): Promise<void> {
+  private deferCredEx(credExId: string, params: IssuerServiceParams): Promise<void> {
     const credService = this.app.service('issuer/credentials');
     return new Promise((resolve) => credService
-      .once(cred_ex_id, (data: any) => {
+      .once(credExId, (data: any) => {
         params.credentials.results.push(data);
-        resolve(cred_ex_id);
+        resolve(credExId);
       }))
       .then(() => { });
   }
@@ -220,9 +220,9 @@ export class Credential extends CredentialBase {
     } else {
       const credProposal: AriesCredServiceRequest = this.formatCredServiceRequest(existingSchema, data, params);
       const request: any = await this.sendCredServiceRequest(credProposal, params);
-      const cred_ex_id: string = request?.cred_ex_id;
-      if (cred_ex_id) {
-        params.credentials.pending.push(this.deferCredEx(cred_ex_id, params));
+      const credExId: string = request?.cred_ex_id;
+      if (credExId) {
+        params.credentials.pending.push(this.deferCredEx(credExId, params));
       } else {
         params.credentials.results.push(new GeneralError(
           `Could not obtain Credential Exchange ID for request: {data}`
