@@ -154,14 +154,15 @@ export class Credential extends CredentialBase {
     };
   }
 
-  private deferCredEx(credExId: string, params: IssuerServiceParams): Promise<void> {
+  private deferCredEx(credExId: string, params: IssuerServiceParams, idx?: number): Promise<void> {
     const credService = this.app.service('issuer/credentials');
     return new Promise((resolve) => credService
-      .once(credExId, (data: any) => {
-        params.credentials.results.push(data);
-        resolve(credExId);
+      .once(credExId, () => {
+        const res = { credExId, order: idx, success: true };
+        params.credentials.results.push(res);
+        resolve(res);
       }))
-      .then(() => { });
+      .then();
   }
 
   formatCredServiceRequest(
@@ -211,23 +212,24 @@ export class Credential extends CredentialBase {
     return params.credentials.results;
   }
 
-  async createOne(data: CredServiceModel, params: IssuerServiceParams) {
-    const { credSchemaName, credSchemaVersion, existingSchema } = this.findExistingSchema(data, params);
-    if (!existingSchema) {
-      params.credentials.results.push(new BadRequest(
-        `Schema: ${credSchemaName} with version: ${credSchemaVersion} does not exist.`
-      ));
-    } else {
-      const credProposal: AriesCredServiceRequest = this.formatCredServiceRequest(existingSchema, data, params);
-      const request: any = await this.sendCredServiceRequest(credProposal, params);
-      const credExId: string = request?.cred_ex_id;
-      if (credExId) {
-        params.credentials.pending.push(this.deferCredEx(credExId, params));
+  async createOne(data: CredServiceModel, params: IssuerServiceParams, idx?: number) {
+    try {
+      const { credSchemaName, credSchemaVersion, existingSchema } = this.findExistingSchema(data, params);
+      if (!existingSchema) {
+        throw new BadRequest(`Schema: ${credSchemaName} with version: ${credSchemaVersion} does not exist.`);
       } else {
-        params.credentials.results.push(new GeneralError(
-          `Could not obtain Credential Exchange ID for request: ${data}`
-        ));
+        const credProposal: AriesCredServiceRequest = this.formatCredServiceRequest(existingSchema, data, params);
+        const request: any = await this.sendCredServiceRequest(credProposal, params);
+        const credExId: string = request?.cred_ex_id;
+        if (credExId) {
+          params.credentials.pending.push(this.deferCredEx(credExId, params, idx));
+        } else {
+          throw new GeneralError(`Could not obtain Credential Exchange ID for request: ${data}`);
+        }
       }
+    } catch (error) {
+      const res = { error, order: idx, success: false };
+      params.credentials.results.push(res);
     }
   }
 
@@ -235,7 +237,7 @@ export class Credential extends CredentialBase {
     data: CredServiceModel, params: IssuerServiceParams
   ): Promise<any | Error> {
     if (Array.isArray(data)) {
-      await Promise.all(data.map((datum) => this.createOne(datum, params)));
+      await Promise.all(data.map((datum, idx) => this.createOne(datum, params, idx)));
     } else {
       await this.createOne(data, params);
     }

@@ -2,12 +2,12 @@ export interface Claim {
   name: string;
   value: string;
 }
+
 export interface CredServiceModel {
   schema_name: string;
   schema_version: string;
   attributes: { [key: string]: string };
 }
-
 
 export interface AriesCredPreviewAttribute {
   'name': string;

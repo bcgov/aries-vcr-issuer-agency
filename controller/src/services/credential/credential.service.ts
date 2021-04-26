@@ -8,7 +8,7 @@ import hooks from './credential.hooks';
 declare module '../../declarations' {
   interface ServiceTypes {
     'issuer/credentials': Credential & ServiceAddons<any>;
-    'issuer/credentials/send': CredentialSend & ServiceAddons<any>;
+    // 'issuer/credentials/send': CredentialSend & ServiceAddons<any>;
   }
 }
 
@@ -19,9 +19,9 @@ export default function (app: Application): void {
 
   // Initialize our service with any options it requires
   app.use('/issuer/credentials', new Credential(options, app));
-  app.use('/issuer/credentials/send', new CredentialSend(options, app));
+  // app.use('/issuer/credentials/send', new CredentialSend(options, app));
 
   // Get our initialized service so that we can register hooks
   app.service('issuer/credentials').hooks(hooks);
-  app.service('issuer/credentials/send').hooks(hooks);
+  // app.service('issuer/credentials/send').hooks(hooks);
 }

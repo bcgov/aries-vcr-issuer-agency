@@ -169,7 +169,7 @@ function formatAttributeMappings(
 
   const mappings = [] as ModelMapping[];
 
-  const baseAtributeMapping = (attribute: string) => ({
+  const baseAttributeMapping = (attribute: string) => ({
     model: '',
     fields: {
       type: {
@@ -189,7 +189,7 @@ function formatAttributeMappings(
 
   // prepare standard/date attributes mappings
   for (const attribute of standardAttributes) {
-    const mapping = baseAtributeMapping(attribute) as AttributeMapping;
+    const mapping = baseAttributeMapping(attribute) as AttributeMapping;
     mapping.model = 'attribute';
     mapping.fields.value = {
       input: attribute,
@@ -208,7 +208,7 @@ function formatAttributeMappings(
 
   // prepare name/search mappings
   for (const attribute of searchAttributes) {
-    const mapping = baseAtributeMapping(attribute) as NameMapping;
+    const mapping = baseAttributeMapping(attribute) as NameMapping;
     mapping.model = 'name';
     mapping.fields.text = {
       input: attribute,
