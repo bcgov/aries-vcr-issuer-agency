@@ -25,7 +25,7 @@ export class IssuerAuthentication implements ServiceSwaggerAddon {
   async create(data: Data, params: IssuerServiceParams): Promise<Data | Error> {
     try {
       const newApiKey = uuidv4();
-      await this.app.service('issuer-model').patch(params.profile._id, {
+      await this.app.service('issuer/model').patch(params.profile._id, {
         'api-key': newApiKey,
       });
 

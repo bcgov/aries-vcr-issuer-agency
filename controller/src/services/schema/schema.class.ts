@@ -96,7 +96,7 @@ export class Schema implements ServiceSwaggerAddon {
       }
 
       // Save data to controller db
-      await this.app.service('issuer-model').patch(params.profile._id, {
+      await this.app.service('issuer/model').patch(params.profile._id, {
         schemas: schemaList,
       } as Partial<SchemaServiceModel>);
 

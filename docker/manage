@@ -189,6 +189,12 @@ case "$COMMAND" in
     configureEnvironment $@
     build ${_startupParams}
     ;;
+  test)
+    _startupParams=$(getStartupParams $@)
+    configureEnvironment "$@"
+	  build
+    # docker-compose up --no-deps ${_startupParams} bash -c "npm test"
+    ;;
   *)
     usage
 esac

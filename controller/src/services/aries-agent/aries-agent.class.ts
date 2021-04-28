@@ -111,7 +111,7 @@ export class AriesAgent {
         if (data.action === CredServiceAction.Send) {
           return this.sendCredential(data.data, data.token);
         } else if (data.action === CredDefServiceAction.Create) {
-          return this.createCredential(data.data, data.token)
+          return this.createCredential(data.data, data.token);
         }
       case ServiceType.Schema:
         if (data.action === SchemaServiceAction.Details) {
