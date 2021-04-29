@@ -1,5 +1,6 @@
 export enum ConnectionServiceAction {
-  Create = 'Create',
+  CreateVCR = 'CreateVCR',
+  CreateEndorser = 'CreateEndorser',
 }
 
 export enum CredDefServiceAction {
