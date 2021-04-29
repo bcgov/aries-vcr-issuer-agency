@@ -30,7 +30,7 @@
     "alias": "REGISTRY_ALIAS"
   },
   "endorser": {
-    "adminURL": "ENDORSER_ADMIN_URL",
+    "adminUrl": "ENDORSER_ADMIN_URL",
     "headers": {
       "x-api-key": "ENDORSER_ADMIN_API_KEY"
     },
