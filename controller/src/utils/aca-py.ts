@@ -27,11 +27,17 @@ export class AcaPyUtils {
   }
 
   getRequestConfig(token = ''): AxiosRequestConfig {
+    let agencyHeaders = this.app.get('agent').headers;
+    if (token) {
+      agencyHeaders = {
+        ...agencyHeaders,
+        ...{
+          Authorization: `Bearer ${token}`,
+        },
+      };
+    }
     return {
-      headers: {
-        'x-api-key': this.app.get('agent').adminApiKey || '',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
+      headers: agencyHeaders,
     } as AxiosRequestConfig;
   }
 
@@ -41,14 +47,22 @@ export class AcaPyUtils {
 
   getRegistryRequestConfig(): AxiosRequestConfig {
     return {
-      headers: {
-        'x-api-key': this.app.get('aries-vcr').adminApiKey || '',
-      },
+      headers: this.app.get('aries-vcr').headers,
     } as AxiosRequestConfig;
   }
 
   getRegistryAdminUrl(): string {
     return this.app.get('aries-vcr').adminUrl;
+  }
+
+  getEndorserRequestConfig(): AxiosRequestConfig {
+    return {
+      headers: this.app.get('endorser').headers,
+    } as AxiosRequestConfig;
+  }
+
+  getEndorserAdminUrl(): string {
+    return this.app.get('endorser').adminUrl;
   }
 
   async init(): Promise<any> {

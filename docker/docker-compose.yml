@@ -1,6 +1,6 @@
 version: "3"
 services:
-  agent:
+  agency:
     image: vcr-agent
     environment:
       - ACAPY_LABEL=${AGENCY_NAME}
@@ -13,6 +13,7 @@ services:
       - ACAPY_WALLET_STORAGE_TYPE=${AGENCY_WALLET_STORAGE_TYPE}
       - ACAPY_WEBHOOK_URL=${AGENCY_WEBHOOK_URL}
       - ACAPY_LOG_LEVEL=${AGENCY_LOG_LEVEL}
+      - ACAPY_AUTO_PROVISION=true
       - ACAPY_AUTO_ACCEPT_INVITES=true
       - ACAPY_AUTO_ACCEPT_REQUESTS=true
       - ACAPY_AUTO_PING_CONNECTION=true
@@ -44,11 +45,7 @@ services:
     entrypoint: /bin/bash
     command: [
         "-c",
-        "curl -d '{\"seed\":\"${AGENCY_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${AGENCY_WALLET_NAME}\"}' -X POST ${LEDGER_URL}/register; \
-        sleep 5; \
-        aca-py provision \
-        --wallet-storage-config '{\"url\":\"${POSTGRESQL_WALLET_HOST}:${POSTGRESQL_WALLET_PORT}\",\"max_connections\":5}' \
-        --wallet-storage-creds '{\"account\":\"${POSTGRESQL_USER}\",\"password\":\"${POSTGRESQL_PASSWORD}\",\"admin_account\":\"postgres\",\"admin_password\":\"${POSTGRESQL_ADMIN_PASSWORD}\"}'; \
+        "curl -d '{\"seed\":\"${AGENCY_WALLET_SEED}\", \"role\":\"\", \"alias\":\"${AGENCY_WALLET_NAME}\"}' -X POST ${LEDGER_URL}/register; \
         sleep 5; \
         aca-py start \
         --inbound-transport http '0.0.0.0' ${AGENCY_HTTP_IN_PORT} \
@@ -60,6 +57,60 @@ services:
         --admin '0.0.0.0' ${AGENCY_ADMIN_PORT} \
         --${AGENCY_ADMIN_MODE} \
         --plugin indy_catalyst_issuer_registration;",
+      ]
+  
+  endorser:
+    image: bcgovimages/aries-cloudagent:py36-1.16-0_0.7-pre.0
+    environment:
+      - ACAPY_LABEL=${ENDORSER_NAME}
+      - ACAPY_ENDPOINT=${ENDORSER_ENDPOINT}
+      - ACAPY_GENESIS_URL=${LEDGER_URL}/genesis
+      - ACAPY_WALLET_NAME=${ENDORSER_WALLET_NAME}
+      - ACAPY_WALLET_TYPE=indy
+      - ACAPY_WALLET_KEY=${ENDORSER_WALLET_ENCRYPTION_KEY}
+      - ACAPY_WALLET_SEED=${ENDORSER_WALLET_SEED}
+      - ACAPY_WALLET_STORAGE_TYPE=${ENDORSER_WALLET_STORAGE_TYPE}
+      - ACAPY_WEBHOOK_URL=${ENDORSER_WEBHOOK_URL}
+      - ACAPY_LOG_LEVEL=${ENDORSER_LOG_LEVEL}
+      - ACAPY_AUTO_PROVISION=true
+      - ACAPY_AUTO_ACCEPT_INVITES=true
+      - ACAPY_AUTO_ACCEPT_REQUESTS=true
+      - ACAPY_AUTO_PING_CONNECTION=true
+      - ACAPY_AUTO_RESPOND_MESSAGES=true
+      - ACAPY_AUTO_RESPOND_CREDENTIAL_OFFER=true
+      - ACAPY_AUTO_RESPOND_PRESENTATION_REQUEST=true
+      - ACAPY_AUTO_RESPOND_CREDENTIAL_REQUEST=true
+      - ACAPY_AUTO_VERIFY_PRESENTATION=true
+      - ENDORSER_HTTP_IN_PORT=${ENDORSER_HTTP_IN_PORT}
+      - ENDORSER_WS_IN_PORT=${ENDORSER_WS_IN_PORT}
+      - ENDORSER_ADMIN_PORT=${ENDORSER_ADMIN_PORT}
+      - POSTGRESQL_WALLET_HOST=${POSTGRESQL_WALLET_HOST}
+      - POSTGRESQL_WALLET_PORT=${POSTGRESQL_WALLET_PORT}
+      - POSTGRESQL_WALLET_USER=${POSTGRESQL_USER}
+      - POSTGRESQL_WALLET_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_WALLET_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD}
+    networks:
+      - vcr-issuer-agency
+    ports:
+      - ${ENDORSER_HTTP_IN_PORT}:${ENDORSER_HTTP_IN_PORT}
+      - ${ENDORSER_WS_IN_PORT}:${ENDORSER_WS_IN_PORT}
+      - ${ENDORSER_ADMIN_PORT}:${ENDORSER_ADMIN_PORT}
+    depends_on:
+      - wallet
+    entrypoint: /bin/bash
+    command: [
+        "-c",
+        "curl -d '{\"seed\":\"${ENDORSER_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${ENDORSER_WALLET_NAME}\"}' -X POST ${LEDGER_URL}/register; \
+        sleep 5; \
+        aca-py start \
+        --inbound-transport http '0.0.0.0' ${ENDORSER_HTTP_IN_PORT} \
+        --inbound-transport ws '0.0.0.0' ${ENDORSER_WS_IN_PORT} \
+        --outbound-transport ws \
+        --outbound-transport http \
+        --wallet-storage-config '{\"url\":\"${POSTGRESQL_WALLET_HOST}:${POSTGRESQL_WALLET_PORT}\",\"max_connections\":5}' \
+        --wallet-storage-creds '{\"account\":\"${POSTGRESQL_USER}\",\"password\":\"${POSTGRESQL_PASSWORD}\",\"admin_account\":\"postgres\",\"admin_password\":\"${POSTGRESQL_ADMIN_PASSWORD}\"}' \
+        --admin '0.0.0.0' ${ENDORSER_ADMIN_PORT} \
+        --${ENDORSER_ADMIN_MODE};",
       ]
 
   wallet:
@@ -92,6 +143,9 @@ services:
       - REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL}
       - REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
       - REGISTRY_ALIAS=${REGISTRY_ALIAS}
+      - ENDORSER=${ENDORSER_ADMIN_URL}
+      - ENDORSER_ADMIN_API_KEY=${ENDORSER_ADMIN_API_KEY}
+      - ENDORSER_ALIAS=${ENDORSER_ALIAS}
       - LOG_LEVEL=${LOG_LEVEL}
     volumes:
       - ../controller:/usr/src/controller
@@ -103,13 +157,14 @@ services:
       - vcr
     working_dir: /usr/src/controller
     depends_on:
-      - agent
+      - agency
       - db
+      - endorser
     entrypoint: /bin/bash
     command: ["-c", "npm install; npm run dev"]
 
   db:
-    image: registry.access.redhat.com/rhscl/mongodb-36-rhel7
+    image: centos/mongodb-36-centos7
     environment:
       - MONGODB_ADMIN_PASSWORD=${MONGODB_ADMIN_PASSWORD}
       - MONGODB_USER=${MONGODB_USER}
