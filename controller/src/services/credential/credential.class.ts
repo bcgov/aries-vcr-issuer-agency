@@ -265,16 +265,3 @@ export class Credential extends CredentialBase {
     return await this.receiveCredServiceResponse(params);
   }
 }
-
-export class CredentialSend extends Credential {
-  constructor(options: ServiceOptions = {}, app: Application) {
-    super(options, app);
-  }
-
-  async sendCredServiceRequest(
-    offer: AriesCredServiceRequest,
-    params: IssuerServiceParams
-  ): Promise<Partial<CredServiceModel> | Error> {
-    return await this.dispatch(CredServiceAction.Send, offer, params);
-  }
-}
