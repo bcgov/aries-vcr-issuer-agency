@@ -68,8 +68,16 @@ export interface ModelMapping {
 export interface AttributeMapping extends ModelMapping {
   fields: {
     type: Mapping;
-    format?: Mapping;
     value: Mapping;
+    format?: Mapping;
+  };
+}
+
+export interface NameMapping extends ModelMapping {
+  fields: {
+    type: Mapping;
+    text: Mapping;
+    format?: Mapping;
   };
 }
 

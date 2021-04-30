@@ -1,73 +1,41 @@
 import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { CredExState } from '../../models/enums';
+import { CredState_2_0, WebhookTopic_2_0 } from '../../models/enums';
 
 interface Data {
-  state?: CredExState;
-  credential_exchange_id?: string;
-  credential_proposal_dict?: any;
-  revocation_id?: string;
-  revoc_reg_id?: string;
+  state?: CredState_2_0;
+  cred_ex_id?: string;
 }
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
 export class Webhooks {
   app: Application;
   options: ServiceOptions;
 
-  constructor(options: ServiceOptions = {}, app: Application) {
+  constructor(options: ServiceOptions = {}, app: Application) { 
     this.options = options;
     this.app = app;
   }
 
   async create(data: Data, params?: Params): Promise<any> {
     const topic = params?.route?.topic;
+    const state = data?.state;
     switch (topic) {
+      case WebhookTopic_2_0.IssueCredential:
+        if (state === CredState_2_0.CredentialIssued) {
+          const cred_ex_id = data?.cred_ex_id;
+          if (cred_ex_id) {
+            this.app.service('issuer/credential').emit(cred_ex_id, data);
+          } else {
+            // TODO: Gracefully handle the error here
+            return { result: 'Error' };
+          }
+        }
+        return { result: 'Success' };
       default:
         return new NotImplemented(`Webhook ${topic} is not supported`);
     }
   }
-
-  // private async handleConnection(data: Data): Promise<any> {
-  //   // implement your connection webhook logic here
-  // }
-
-  // private async handleIssueCredential(data: Data): Promise<any> {
-  //   switch (data.state) {
-  //     case CredExState.RequestReceived:
-  //       const attributes = data.credential_proposal_dict?.credential_proposal
-  //         ?.attributes as AriesCredentialAttribute[];
-  //       await this.app.service('aries-agent').create({
-  //         service: ServiceType.CredEx,
-  //         action: ServiceAction.Issue,
-  //         data: {
-  //           credential_exchange_id: data.credential_exchange_id,
-  //           attributes: attributes,
-  //         },
-  //       });
-  //       return { result: 'Success' };
-  //     case CredExState.Issued:
-  //       console.log(
-  //         `Credential issued for cred_ex_id ${data.credential_exchange_id}`
-  //       );
-  //       updateInviteRecord(
-  //         { credential_exchange_id: data.credential_exchange_id },
-  //         {
-  //           issued: true,
-  //           revoked: data.revocation_id ? false : undefined,
-  //           revocation_id: data.revocation_id,
-  //           revoc_reg_id: data.revoc_reg_id,
-  //         },
-  //         this.app
-  //       );
-  //       return { result: 'Success' };
-  //     default:
-  //       console.warn(
-  //         `Received unexpected state ${data.state} for cred_ex_id ${data.credential_exchange_id}`
-  //       );
-  //       return { status: `Unexpected state ${data.state}` };
-  //   }
-  // }
 }

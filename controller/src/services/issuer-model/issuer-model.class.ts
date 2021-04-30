@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { Service, MongoDBServiceOptions } from 'feathers-mongodb';
 import { Application } from '../../declarations';
 
@@ -7,10 +7,10 @@ export class Issuer extends Service {
   constructor(options: Partial<MongoDBServiceOptions>, app: Application) {
     super(options);
 
-    const client: Promise<Db> = app.get('mongoClient');
+    const mongodb = app.get('mongodb');
 
-    client.then((db) => {
-      this.Model = db.collection('issuer-profile');
+    mongodb.then((mongo: { client: MongoClient, db: Db }) => {
+      this.Model = mongo.db.collection('issuer-profile');
     });
   }
 }

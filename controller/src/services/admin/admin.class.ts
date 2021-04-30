@@ -35,11 +35,7 @@ export class Admin implements ServiceSwaggerAddon {
     this.app = app;
   }
 
-  //eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(
-    data: Data,
-    params: Params
-  ): Promise<Partial<IssuerProfileModel> | Error> {
+  async create(data: Data): Promise<Partial<IssuerProfileModel> | Error> {
     try {
       // Remove special characters and replace spaces with "_", useful for matching existing users
       // as well as having a suitable name for the issuer's wallet schema
@@ -48,7 +44,7 @@ export class Admin implements ServiceSwaggerAddon {
         .replace(/[^a-zA-Z0-9\s]+/g, '')
         .replace(/\s+/g, '_');
 
-      const existingProfiles = (await this.app.service('issuer-model').find({
+      const existingProfiles = (await this.app.service('issuer/model').find({
         query: { normalizedName: normalizedName },
         collation: { locale: 'en', strength: 1 },
       })) as Paginated<Data>;
@@ -94,7 +90,7 @@ export class Admin implements ServiceSwaggerAddon {
 
       // Create profile
       const issuerApiKey = uuidv4();
-      await this.app.service('issuer-model').create({
+      await this.app.service('issuer/model').create({
         name: data.name,
         normalizedName: normalizedName,
         'api-key': issuerApiKey,
@@ -119,7 +115,7 @@ export class Admin implements ServiceSwaggerAddon {
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove(id: NullableId, params: Params): Promise<any> {
     try {
-      await this.app.service('issuer-model').remove(id);
+      await this.app.service('issuer/model').remove(id);
       return {};
     } catch (e) {
       return e as Error;

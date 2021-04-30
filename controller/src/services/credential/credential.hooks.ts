@@ -1,11 +1,14 @@
+import { HookContext, Service } from '@feathersjs/feathers';
 import { authenticateIssuer } from '../../utils/hooks/authentication';
+import { postProcessCredentials, preProcessCredentials } from '../../utils/hooks/credential';
+import { checkValidIssuerProfile } from '../../utils/hooks/issuer-profile';
 
 export default {
   before: {
-    all: [authenticateIssuer],
+    all: [authenticateIssuer, checkValidIssuerProfile],
     find: [],
     get: [],
-    create: [],
+    create: [preProcessCredentials],
     update: [],
     patch: [],
     remove: [],
@@ -15,7 +18,7 @@ export default {
     all: [],
     find: [],
     get: [],
-    create: [],
+    create: [postProcessCredentials],
     update: [],
     patch: [],
     remove: [],

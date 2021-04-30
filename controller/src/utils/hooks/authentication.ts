@@ -25,7 +25,7 @@ export async function authenticateIssuer(
     throw new Forbidden('The issuer-api-key header is missing');
   }
 
-  const issuer = (await context.app.service('issuer-model').find({
+  const issuer = (await context.app.service('issuer/model').find({
     query: { 'api-key': apiKeyHeader },
   })) as Paginated<IssuerProfileModel>;
 

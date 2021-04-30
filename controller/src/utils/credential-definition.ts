@@ -2,7 +2,7 @@ import { Application } from '@feathersjs/express';
 import Axios from 'axios';
 import logger from '../logger';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../models/credential-definition';
 import { UndefinedAppError } from '../models/errors';
@@ -36,7 +36,7 @@ export class CredDefUtils {
     schema_id: string,
     support_revocation = false,
     tag = 'default'
-  ): AriesCredentialDefinition {
+  ): AriesCredDefServiceRequest {
     return {
       schema_id: schema_id,
       support_revocation: support_revocation,
@@ -45,7 +45,7 @@ export class CredDefUtils {
   }
 
   async getOrCreateCredDef(
-    credDef: AriesCredentialDefinition
+    credDef: AriesCredDefServiceRequest
   ): Promise<CredDefServiceResponse> {
     let credDefResponse: CredDefServiceResponse;
     if (this.app.get('credDefs').get(credDef.schema_id)) {

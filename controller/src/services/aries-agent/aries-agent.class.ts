@@ -4,23 +4,19 @@ import Axios, { AxiosError } from 'axios';
 import { Application } from '../../declarations';
 import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
+import { AriesCredServiceRequest } from '../../models/credential';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
 import {
-  AriesCredentialAttribute,
-  AriesCredentialExchange,
-  CredExServiceResponse,
-} from '../../models/credential-exchange';
-import {
   ConnectionServiceAction,
   CredDefServiceAction,
-  CredExServiceAction,
+  CredServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
-  SchemasServiceAction,
+  SchemaServiceAction,
   ServiceType,
   WalletServiceAction,
 } from '../../models/enums';
@@ -33,24 +29,23 @@ import {
 import { AriesSchema, AriesSchemaServiceRequest } from '../../models/schema';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AcaPyUtils } from '../../utils/aca-py';
-import { formatCredentialPreview } from '../../utils/credential-exchange';
 
 export interface AriesAgentData {
   service: ServiceType;
   action:
-    | ConnectionServiceAction
-    | CredDefServiceAction
-    | CredExServiceAction
-    | LedgerServiceAction
-    | MultitenancyServiceAction
-    | SchemasServiceAction
-    | WalletServiceAction
-    | IssuerRegistrationServiceAction;
+  | ConnectionServiceAction
+  | CredDefServiceAction
+  | CredServiceAction
+  | LedgerServiceAction
+  | MultitenancyServiceAction
+  | SchemaServiceAction
+  | WalletServiceAction
+  | IssuerRegistrationServiceAction;
   token?: string;
   data: any;
 }
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
 export class AriesAgent {
   app: Application;
@@ -103,13 +98,6 @@ export class AriesAgent {
             data.data.version
           );
         }
-      case ServiceType.CredEx:
-        if (data.action === CredExServiceAction.Create) {
-          return this.issueCredential(
-            data.data.credential_exchange_id,
-            data.data.attributes
-          );
-        }
       case ServiceType.CredDef:
         if (data.action === CredDefServiceAction.Details) {
           return this.getCredDefDetailsForSchema(
@@ -119,12 +107,18 @@ export class AriesAgent {
         } else if (data.action === CredDefServiceAction.Create) {
           return this.publishCredentialDefinition(data.data, data.token);
         }
-      case ServiceType.Schemas:
-        if (data.action === SchemasServiceAction.Details) {
+      case ServiceType.Cred:
+        if (data.action === CredServiceAction.Send) {
+          return this.sendCredential(data.data, data.token);
+        } else if (data.action === CredDefServiceAction.Create) {
+          return this.createCredential(data.data, data.token);
+        }
+      case ServiceType.Schema:
+        if (data.action === SchemaServiceAction.Details) {
           return this.getSchemaDetails(data.token, data.data.schema_id);
-        } else if (data.action === SchemasServiceAction.List) {
+        } else if (data.action === SchemaServiceAction.List) {
           return this.getCreatedSchemas(data.token);
-        } else if (data.action === SchemasServiceAction.Create) {
+        } else if (data.action === SchemaServiceAction.Create) {
           return this.publishSchema(data.data, data.token);
         }
       case ServiceType.IssuerRegistration:
@@ -374,7 +368,7 @@ export class AriesAgent {
     }
   }
 
-  async publishSchema(
+  private async publishSchema(
     schema: AriesSchemaServiceRequest,
     token: string | undefined
   ): Promise<AriesSchema> {
@@ -399,7 +393,7 @@ export class AriesAgent {
   }
 
   async publishCredentialDefinition(
-    credDef: AriesCredentialDefinition,
+    credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {
     try {
@@ -452,25 +446,51 @@ export class AriesAgent {
     }
   }
 
-  private async issueCredential(
-    id: string,
-    attributes: AriesCredentialAttribute[]
-  ): Promise<CredExServiceResponse> {
+  // TODO: Need to type response
+  private async sendCredential(
+    credential: AriesCredServiceRequest,
+    token: string | undefined
+  ): Promise<any> {
     try {
-      logger.debug(`Issuing credential on credential exchange [${id}]`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential/records/${id}/issue`;
+      logger.debug(
+        `Sending new credential: ${JSON.stringify(credential)}`
+      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send`;
       const response = await Axios.post(
         url,
-        { credential_preview: formatCredentialPreview(attributes) },
-        this.acaPyUtils.getRequestConfig()
+        credential,
+        this.acaPyUtils.getRequestConfig(token)
       );
-      const credExData = response.data as AriesCredentialExchange;
-      return {
-        credential_exchange_id: credExData.credential_exchange_id,
-        state: credExData.state,
-      } as CredExServiceResponse;
+      const credentialResponse = response.data;
+      return credentialResponse;
     } catch (e) {
       const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  // TODO: Need to type response
+  private async createCredential(
+    credential: AriesCredServiceRequest,
+    token: string | undefined
+  ): Promise<any> {
+    try {
+      logger.debug(
+        `Creating new credential: ${JSON.stringify(credential)}`
+      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send-offer`;
+      const response = await Axios.post(
+        url,
+        credential,
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      const credentialResponse = response.data;
+      return credentialResponse;
+    } catch (error) {
       throw new AriesAgentError(
         error.response?.statusText || error.message,
         error.response?.status,

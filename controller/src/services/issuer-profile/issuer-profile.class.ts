@@ -48,7 +48,7 @@ export class IssuerProfile implements ServiceSwaggerAddon {
   ): Promise<IssuerProfileModel | Error> {
     try {
       const updatedProfile = await this.app
-        .service('issuer-model')
+        .service('issuer/model')
         .patch(params.profile._id, {
           abbreviation: data.abbreviation || '',
           url: data.url || '',

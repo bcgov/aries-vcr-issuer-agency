@@ -9,7 +9,7 @@ export async function checkValidIssuerProfile(
   const headers = context.params.headers || {};
   const apiKeyHeader = headers['issuer-api-key'] as string;
 
-  const result = (await context.app.service('issuer-model').find({
+  const result = (await context.app.service('issuer/model').find({
     query: { 'api-key': apiKeyHeader },
     collation: { locale: 'en', strength: 1 },
   })) as Paginated<IssuerProfileModel>;

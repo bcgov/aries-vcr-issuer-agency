@@ -1,8 +1,8 @@
 import app from '../../src/app';
 
-describe('\'credentials\' service', () => {
+describe('\'schema\' service', () => {
   it('registered the service', () => {
-    const service = app.service('issuer/credentials');
+    const service = app.service('issuer/schema');
     expect(service).toBeTruthy();
   });
 });

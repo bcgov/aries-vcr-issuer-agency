@@ -1,4 +1,4 @@
-export interface TAAServiceRequest {}
+export interface TAAServiceRequest { }
 
 export interface TAAServiceResponse {
   aml: any;

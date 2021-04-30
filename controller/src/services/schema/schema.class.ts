@@ -5,10 +5,10 @@ import {
 } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
 import {
-  AriesCredentialDefinition,
+  AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
-import { SchemasServiceAction, ServiceType } from '../../models/enums';
+import { SchemaServiceAction, ServiceType } from '../../models/enums';
 import {
   AriesSchema,
   AriesSchemaServiceRequest,
@@ -17,9 +17,9 @@ import {
 import { IssuerServiceParams } from '../../models/service-params';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
-export class Schemas implements ServiceSwaggerAddon {
+export class Schema implements ServiceSwaggerAddon {
   app: Application;
   options: ServiceSwaggerOptions;
 
@@ -66,8 +66,8 @@ export class Schemas implements ServiceSwaggerAddon {
       if (isNewSchema) {
         // post schema on ledger
         const schemaResponse = (await this.app.service('aries-agent').create({
-          service: ServiceType.Schemas,
-          action: SchemasServiceAction.Create,
+          service: ServiceType.Schema,
+          action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
           data: {
             schema_name: schema.schema_name,
@@ -77,16 +77,17 @@ export class Schemas implements ServiceSwaggerAddon {
         } as AriesAgentData)) as AriesSchema;
         schema.schema_id = schemaResponse.schema_id || schemaResponse.schema.id;
 
+        // TODO: Should this be part of issuing the schema, or as a separate step?
         // create credential definition based on schema
         const credDefId = (await this.app.service('aries-agent').create({
           service: ServiceType.CredDef,
-          action: SchemasServiceAction.Create,
+          action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
           data: {
             schema_id: schemaResponse.schema_id,
             tag: params.profile.normalizedName,
             support_revocation: false,
-          } as AriesCredentialDefinition,
+          } as AriesCredDefServiceRequest,
         } as AriesAgentData)) as CredDefServiceResponse;
         schema.credential_definition_id = credDefId.credential_definition_id;
 
@@ -95,7 +96,7 @@ export class Schemas implements ServiceSwaggerAddon {
       }
 
       // Save data to controller db
-      await this.app.service('issuer-model').patch(params.profile._id, {
+      await this.app.service('issuer/model').patch(params.profile._id, {
         schemas: schemaList,
       } as Partial<SchemaServiceModel>);
 
@@ -109,9 +110,10 @@ export class Schemas implements ServiceSwaggerAddon {
   }
 
   model = {
-    description: 'Aries Schema Model',
+    title: 'issue schema',
+    description: 'Issue Schema Model',
     type: 'object',
-    required: [],
+    required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
     properties: {
       schema_id: {
         type: 'string',
@@ -311,7 +313,7 @@ export class Schemas implements ServiceSwaggerAddon {
     },
     definitions: {
       create_schema_request: {
-        title: 'schemas request',
+        title: 'issue schema request',
         type: 'object',
         required: ['attributes', 'schema_name', 'schema_version', 'metadata'],
         properties: Object.assign({}, this.model.properties, {
@@ -326,7 +328,7 @@ export class Schemas implements ServiceSwaggerAddon {
         }),
       },
       create_schema_response: {
-        title: 'schemas response',
+        title: 'issue schema response',
         type: 'object',
         required: [],
         properties: {

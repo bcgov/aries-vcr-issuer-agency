@@ -7,8 +7,10 @@ export enum CredDefServiceAction {
   Details = 'Details',
 }
 
-export enum CredExServiceAction {
+export enum CredServiceAction {
   Create = 'Create',
+  Issue = 'Issue',
+  Send = 'Send'
 }
 
 export enum LedgerServiceAction {
@@ -22,7 +24,7 @@ export enum MultitenancyServiceAction {
   Details = 'Details',
 }
 
-export enum SchemasServiceAction {
+export enum SchemaServiceAction {
   Create = 'Create',
   List = 'List',
   Details = 'Details',
@@ -41,8 +43,8 @@ export enum IssuerRegistrationServiceAction {
 export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
-  CredEx = 'Credential Exchange',
-  Schemas = 'Schemas',
+  Cred = 'Credential',
+  Schema = 'Schema',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',
   Wallet = 'Wallet',
@@ -54,8 +56,19 @@ export enum WebhookTopic {
   IssueCredential = 'issue_credential',
 }
 
-export enum CredExState {
+export enum WebhookTopic_2_0 {
+  IssueCredential = 'issue_credential_v2_0',
+  IssueCredentialIndy = 'issue_credential_v2_0_indy',
+}
+
+export enum CredState {
   OfferSent = 'offer_sent',
   RequestReceived = 'request_received',
-  Issued = 'credential_issued',
+  CredentialIssued = 'credential_issued',
+}
+
+export enum CredState_2_0 {
+  OfferSent = 'offer-sent',
+  RequestReceived = 'request-received',
+  CredentialIssued = 'credential-issued',
 }
