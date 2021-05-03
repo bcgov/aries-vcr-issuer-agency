@@ -1,6 +1,6 @@
 import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
-import Axios, { AxiosError } from 'axios';
+import Axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { Application } from '../../declarations';
 import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
@@ -84,8 +84,10 @@ export class AriesAgent {
           return this.publishDID(data.data.did, data.token);
         }
       case ServiceType.Connection:
-        if (data.action === ConnectionServiceAction.Create) {
+        if (data.action === ConnectionServiceAction.CreateVCR) {
           return this.newRegistryConnection(data.data.alias, data.token);
+        } else if (data.action === ConnectionServiceAction.CreateEndorser) {
+          return this.newEndorserConnection(data.data.alias, data.token);
         }
       case ServiceType.Ledger:
         if (data.action === LedgerServiceAction.TAA_Fetch) {
@@ -226,22 +228,74 @@ export class AriesAgent {
   ): Promise<ConnectionServiceResponse> {
     try {
       const registryAlias = this.app.get('aries-vcr').alias;
+      const registryUrl = `${this.acaPyUtils.getRegistryAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const registryConfig = this.acaPyUtils.getRegistryRequestConfig();
 
       logger.debug(
-        `Creating new connection to Credential Registry with alias ${alias}`
+        `Creating new connection to Credential Registry using alias ${alias}`
       );
-      const registryResponse = await Axios.post(
-        `${this.acaPyUtils.getRegistryAdminUrl()}/connections/create-invitation?alias=${alias}`,
+      return this.newConnection(
+        registryUrl,
+        registryAlias,
+        registryConfig,
+        alias,
+        token
+      );
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async newEndorserConnection(
+    alias: string,
+    token: string | undefined
+  ): Promise<ConnectionServiceResponse> {
+    try {
+      const endorserAlias = this.app.get('endorser').alias;
+      const endorserUrl = `${this.acaPyUtils.getEndorserAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const endorserConfig = this.acaPyUtils.getEndorserRequestConfig();
+
+      logger.debug(`Creating new connection to Endorser using alias ${alias}`);
+      return this.newConnection(
+        endorserUrl,
+        endorserAlias,
+        endorserConfig,
+        alias,
+        token
+      );
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async newConnection(
+    targetAgentUrl: string,
+    targetAgentAlias: string,
+    targetAgentRequestConfig: AxiosRequestConfig,
+    myAlias: string,
+    token: string | undefined
+  ): Promise<ConnectionServiceResponse> {
+    try {
+      const remoteResponse = await Axios.post(
+        `${targetAgentUrl}/connections/create-invitation?alias=${myAlias}`,
         {},
-        this.acaPyUtils.getRegistryRequestConfig()
+        targetAgentRequestConfig
       );
 
-      logger.debug(
-        `Accepting connection invitation from Credential Registry ${registryAlias}`
-      );
+      logger.debug(`Accepting connection invitation from ${targetAgentAlias}`);
       const response = await Axios.post(
-        `${this.acaPyUtils.getAdminUrl()}/connections/receive-invitation?alias=${registryAlias}`,
-        registryResponse.data.invitation,
+        `${this.acaPyUtils.getAdminUrl()}/connections/receive-invitation?alias=${targetAgentAlias}`,
+        remoteResponse.data.invitation,
         this.acaPyUtils.getRequestConfig(token)
       );
       return response.data as ConnectionServiceResponse;

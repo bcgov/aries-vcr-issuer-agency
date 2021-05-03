@@ -70,7 +70,7 @@ configureEnvironment () {
   export LEDGER_URL=${LEDGER_URL-http://$DOCKERHOST:9000}
   export LOG_LEVEL=${LOG_LEVEL:-DEBUG}
 
-  # agent
+  # agency
   export AGENCY_NAME="VCR Issuer Agency (Main)"
   export AGENCY_ADMIN_PORT="8044"
   export AGENCY_HTTP_IN_PORT="8041"
@@ -88,6 +88,23 @@ configureEnvironment () {
   export AGENCY_LOG_LEVEL=${AGENCY_LOG_LEVEL:-"error"}
   export AGENCY_JWT_SECRET=${AGENCY_JWT_SECRET:-"supersecret"}
 
+  # endorser
+  export ENDORSER_NAME="VCR Endorser"
+  export ENDORSER_ADMIN_PORT="8054"
+  export ENDORSER_HTTP_IN_PORT="8051"
+  export ENDORSER_WS_IN_PORT="8053"
+  export ENDORSER_ENDPOINT=${ENDORSER_ENDPOINT:-http://$DOCKERHOST:$ENDORSER_HTTP_IN_PORT}
+  export ENDORSER_WALLET_NAME="vcr_endorser"
+  export ENDORSER_WALLET_ENCRYPTION_KEY="key"
+  export ENDORSER_WALLET_SEED=${ENDORSER_WALLET_SEED:-"vcr-endorser_0000000000000000000"}
+  export ENDORSER_WALLET_STORAGE_TYPE="postgres_storage"
+  export ENDORSER_ADMIN_API_KEY=${ENDORSER_ADMIN_API_KEY:-"endorser-api-key"}
+  export ENDORSER_ADMIN_MODE="admin-insecure-mode"
+  if [ ! -z "${ENDORSER_ADMIN_API_KEY}" ]; then
+    ENDORSER_ADMIN_MODE="admin-api-key ${ENDORSER_ADMIN_API_KEY}"
+  fi
+  export ENDORSER_LOG_LEVEL=${ENDORSER_LOG_LEVEL:-"error"}
+
   # wallet
   export POSTGRESQL_DATABASE="VCR_AGENCY"
   export POSTGRESQL_USER="DB_USER"
@@ -102,13 +119,16 @@ configureEnvironment () {
 
   # controller
   export CONTROLLER_PORT=3030
-  export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agent:$AGENCY_ADMIN_PORT}
+  export AGENCY_ADMIN_URL=${AGENCY_ADMIN_URL:-http://agency:$AGENCY_ADMIN_PORT}
   export AGENCY_WEBHOOK_URL=${AGENCY_WEBHOOK_URL:-http://$DOCKERHOST:$CONTROLLER_PORT/webhooks}
   export DB_SERVICE="db"
   export CONTROLLER_ADMIN_API_KEY=${CONTROLLER_ADMIN_API_KEY:-"controller-api-key"}
   export REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL:-http://vcr-agent:8024}
   export REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
   export REGISTRY_ALIAS=${REGISTRY_ALIAS:-"aries-vcr"}
+  export ENDORSER_ADMIN_URL=${ENDORSER_ADMIN_URL:-http://endorser:$ENDORSER_ADMIN_PORT}
+  export ENDORSER_WEBHOOK_URL=${ENDORSER_WEBHOOK_URL:-http://$DOCKERHOST:$CONTROLLER_PORT/webhooks}
+  export ENDORSER_ALIAS=${ENDORSER_ALIAS:-"vcr-endorser"}
 
   # db
   export MONGODB_ADMIN_PASSWORD="admin"
