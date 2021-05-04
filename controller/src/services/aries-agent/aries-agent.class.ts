@@ -13,6 +13,8 @@ import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredServiceAction,
+  EndorserInfoServiceAction,
+  EndorserRequestServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
@@ -36,11 +38,13 @@ export interface AriesAgentData {
   | ConnectionServiceAction
   | CredDefServiceAction
   | CredServiceAction
+  | EndorserInfoServiceAction
+  | EndorserRequestServiceAction
+  | IssuerRegistrationServiceAction
   | LedgerServiceAction
   | MultitenancyServiceAction
   | SchemaServiceAction
-  | WalletServiceAction
-  | IssuerRegistrationServiceAction;
+  | WalletServiceAction;
   token?: string;
   data: any;
 }
@@ -71,34 +75,11 @@ export class AriesAgent {
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: AriesAgentData, params?: Params): Promise<any> {
     switch (data.service) {
-      case ServiceType.Multitenancy:
-        if (data.action === MultitenancyServiceAction.Create) {
-          return this.newSubWallet(data.data as MultitenancyServiceRequest);
-        }
-      case ServiceType.Wallet:
-        if (data.action === WalletServiceAction.Create) {
-          return this.newDID(data.token);
-        } else if (data.action === WalletServiceAction.Fetch) {
-          return this.getPublicDID(data.token);
-        } else if (data.action === WalletServiceAction.Publish) {
-          return this.publishDID(data.data.did, data.token);
-        }
       case ServiceType.Connection:
         if (data.action === ConnectionServiceAction.CreateVCR) {
           return this.newRegistryConnection(data.data.alias, data.token);
         } else if (data.action === ConnectionServiceAction.CreateEndorser) {
           return this.newEndorserConnection(data.data.alias, data.token);
-        }
-      case ServiceType.Ledger:
-        if (data.action === LedgerServiceAction.TAA_Fetch) {
-          return this.fetchTAA(data.token);
-        } else if (data.action === LedgerServiceAction.TAA_Accept) {
-          return this.acceptTAA(
-            data.token,
-            data.data.mechanism,
-            data.data.text,
-            data.data.version
-          );
         }
       case ServiceType.CredDef:
         if (data.action === CredDefServiceAction.Details) {
@@ -115,6 +96,31 @@ export class AriesAgent {
         } else if (data.action === CredDefServiceAction.Create) {
           return this.createCredential(data.data, data.token);
         }
+      case ServiceType.IssuerRegistration:
+        if (data.action === IssuerRegistrationServiceAction.Submit) {
+          return this.handleIssuerRegistration(data.data, data.token);
+        }
+      case ServiceType.Endorser:
+        if (data.action === EndorserInfoServiceAction.Create) {
+          return this.createEndorserInfo(data.data);
+        } else if (data.action === EndorserRequestServiceAction.Create) {
+          return this.createEndorserRequest(data.data);
+        }
+      case ServiceType.Ledger:
+        if (data.action === LedgerServiceAction.TAA_Fetch) {
+          return this.fetchTAA(data.token);
+        } else if (data.action === LedgerServiceAction.TAA_Accept) {
+          return this.acceptTAA(
+            data.token,
+            data.data.mechanism,
+            data.data.text,
+            data.data.version
+          );
+        }
+      case ServiceType.Multitenancy:
+        if (data.action === MultitenancyServiceAction.Create) {
+          return this.newSubWallet(data.data as MultitenancyServiceRequest);
+        }
       case ServiceType.Schema:
         if (data.action === SchemaServiceAction.Details) {
           return this.getSchemaDetails(data.token, data.data.schema_id);
@@ -123,9 +129,13 @@ export class AriesAgent {
         } else if (data.action === SchemaServiceAction.Create) {
           return this.publishSchema(data.data, data.token);
         }
-      case ServiceType.IssuerRegistration:
-        if (data.action === IssuerRegistrationServiceAction.Submit) {
-          return this.handleIssuerRegistration(data.data, data.token);
+      case ServiceType.Wallet:
+        if (data.action === WalletServiceAction.Create) {
+          return this.newDID(data.token);
+        } else if (data.action === WalletServiceAction.Fetch) {
+          return this.getPublicDID(data.token);
+        } else if (data.action === WalletServiceAction.Publish) {
+          return this.publishDID(data.data.did, data.token);
         }
       default:
         return new NotImplemented(
@@ -515,8 +525,7 @@ export class AriesAgent {
         credential,
         this.acaPyUtils.getRequestConfig(token)
       );
-      const credentialResponse = response.data;
-      return credentialResponse;
+      return response.data;
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(
@@ -542,9 +551,9 @@ export class AriesAgent {
         credential,
         this.acaPyUtils.getRequestConfig(token)
       );
-      const credentialResponse = response.data;
-      return credentialResponse;
-    } catch (error) {
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
       throw new AriesAgentError(
         error.response?.statusText || error.message,
         error.response?.status,
@@ -552,4 +561,39 @@ export class AriesAgent {
       );
     }
   }
+
+  // TODO: Need to type response
+  private async createEndorserInfo(info: any): Promise<any> {
+    try {
+      logger.debug(`Creating new endorser info: ${JSON.stringify(info)}`);
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${info.connection_id}/set-endorser-info`;
+      const response = await Axios.post(url, { params: { endorser_did: info.endorser_did } });
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  // TODO: Need to type response
+  private async createEndorserRequest(request: any): Promise<any> {
+    try {
+      logger.debug(`Creating new endorser request: ${JSON.stringify(request)}`);
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/create-request`;
+      const response = await Axios.post(url, request.data, { params: { tran_id: request.tran_id } });
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
 }

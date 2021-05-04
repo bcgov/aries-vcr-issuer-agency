@@ -18,5 +18,6 @@ export interface IssuerProfileModel {
   logo: string;
   vcr_connection_id: string;
   endorser_connection_id: string;
+  endorser_did: string;
   schemas?: SchemaServiceModel[];
 }

@@ -14,6 +14,14 @@ export enum CredServiceAction {
   Send = 'Send'
 }
 
+export enum EndorserInfoServiceAction {
+  Create = 'Create'
+}
+
+export enum EndorserRequestServiceAction {
+  Create = 'Create'
+}
+
 export enum LedgerServiceAction {
   TAA_Fetch = 'TAA Fetch',
   TAA_Accept = 'TAA Accept',
@@ -45,11 +53,12 @@ export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
   Cred = 'Credential',
-  Schema = 'Schema',
+  Endorser = 'Endorser',
+  IssuerRegistration = 'IssuerRegistration',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',
+  Schema = 'Schema',
   Wallet = 'Wallet',
-  IssuerRegistration = 'IssuerRegistration',
 }
 
 export enum WebhookTopic {
