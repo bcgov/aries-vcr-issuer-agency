@@ -10,6 +10,7 @@ import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
 import {
   ConnectionServiceAction,
+  EndorserServiceAction,
   MultitenancyServiceAction,
   ServiceType,
   WalletServiceAction,
@@ -88,7 +89,7 @@ export class Admin implements ServiceSwaggerAddon {
         },
       } as AriesAgentData)) as ConnectionServiceResponse;
 
-      // Connect to endorser agent and set endorser metadata
+      // Connect to endorser agent
       const endorser_connection = (await this.app
         .service('aries-agent')
         .create({
@@ -99,6 +100,18 @@ export class Admin implements ServiceSwaggerAddon {
             alias: data.name,
           },
         } as AriesAgentData)) as ConnectionServiceResponse;
+
+      // Set endorser metadata for transactions
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Endorser,
+        action: EndorserServiceAction.Set_Metadata,
+        token: subWallet.token,
+        data: {
+          alias: data.name,
+          connection_id: endorser_connection.connection_id,
+          did: endorser_connection.their_public_did,
+        },
+      } as AriesAgentData);
 
       // Create profile
       const issuerApiKey = uuidv4();

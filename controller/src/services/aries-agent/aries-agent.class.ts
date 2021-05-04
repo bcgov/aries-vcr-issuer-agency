@@ -9,10 +9,12 @@ import {
   AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
+import { EndorserMetadataServiceRequest } from '../../models/endorser';
 import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredServiceAction,
+  EndorserServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
@@ -36,6 +38,7 @@ export interface AriesAgentData {
     | ConnectionServiceAction
     | CredDefServiceAction
     | CredServiceAction
+    | EndorserServiceAction
     | LedgerServiceAction
     | MultitenancyServiceAction
     | SchemaServiceAction
@@ -126,6 +129,10 @@ export class AriesAgent {
       case ServiceType.IssuerRegistration:
         if (data.action === IssuerRegistrationServiceAction.Submit) {
           return this.handleIssuerRegistration(data.data, data.token);
+        }
+      case ServiceType.Endorser:
+        if (data.action === EndorserServiceAction.Set_Metadata) {
+          return this.setEndorserMetadata(data.data, data.token);
         }
       default:
         return new NotImplemented(
@@ -551,6 +558,77 @@ export class AriesAgent {
       const credentialResponse = response.data;
       return credentialResponse;
     } catch (error) {
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async setEndorserMetadata(
+    data: EndorserMetadataServiceRequest,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const roleResult = await this.setEndorserRole(data.connection_id, token);
+      const infoResult = await this.setEndorserInfo(
+        data.connection_id,
+        data.did,
+        data.alias,
+        token
+      );
+      return roleResult && infoResult;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async setEndorserInfo(
+    connection_id: string,
+    did: string,
+    alias: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-info?endorser_did=${did}&endorser_name=${alias}`;
+      logger.debug(
+        `Setting endorser metadata for connection with id ${connection_id}`
+      );
+      const response = await Axios.post(
+        url,
+        {},
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async setEndorserRole(
+    connection_id: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const authorRole = 'TRANSACTION_AUTHOR';
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-role?transaction_my_job=${authorRole}`;
+      logger.debug(
+        `Setting role metadata for connection with id ${connection_id}`
+      );
+      const response = await Axios.post(
+        url,
+        {},
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
       throw new AriesAgentError(
         error.response?.statusText || error.message,
         error.response?.status,
