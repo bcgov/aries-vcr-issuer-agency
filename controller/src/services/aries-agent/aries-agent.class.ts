@@ -13,7 +13,6 @@ import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredServiceAction,
-  EndorserInfoServiceAction,
   EndorserRequestServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
@@ -38,7 +37,6 @@ export interface AriesAgentData {
   | ConnectionServiceAction
   | CredDefServiceAction
   | CredServiceAction
-  | EndorserInfoServiceAction
   | EndorserRequestServiceAction
   | IssuerRegistrationServiceAction
   | LedgerServiceAction
@@ -101,9 +99,7 @@ export class AriesAgent {
           return this.handleIssuerRegistration(data.data, data.token);
         }
       case ServiceType.Endorser:
-        if (data.action === EndorserInfoServiceAction.Create) {
-          return this.createEndorserInfo(data.data);
-        } else if (data.action === EndorserRequestServiceAction.Create) {
+        if (data.action === EndorserRequestServiceAction.Create) {
           return this.createEndorserRequest(data.data);
         }
       case ServiceType.Ledger:
@@ -551,23 +547,6 @@ export class AriesAgent {
         credential,
         this.acaPyUtils.getRequestConfig(token)
       );
-      return response.data;
-    } catch (e) {
-      const error = e as AxiosError;
-      throw new AriesAgentError(
-        error.response?.statusText || error.message,
-        error.response?.status,
-        error.response?.data
-      );
-    }
-  }
-
-  // TODO: Need to type response
-  private async createEndorserInfo(info: any): Promise<any> {
-    try {
-      logger.debug(`Creating new endorser info: ${JSON.stringify(info)}`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${info.connection_id}/set-endorser-info`;
-      const response = await Axios.post(url, { params: { endorser_did: info.endorser_did } });
       return response.data;
     } catch (e) {
       const error = e as AxiosError;

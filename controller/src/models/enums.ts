@@ -14,10 +14,6 @@ export enum CredServiceAction {
   Send = 'Send'
 }
 
-export enum EndorserInfoServiceAction {
-  Create = 'Create'
-}
-
 export enum EndorserRequestServiceAction {
   Create = 'Create'
 }
