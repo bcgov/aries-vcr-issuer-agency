@@ -88,15 +88,17 @@ export class Admin implements ServiceSwaggerAddon {
         },
       } as AriesAgentData)) as ConnectionServiceResponse;
 
-      // Connect to credential registry
-      const endorser_connection = (await this.app.service('aries-agent').create({
-        service: ServiceType.Connection,
-        action: ConnectionServiceAction.CreateEndorser,
-        token: subWallet.token,
-        data: {
-          alias: data.name,
-        },
-      } as AriesAgentData)) as ConnectionServiceResponse;
+      // Connect to endorser agent and set endorser metadata
+      const endorser_connection = (await this.app
+        .service('aries-agent')
+        .create({
+          service: ServiceType.Connection,
+          action: ConnectionServiceAction.CreateEndorser,
+          token: subWallet.token,
+          data: {
+            alias: data.name,
+          },
+        } as AriesAgentData)) as ConnectionServiceResponse;
 
       // Create profile
       const issuerApiKey = uuidv4();
@@ -111,8 +113,13 @@ export class Admin implements ServiceSwaggerAddon {
         },
         did: subWalletDid.result.did,
         verkey: subWalletDid.result.verkey,
-        vcr_connection_id: vcr_connection.connection_id,
-        endorser_connection_id: endorser_connection.connection_id,
+        vcr: {
+          connection_id: vcr_connection.connection_id,
+        },
+        endorser: {
+          connection_id: endorser_connection.connection_id,
+          public_did: endorser_connection.their_public_did,
+        },
       } as IssuerProfileModel);
 
       logger.debug(`Created new profile with name ${data.name}`);

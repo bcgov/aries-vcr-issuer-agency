@@ -31,46 +31,25 @@ export interface AriesInvitation {
 /**
  * Example
  * {
- *   "created_at": "2020-05-23 00:40:24Z",
- *   "inbound_connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *   "alias": "Bob, providing quotes",
- *   "my_did": "WgWxqztrNooG92RXvxSTWv",
- *   "their_role": "Point of contact",
- *   "request_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *   "initiator": "self",
- *   "their_label": "Bob",
- *   "invitation_key": "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
- *   "invitation_mode": "once",
- *   "their_did": "WgWxqztrNooG92RXvxSTWv",
- *   "routing_state": "active",
- *   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *   "accept": "auto",
- *   "error_msg": "No DIDDoc provided; cannot connect to public DID",
- *   "state": "active",
- *   "updated_at": "2020-05-23 00:40:24Z"
- * }
-//  */
-// export interface AriesConnection {
-//   created_at: string;
-//   inbound_connection_id: string;
-//   alias: string;
-//   my_did: string;
-//   their_role: string;
-//   request_id: string;
-//   initiator: string;
-//   their_label: string;
-//   invitation_key: string;
-//   invitation_mode: string;
-//   their_did: string;
-//   routing_state: string;
-//   connection_id: string;
-//   accept: string;
-//   error_msg: string;
-//   state: string;
-//   updated_at: string;
-// }
-
+ *  "invitation_msg_id": "c717c66a-8643-46cb-af79-595ec1ec452f",
+ *  "state": "request",
+ *  "created_at": "2021-05-04 21:31:02.429948Z",
+ *  "their_public_did": "wRYyL8WjnVyrHEcpWdpSg",
+ *  "routing_state": "none",
+ *  "invitation_mode": "once",
+ *  "connection_id": "f31fc95a-d1c7-45ef-b17b-98c3f3ab5e55",
+ *  "alias": "oob-endorser",
+ *  "updated_at": "2021-05-04 21:31:02.637254Z",
+ *  "accept": "auto",
+ *  "my_did": "AQtpAVZEbkQmdUCFz52Zak",
+ *  "rfc23_state": "request-sent",
+ *  "their_label": "oob-endorser",
+ *  "their_role": "inviter",
+ *  "request_id": "a1544ef5-45a9-4098-a23f-202131cf7f40"
+}
+ */
 export interface ConnectionServiceResponse {
   connection_id: string;
+  their_public_did: string | undefined;
   state: string;
 }

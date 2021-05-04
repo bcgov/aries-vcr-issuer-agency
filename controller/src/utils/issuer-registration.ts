@@ -22,7 +22,7 @@ export function formatIssuerRegistrationRequest(
   const issuerPayload = formatIssuerPayload(profile);
   const credentialPayload = formatCredentialTypePayload(profile, schema);
   return {
-    connection_id: profile.vcr_connection_id,
+    connection_id: profile.vcr.connection_id,
     issuer_registration: {
       issuer: issuerPayload,
       credential_types: [credentialPayload],
@@ -166,18 +166,18 @@ function formatAttributeMappings(
   attributes: string[],
   metadata: CredentialMetadata
 ): ModelMapping[] {
-
   const mappings = [] as ModelMapping[];
 
-  const baseAttributeMapping = (attribute: string) => ({
-    model: '',
-    fields: {
-      type: {
-        input: attribute,
-        from: 'value',
+  const baseAttributeMapping = (attribute: string) =>
+    ({
+      model: '',
+      fields: {
+        type: {
+          input: attribute,
+          from: 'value',
+        },
       },
-    }
-  } as ModelMapping);
+    } as ModelMapping);
 
   const standardAttributes = attributes.filter((attribute: string) => {
     return isStandardAttribute(attribute, metadata);

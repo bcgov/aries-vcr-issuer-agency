@@ -1,13 +1,21 @@
 import { BadRequest, GeneralError } from '@feathersjs/errors';
-import { ServiceSwaggerAddon, ServiceSwaggerOptions, } from 'feathers-swagger/types';
+import {
+  ServiceSwaggerAddon,
+  ServiceSwaggerOptions,
+} from 'feathers-swagger/types';
 import { Application } from '../../declarations';
-import { AriesCredPreview, AriesCredPreviewAttribute, AriesCredServiceRequest, CredServiceModel } from '../../models/credential';
+import {
+  AriesCredPreview,
+  AriesCredPreviewAttribute,
+  AriesCredServiceRequest,
+  CredServiceModel,
+} from '../../models/credential';
 import { CredServiceAction, ServiceType } from '../../models/enums';
 import { SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface ServiceOptions { }
+interface ServiceOptions {}
 
 abstract class CredentialBase implements ServiceSwaggerAddon {
   protected abstract formatCredServiceRequest(
@@ -131,9 +139,9 @@ export class Credential extends CredentialBase {
     for (const attribute in cred?.attributes) {
       if (Object.prototype.hasOwnProperty.call(cred?.attributes, attribute)) {
         attributes.push({
-          'name': attribute,
+          name: attribute,
           'mime-type': 'text/plain',
-          'value': cred?.attributes[attribute].toString()
+          value: cred?.attributes[attribute].toString(),
         } as AriesCredPreviewAttribute);
       }
     }
@@ -147,10 +155,11 @@ export class Credential extends CredentialBase {
   ): AriesCredServiceRequest {
     return {
       credential_preview: {
-        '@type': 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/2.0/credential-preview',
-        'attributes': attributes
+        '@type':
+          'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/2.0/credential-preview',
+        attributes: attributes,
       } as AriesCredPreview,
-      connection_id: params?.profile?.vcr_connection_id || '',
+      connection_id: params?.profile?.vcr.connection_id || '',
       filter: {
         indy: {
           issuer_did: params?.profile?.did || '',
@@ -158,21 +167,25 @@ export class Credential extends CredentialBase {
           schema_id: schema?.schema_id,
           schema_name: schema?.schema_name,
           schema_version: schema?.schema_version,
-          cred_def_id: schema?.credential_definition_id
-        }
-      }
+          cred_def_id: schema?.credential_definition_id,
+        },
+      },
     };
   }
 
-  private deferCredEx(credExId: string, params: IssuerServiceParams, idx?: number): Promise<void> {
+  private deferCredEx(
+    credExId: string,
+    params: IssuerServiceParams,
+    idx?: number
+  ): Promise<void> {
     const credService = this.app.service('issuer/credential');
-    return new Promise((resolve) => credService
-      .once(credExId, () => {
+    return new Promise((resolve) =>
+      credService.once(credExId, () => {
         const res = { credExId, order: idx, success: true };
         params.credentials.results.push(res);
         resolve(res);
-      }))
-      .then();
+      })
+    ).then();
   }
 
   formatCredServiceRequest(
@@ -180,8 +193,14 @@ export class Credential extends CredentialBase {
     data: CredServiceModel,
     params: IssuerServiceParams
   ): AriesCredServiceRequest {
-    const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredAttributes(data);
-    return this.formatCredProposal(credPreviewAttributes, params, existingSchema);
+    const credPreviewAttributes: AriesCredPreviewAttribute[] = this.formatCredAttributes(
+      data
+    );
+    return this.formatCredProposal(
+      credPreviewAttributes,
+      params,
+      existingSchema
+    );
   }
 
   findSchema(
@@ -190,20 +209,34 @@ export class Credential extends CredentialBase {
     credSchemaVersion: string
   ): SchemaServiceModel | undefined {
     return schemas.find((schema: SchemaServiceModel) => {
-      return schema.schema_name === credSchemaName && schema.schema_version === credSchemaVersion;
+      return (
+        schema.schema_name === credSchemaName &&
+        schema.schema_version === credSchemaVersion
+      );
     });
   }
 
   findExistingSchema(
     data: CredServiceModel,
     params: IssuerServiceParams
-  ): { credSchemaName: string, credSchemaVersion: string, existingSchema: SchemaServiceModel | undefined } {
-    const { schema_name: credSchemaName, schema_version: credSchemaVersion } = data;
+  ): {
+    credSchemaName: string;
+    credSchemaVersion: string;
+    existingSchema: SchemaServiceModel | undefined;
+  } {
+    const {
+      schema_name: credSchemaName,
+      schema_version: credSchemaVersion,
+    } = data;
     const schemas = (params?.profile?.schemas || []) as SchemaServiceModel[];
     return {
       credSchemaName,
       credSchemaVersion,
-      existingSchema: this.findSchema(schemas, credSchemaName, credSchemaVersion)
+      existingSchema: this.findSchema(
+        schemas,
+        credSchemaName,
+        credSchemaVersion
+      ),
     };
   }
 
@@ -227,24 +260,47 @@ export class Credential extends CredentialBase {
     return await this.dispatch(CredServiceAction.Create, offer, params);
   }
 
-  async receiveCredServiceResponse(params: IssuerServiceParams): Promise<any[]> {
+  async receiveCredServiceResponse(
+    params: IssuerServiceParams
+  ): Promise<any[]> {
     await Promise.all(params.credentials.pending);
     return params.credentials.results;
   }
 
-  async createOne(data: CredServiceModel, params: IssuerServiceParams, idx?: number): Promise<void> {
+  async createOne(
+    data: CredServiceModel,
+    params: IssuerServiceParams,
+    idx?: number
+  ): Promise<void> {
     try {
-      const { credSchemaName, credSchemaVersion, existingSchema } = this.findExistingSchema(data, params);
+      const {
+        credSchemaName,
+        credSchemaVersion,
+        existingSchema,
+      } = this.findExistingSchema(data, params);
       if (!existingSchema) {
-        throw new BadRequest(`Schema: ${credSchemaName} with version: ${credSchemaVersion} does not exist.`);
+        throw new BadRequest(
+          `Schema: ${credSchemaName} with version: ${credSchemaVersion} does not exist.`
+        );
       } else {
-        const credProposal: AriesCredServiceRequest = this.formatCredServiceRequest(existingSchema, data, params);
-        const request: any = await this.sendCredServiceRequest(credProposal, params);
+        const credProposal: AriesCredServiceRequest = this.formatCredServiceRequest(
+          existingSchema,
+          data,
+          params
+        );
+        const request: any = await this.sendCredServiceRequest(
+          credProposal,
+          params
+        );
         const credExId: string = request?.cred_ex_id;
         if (credExId) {
-          params.credentials.pending.push(this.deferCredEx(credExId, params, idx));
+          params.credentials.pending.push(
+            this.deferCredEx(credExId, params, idx)
+          );
         } else {
-          throw new GeneralError(`Could not obtain Credential Exchange ID for request: ${data}`);
+          throw new GeneralError(
+            `Could not obtain Credential Exchange ID for request: ${data}`
+          );
         }
       }
     } catch (error) {
@@ -258,7 +314,9 @@ export class Credential extends CredentialBase {
     params: IssuerServiceParams
   ): Promise<any | Error> {
     if (Array.isArray(data)) {
-      await Promise.all(data.map((datum, idx) => this.createOne(datum, params, idx)));
+      await Promise.all(
+        data.map((datum, idx) => this.createOne(datum, params, idx))
+      );
     } else {
       await this.createOne(data, params);
     }

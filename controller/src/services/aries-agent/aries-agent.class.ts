@@ -33,19 +33,19 @@ import { AcaPyUtils } from '../../utils/aca-py';
 export interface AriesAgentData {
   service: ServiceType;
   action:
-  | ConnectionServiceAction
-  | CredDefServiceAction
-  | CredServiceAction
-  | LedgerServiceAction
-  | MultitenancyServiceAction
-  | SchemaServiceAction
-  | WalletServiceAction
-  | IssuerRegistrationServiceAction;
+    | ConnectionServiceAction
+    | CredDefServiceAction
+    | CredServiceAction
+    | LedgerServiceAction
+    | MultitenancyServiceAction
+    | SchemaServiceAction
+    | WalletServiceAction
+    | IssuerRegistrationServiceAction;
   token?: string;
   data: any;
 }
 
-interface ServiceOptions { }
+interface ServiceOptions {}
 
 export class AriesAgent {
   app: Application;
@@ -228,7 +228,7 @@ export class AriesAgent {
   ): Promise<ConnectionServiceResponse> {
     try {
       const registryAlias = this.app.get('aries-vcr').alias;
-      const registryUrl = `${this.acaPyUtils.getRegistryAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const registryUrl = this.acaPyUtils.getRegistryAdminUrl();
       const registryConfig = this.acaPyUtils.getRegistryRequestConfig();
 
       logger.debug(
@@ -257,7 +257,7 @@ export class AriesAgent {
   ): Promise<ConnectionServiceResponse> {
     try {
       const endorserAlias = this.app.get('endorser').alias;
-      const endorserUrl = `${this.acaPyUtils.getEndorserAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const endorserUrl = this.acaPyUtils.getEndorserAdminUrl();
       const endorserConfig = this.acaPyUtils.getEndorserRequestConfig();
 
       logger.debug(`Creating new connection to Endorser using alias ${alias}`);
@@ -266,7 +266,8 @@ export class AriesAgent {
         endorserAlias,
         endorserConfig,
         alias,
-        token
+        token,
+        true
       );
     } catch (e) {
       const error = e as AxiosError;
@@ -283,18 +284,27 @@ export class AriesAgent {
     targetAgentAlias: string,
     targetAgentRequestConfig: AxiosRequestConfig,
     myAlias: string,
-    token: string | undefined
+    token: string | undefined,
+    usePublicDid = false
   ): Promise<ConnectionServiceResponse> {
     try {
+      const reqBody = {
+        alias: myAlias,
+        handshake_protocols: [
+          'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0',
+        ],
+        my_label: targetAgentAlias,
+        use_public_did: usePublicDid,
+      };
       const remoteResponse = await Axios.post(
-        `${targetAgentUrl}/connections/create-invitation?alias=${myAlias}`,
-        {},
+        `${targetAgentUrl}/out-of-band/create-invitation`,
+        reqBody,
         targetAgentRequestConfig
       );
 
       logger.debug(`Accepting connection invitation from ${targetAgentAlias}`);
       const response = await Axios.post(
-        `${this.acaPyUtils.getAdminUrl()}/connections/receive-invitation?alias=${targetAgentAlias}`,
+        `${this.acaPyUtils.getAdminUrl()}/out-of-band/receive-invitation?alias=${targetAgentAlias}`,
         remoteResponse.data.invitation,
         this.acaPyUtils.getRequestConfig(token)
       );
@@ -506,9 +516,7 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<any> {
     try {
-      logger.debug(
-        `Sending new credential: ${JSON.stringify(credential)}`
-      );
+      logger.debug(`Sending new credential: ${JSON.stringify(credential)}`);
       const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send`;
       const response = await Axios.post(
         url,
@@ -533,9 +541,7 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<any> {
     try {
-      logger.debug(
-        `Creating new credential: ${JSON.stringify(credential)}`
-      );
+      logger.debug(`Creating new credential: ${JSON.stringify(credential)}`);
       const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send-offer`;
       const response = await Axios.post(
         url,
