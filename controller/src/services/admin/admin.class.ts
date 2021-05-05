@@ -10,6 +10,7 @@ import logger from '../../logger';
 import { ConnectionServiceResponse } from '../../models/connection';
 import {
   ConnectionServiceAction,
+  EndorserServiceAction,
   MultitenancyServiceAction,
   ServiceType,
   WalletServiceAction,
@@ -71,12 +72,29 @@ export class Admin implements ServiceSwaggerAddon {
         data: subWalletRequestData,
       } as AriesAgentData)) as MultitenancyServiceResponse;
 
+      // Create profile
+      const issuerApiKey = uuidv4();
+      const profile = await this.app.service('issuer/model').create({
+        name: data.name,
+        normalizedName: normalizedName,
+        'api-key': issuerApiKey,
+        wallet: {
+          id: subWallet.wallet_id,
+          name: subWallet.settings['wallet.name'],
+          token: subWallet.token,
+        },
+      } as IssuerProfileModel);
+
       // Create wallet DID
       const subWalletDid = (await this.app.service('aries-agent').create({
         service: ServiceType.Wallet,
         action: WalletServiceAction.Create,
         token: subWallet.token,
       } as AriesAgentData)) as WalletServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        did: subWalletDid.result.did,
+        verkey: subWalletDid.result.verkey,
+      });
 
       // Connect to credential registry
       const vcr_connection = (await this.app.service('aries-agent').create({
@@ -87,33 +105,41 @@ export class Admin implements ServiceSwaggerAddon {
           alias: data.name,
         },
       } as AriesAgentData)) as ConnectionServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        vcr: {
+          connection_id: vcr_connection.connection_id,
+        },
+      });
 
-      // Connect to credential registry
-      const endorser_connection = (await this.app.service('aries-agent').create({
-        service: ServiceType.Connection,
-        action: ConnectionServiceAction.CreateEndorser,
+      // Connect to endorser agent
+      const endorser_connection = (await this.app
+        .service('aries-agent')
+        .create({
+          service: ServiceType.Connection,
+          action: ConnectionServiceAction.CreateEndorser,
+          token: subWallet.token,
+          data: {
+            alias: data.name,
+          },
+        } as AriesAgentData)) as ConnectionServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        endorser: {
+          connection_id: endorser_connection.connection_id,
+          public_did: endorser_connection.their_public_did,
+        },
+      });
+
+      // Set endorser metadata for transactions
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Endorser,
+        action: EndorserServiceAction.Set_Metadata,
         token: subWallet.token,
         data: {
           alias: data.name,
+          connection_id: endorser_connection.connection_id,
+          did: endorser_connection.their_public_did,
         },
-      } as AriesAgentData)) as ConnectionServiceResponse;
-
-      // Create profile
-      const issuerApiKey = uuidv4();
-      await this.app.service('issuer/model').create({
-        name: data.name,
-        normalizedName: normalizedName,
-        'api-key': issuerApiKey,
-        wallet: {
-          id: subWallet.wallet_id,
-          name: subWallet.settings['wallet.name'],
-          token: subWallet.token,
-        },
-        did: subWalletDid.result.did,
-        verkey: subWalletDid.result.verkey,
-        vcr_connection_id: vcr_connection.connection_id,
-        endorser_connection_id: endorser_connection.connection_id,
-      } as IssuerProfileModel);
+      } as AriesAgentData);
 
       logger.debug(`Created new profile with name ${data.name}`);
 

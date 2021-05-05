@@ -11,11 +11,12 @@ export enum CredDefServiceAction {
 export enum CredServiceAction {
   Create = 'Create',
   Issue = 'Issue',
-  Send = 'Send'
+  Send = 'Send',
 }
 
-export enum EndorserRequestServiceAction {
-  Create = 'Create'
+export enum EndorserServiceAction {
+  Set_Metadata = 'Metadata',
+  Create_Request = 'Request',
 }
 
 export enum LedgerServiceAction {
