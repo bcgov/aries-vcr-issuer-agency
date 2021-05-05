@@ -72,12 +72,29 @@ export class Admin implements ServiceSwaggerAddon {
         data: subWalletRequestData,
       } as AriesAgentData)) as MultitenancyServiceResponse;
 
+      // Create profile
+      const issuerApiKey = uuidv4();
+      const profile = await this.app.service('issuer/model').create({
+        name: data.name,
+        normalizedName: normalizedName,
+        'api-key': issuerApiKey,
+        wallet: {
+          id: subWallet.wallet_id,
+          name: subWallet.settings['wallet.name'],
+          token: subWallet.token,
+        },
+      } as IssuerProfileModel);
+
       // Create wallet DID
       const subWalletDid = (await this.app.service('aries-agent').create({
         service: ServiceType.Wallet,
         action: WalletServiceAction.Create,
         token: subWallet.token,
       } as AriesAgentData)) as WalletServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        did: subWalletDid.result.did,
+        verkey: subWalletDid.result.verkey,
+      });
 
       // Connect to credential registry
       const vcr_connection = (await this.app.service('aries-agent').create({
@@ -88,6 +105,11 @@ export class Admin implements ServiceSwaggerAddon {
           alias: data.name,
         },
       } as AriesAgentData)) as ConnectionServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        vcr: {
+          connection_id: vcr_connection.connection_id,
+        },
+      });
 
       // Connect to endorser agent
       const endorser_connection = (await this.app
@@ -100,6 +122,12 @@ export class Admin implements ServiceSwaggerAddon {
             alias: data.name,
           },
         } as AriesAgentData)) as ConnectionServiceResponse;
+      await this.app.service('issuer/model').patch(profile._id, {
+        endorser: {
+          connection_id: endorser_connection.connection_id,
+          public_did: endorser_connection.their_public_did,
+        },
+      });
 
       // Set endorser metadata for transactions
       await this.app.service('aries-agent').create({
@@ -112,28 +140,6 @@ export class Admin implements ServiceSwaggerAddon {
           did: endorser_connection.their_public_did,
         },
       } as AriesAgentData);
-
-      // Create profile
-      const issuerApiKey = uuidv4();
-      await this.app.service('issuer/model').create({
-        name: data.name,
-        normalizedName: normalizedName,
-        'api-key': issuerApiKey,
-        wallet: {
-          id: subWallet.wallet_id,
-          name: subWallet.settings['wallet.name'],
-          token: subWallet.token,
-        },
-        did: subWalletDid.result.did,
-        verkey: subWalletDid.result.verkey,
-        vcr: {
-          connection_id: vcr_connection.connection_id,
-        },
-        endorser: {
-          connection_id: endorser_connection.connection_id,
-          public_did: endorser_connection.their_public_did,
-        },
-      } as IssuerProfileModel);
 
       logger.debug(`Created new profile with name ${data.name}`);
 
