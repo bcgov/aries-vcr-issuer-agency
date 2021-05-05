@@ -101,7 +101,7 @@ export class AriesAgent {
         }
       case ServiceType.Endorser:
         if (data.action === EndorserServiceAction.Create_Request) {
-          return this.createEndorserRequest(data.data);
+          return this.createEndorserRequest(data.data, data.token);
         }
       case ServiceType.Ledger:
         if (data.action === LedgerServiceAction.TAA_Fetch) {
@@ -124,7 +124,7 @@ export class AriesAgent {
         } else if (data.action === SchemaServiceAction.List) {
           return this.getCreatedSchemas(data.token);
         } else if (data.action === SchemaServiceAction.Create) {
-          return this.publishSchema(data.data, data.token);
+          return this.authorSchema(data.data, data.token);
         }
       case ServiceType.Wallet:
         if (data.action === WalletServiceAction.Create) {
@@ -446,7 +446,7 @@ export class AriesAgent {
     }
   }
 
-  private async publishSchema(
+  private async authorSchema(
     schema: AriesSchemaServiceRequest,
     token: string | undefined
   ): Promise<AriesSchema> {
@@ -455,11 +455,22 @@ export class AriesAgent {
       logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
       const response = await Axios.post(
         url,
-        schema,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          schema_name: schema.schema_name,
+          schema_version: schema.schema_version,
+          attributes: schema.attributes,
+        },
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              conn_id: schema.conn_id,
+              create_transaction_for_endorser: true
+            }
+          },
+        }
       );
-      const schemaResponse = response.data as AriesSchema;
-      return schemaResponse;
+      return response.data;
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(
@@ -649,11 +660,33 @@ export class AriesAgent {
     }
   }
 
+  // TODO: Need to type response
   private async createEndorserRequest(
-    data: any
+    request: any,
+    token: string | undefined
   ): Promise<any> {
-    // TODO:
-    throw new Error('Method not implemented.');
+    try {
+      logger.debug(
+        `Creating new endorser request: ${JSON.stringify(request)}`
+      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/create-request`;
+      const response = await Axios.post(
+        url,
+        { expires_time: request.expires_time },
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { tran_id: request.tran_id } }
+        },
+      );
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
   }
 
 }

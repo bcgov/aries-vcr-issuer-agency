@@ -8,7 +8,7 @@ import {
   AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
-import { SchemaServiceAction, ServiceType } from '../../models/enums';
+import { EndorserServiceAction, SchemaServiceAction, ServiceType } from '../../models/enums';
 import {
   AriesSchema,
   AriesSchemaServiceRequest,
@@ -38,7 +38,6 @@ export class Schema implements ServiceSwaggerAddon {
   ): Promise<Partial<SchemaServiceModel> | Error> {
     try {
       if (Array.isArray(data)) {
-        // return Promise.all(data.map((current) => this.create(current, params)));
         return new BadRequest(
           'Only one schema definition can be submitted at once.'
         );
@@ -65,7 +64,7 @@ export class Schema implements ServiceSwaggerAddon {
 
       if (isNewSchema) {
         // post schema on ledger
-        const schemaResponse = (await this.app.service('aries-agent').create({
+        const authorTxn = await this.app.service('aries-agent').create({
           service: ServiceType.Schema,
           action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
@@ -73,26 +72,38 @@ export class Schema implements ServiceSwaggerAddon {
             schema_name: schema.schema_name,
             schema_version: schema.schema_version,
             attributes: schema.attributes,
+            conn_id: params?.profile?.endorser?.connection_id || '',
           } as AriesSchemaServiceRequest,
-        } as AriesAgentData)) as AriesSchema;
-        schema.schema_id = schemaResponse.schema_id || schemaResponse.schema.id;
+        } as AriesAgentData);
+
+        const signature = await this.app.service('aries-agent').create({
+          service: ServiceType.Endorser,
+          action: EndorserServiceAction.Create_Request,
+          token: params.profile.wallet.token,
+          data: {
+            tran_id: authorTxn?.txn?._id || '',
+            expires_time: new Date().toISOString()
+          }
+        });
+
+        // schema.schema_id = schemaResponse.schema_id || schemaResponse.schema.id;
 
         // TODO: Should this be part of issuing the schema, or as a separate step?
         // create credential definition based on schema
-        const credDefId = (await this.app.service('aries-agent').create({
-          service: ServiceType.CredDef,
-          action: SchemaServiceAction.Create,
-          token: params.profile.wallet.token,
-          data: {
-            schema_id: schemaResponse.schema_id,
-            tag: params.profile.normalizedName,
-            support_revocation: false,
-          } as AriesCredDefServiceRequest,
-        } as AriesAgentData)) as CredDefServiceResponse;
-        schema.credential_definition_id = credDefId.credential_definition_id;
+        // const credDefId = (await this.app.service('aries-agent').create({
+        //   service: ServiceType.CredDef,
+        //   action: SchemaServiceAction.Create,
+        //   token: params.profile.wallet.token,
+        //   data: {
+        //     schema_id: schemaResponse.schema_id,
+        //     tag: params.profile.normalizedName,
+        //     support_revocation: false,
+        //   } as AriesCredDefServiceRequest,
+        // } as AriesAgentData)) as CredDefServiceResponse;
+        // schema.credential_definition_id = credDefId.credential_definition_id;
 
-        // add the new schema to the profile
-        schemaList.push(schema);
+        // // add the new schema to the profile
+        // schemaList.push(schema);
       }
 
       // Save data to controller db
