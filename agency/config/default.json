@@ -40,7 +40,6 @@
     "logLevel": "LOG_LEVEL"
   },
   "defaultWebhookHosts": [
-    "AGENCY_WEBHOOK_URL",
-    "ENDORSER_WEBHOOK_URL"
+    "AGENCY_WEBHOOK_URL"
   ]
 }
