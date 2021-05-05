@@ -311,9 +311,12 @@ export class AriesAgent {
 
       logger.debug(`Accepting connection invitation from ${targetAgentAlias}`);
       const response = await Axios.post(
-        `${this.acaPyUtils.getAdminUrl()}/out-of-band/receive-invitation?alias=${targetAgentAlias}`,
+        `${this.acaPyUtils.getAdminUrl()}/out-of-band/receive-invitation`,
         remoteResponse.data.invitation,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { alias: targetAgentAlias } },
+        }
       );
       return response.data as ConnectionServiceResponse;
     } catch (e) {
@@ -423,11 +426,11 @@ export class AriesAgent {
   ): Promise<string> {
     try {
       logger.debug(`Fetching credential definition for schema ${schema_id}`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created?schema_id=${schema_id}`;
-      const response = await Axios.get(
-        url,
-        this.acaPyUtils.getRequestConfig(token)
-      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
+      const response = await Axios.get(url, {
+        ...this.acaPyUtils.getRequestConfig(token),
+        ...{ params: { schema_id: schema_id } },
+      });
       return response.data.credential_definition_ids[0];
     } catch (e) {
       const error = e as AxiosError;
@@ -591,14 +594,17 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<boolean> {
     try {
-      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-info?endorser_did=${did}&endorser_name=${alias}`;
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-info`;
       logger.debug(
         `Setting endorser metadata for connection with id ${connection_id}`
       );
       const response = await Axios.post(
         url,
         {},
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { endorser_did: did, endorser_name: alias } },
+        }
       );
       return response.status === 200 ? true : false;
     } catch (e) {
@@ -617,14 +623,17 @@ export class AriesAgent {
   ): Promise<boolean> {
     try {
       const authorRole = 'TRANSACTION_AUTHOR';
-      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-role?transaction_my_job=${authorRole}`;
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-role`;
       logger.debug(
         `Setting role metadata for connection with id ${connection_id}`
       );
       const response = await Axios.post(
         url,
         {},
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { transaction_my_job: authorRole } },
+        }
       );
       return response.status === 200 ? true : false;
     } catch (e) {
