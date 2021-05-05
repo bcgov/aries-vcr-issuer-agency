@@ -9,10 +9,12 @@ import {
   AriesCredDefServiceRequest,
   CredDefServiceResponse,
 } from '../../models/credential-definition';
+import { EndorserMetadataServiceRequest } from '../../models/endorser';
 import {
   ConnectionServiceAction,
   CredDefServiceAction,
   CredServiceAction,
+  EndorserServiceAction,
   IssuerRegistrationServiceAction,
   LedgerServiceAction,
   MultitenancyServiceAction,
@@ -33,19 +35,20 @@ import { AcaPyUtils } from '../../utils/aca-py';
 export interface AriesAgentData {
   service: ServiceType;
   action:
-  | ConnectionServiceAction
-  | CredDefServiceAction
-  | CredServiceAction
-  | LedgerServiceAction
-  | MultitenancyServiceAction
-  | SchemaServiceAction
-  | WalletServiceAction
-  | IssuerRegistrationServiceAction;
+    | ConnectionServiceAction
+    | CredDefServiceAction
+    | CredServiceAction
+    | EndorserServiceAction
+    | LedgerServiceAction
+    | MultitenancyServiceAction
+    | SchemaServiceAction
+    | WalletServiceAction
+    | IssuerRegistrationServiceAction;
   token?: string;
   data: any;
 }
 
-interface ServiceOptions { }
+interface ServiceOptions {}
 
 export class AriesAgent {
   app: Application;
@@ -126,6 +129,10 @@ export class AriesAgent {
       case ServiceType.IssuerRegistration:
         if (data.action === IssuerRegistrationServiceAction.Submit) {
           return this.handleIssuerRegistration(data.data, data.token);
+        }
+      case ServiceType.Endorser:
+        if (data.action === EndorserServiceAction.Set_Metadata) {
+          return this.setEndorserMetadata(data.data, data.token);
         }
       default:
         return new NotImplemented(
@@ -228,7 +235,7 @@ export class AriesAgent {
   ): Promise<ConnectionServiceResponse> {
     try {
       const registryAlias = this.app.get('aries-vcr').alias;
-      const registryUrl = `${this.acaPyUtils.getRegistryAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const registryUrl = this.acaPyUtils.getRegistryAdminUrl();
       const registryConfig = this.acaPyUtils.getRegistryRequestConfig();
 
       logger.debug(
@@ -257,7 +264,7 @@ export class AriesAgent {
   ): Promise<ConnectionServiceResponse> {
     try {
       const endorserAlias = this.app.get('endorser').alias;
-      const endorserUrl = `${this.acaPyUtils.getEndorserAdminUrl()}/connections/create-invitation?alias=${alias}`;
+      const endorserUrl = this.acaPyUtils.getEndorserAdminUrl();
       const endorserConfig = this.acaPyUtils.getEndorserRequestConfig();
 
       logger.debug(`Creating new connection to Endorser using alias ${alias}`);
@@ -266,7 +273,8 @@ export class AriesAgent {
         endorserAlias,
         endorserConfig,
         alias,
-        token
+        token,
+        true
       );
     } catch (e) {
       const error = e as AxiosError;
@@ -283,20 +291,32 @@ export class AriesAgent {
     targetAgentAlias: string,
     targetAgentRequestConfig: AxiosRequestConfig,
     myAlias: string,
-    token: string | undefined
+    token: string | undefined,
+    usePublicDid = false
   ): Promise<ConnectionServiceResponse> {
     try {
+      const reqBody = {
+        alias: myAlias,
+        handshake_protocols: [
+          'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0',
+        ],
+        my_label: targetAgentAlias,
+        use_public_did: usePublicDid,
+      };
       const remoteResponse = await Axios.post(
-        `${targetAgentUrl}/connections/create-invitation?alias=${myAlias}`,
-        {},
+        `${targetAgentUrl}/out-of-band/create-invitation`,
+        reqBody,
         targetAgentRequestConfig
       );
 
       logger.debug(`Accepting connection invitation from ${targetAgentAlias}`);
       const response = await Axios.post(
-        `${this.acaPyUtils.getAdminUrl()}/connections/receive-invitation?alias=${targetAgentAlias}`,
+        `${this.acaPyUtils.getAdminUrl()}/out-of-band/receive-invitation`,
         remoteResponse.data.invitation,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { alias: targetAgentAlias } },
+        }
       );
       return response.data as ConnectionServiceResponse;
     } catch (e) {
@@ -406,11 +426,11 @@ export class AriesAgent {
   ): Promise<string> {
     try {
       logger.debug(`Fetching credential definition for schema ${schema_id}`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created?schema_id=${schema_id}`;
-      const response = await Axios.get(
-        url,
-        this.acaPyUtils.getRequestConfig(token)
-      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
+      const response = await Axios.get(url, {
+        ...this.acaPyUtils.getRequestConfig(token),
+        ...{ params: { schema_id: schema_id } },
+      });
       return response.data.credential_definition_ids[0];
     } catch (e) {
       const error = e as AxiosError;
@@ -506,9 +526,7 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<any> {
     try {
-      logger.debug(
-        `Sending new credential: ${JSON.stringify(credential)}`
-      );
+      logger.debug(`Sending new credential: ${JSON.stringify(credential)}`);
       const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send`;
       const response = await Axios.post(
         url,
@@ -533,9 +551,7 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<any> {
     try {
-      logger.debug(
-        `Creating new credential: ${JSON.stringify(credential)}`
-      );
+      logger.debug(`Creating new credential: ${JSON.stringify(credential)}`);
       const url = `${this.acaPyUtils.getAdminUrl()}/issue-credential-2.0/send-offer`;
       const response = await Axios.post(
         url,
@@ -545,6 +561,83 @@ export class AriesAgent {
       const credentialResponse = response.data;
       return credentialResponse;
     } catch (error) {
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async setEndorserMetadata(
+    data: EndorserMetadataServiceRequest,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const roleResult = await this.setEndorserRole(data.connection_id, token);
+      const infoResult = await this.setEndorserInfo(
+        data.connection_id,
+        data.did,
+        data.alias,
+        token
+      );
+      return roleResult && infoResult;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async setEndorserInfo(
+    connection_id: string,
+    did: string,
+    alias: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-info`;
+      logger.debug(
+        `Setting endorser metadata for connection with id ${connection_id}`
+      );
+      const response = await Axios.post(
+        url,
+        {},
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { endorser_did: did, endorser_name: alias } },
+        }
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async setEndorserRole(
+    connection_id: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      const authorRole = 'TRANSACTION_AUTHOR';
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${connection_id}/set-endorser-role`;
+      logger.debug(
+        `Setting role metadata for connection with id ${connection_id}`
+      );
+      const response = await Axios.post(
+        url,
+        {},
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { transaction_my_job: authorRole } },
+        }
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
       throw new AriesAgentError(
         error.response?.statusText || error.message,
         error.response?.status,

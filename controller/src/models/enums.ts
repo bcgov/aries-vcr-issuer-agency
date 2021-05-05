@@ -11,7 +11,11 @@ export enum CredDefServiceAction {
 export enum CredServiceAction {
   Create = 'Create',
   Issue = 'Issue',
-  Send = 'Send'
+  Send = 'Send',
+}
+
+export enum EndorserServiceAction {
+  Set_Metadata = 'Metadata',
 }
 
 export enum LedgerServiceAction {
@@ -45,6 +49,7 @@ export enum ServiceType {
   Connection = 'Connection',
   CredDef = 'Credential Definition',
   Cred = 'Credential',
+  Endorser = 'Endorser',
   Schema = 'Schema',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',

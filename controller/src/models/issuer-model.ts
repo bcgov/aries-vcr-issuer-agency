@@ -16,7 +16,12 @@ export interface IssuerProfileModel {
   url: string;
   email: string;
   logo: string;
-  vcr_connection_id: string;
-  endorser_connection_id: string;
+  vcr: AgentConnection;
+  endorser: AgentConnection;
   schemas?: SchemaServiceModel[];
+}
+
+interface AgentConnection {
+  connection_id: string;
+  public_did: string | undefined;
 }
