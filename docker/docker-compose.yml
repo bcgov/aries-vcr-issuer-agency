@@ -149,7 +149,7 @@ services:
       - ENDORSER_ALIAS=${ENDORSER_ALIAS}
       - LOG_LEVEL=${LOG_LEVEL}
     volumes:
-      - ../controller:/usr/src/controller
+      - ../agency:/usr/src/controller
       - agency-controller-data:/usr/src/controller/node_modules
     ports:
       - ${AGENCY_CONTROLLER_PORT}:${AGENCY_CONTROLLER_PORT}
