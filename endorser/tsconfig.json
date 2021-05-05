@@ -3,11 +3,9 @@
     "target": "es2018",
     "module": "commonjs",
     "outDir": "./lib",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
-    "esModuleInterop": true
-  },
-  "exclude": [
-    "test"
-  ]
+    "esModuleInterop": true,
+    "types": ["jest"]
+  }
 }
