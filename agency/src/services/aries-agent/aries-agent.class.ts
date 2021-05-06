@@ -87,7 +87,9 @@ export class AriesAgent {
             data.data.schema_id
           );
         } else if (data.action === CredDefServiceAction.Create) {
-          return this.publishCredentialDefinition(data.data, data.token);
+          return this.authorCredentialDefinition(data.data, data.token);
+        } else if (data.action === CredDefServiceAction.Find) {
+          return this.findCredentialDefinition(data.token, data.data.schema_name, data.data.schema_version);
         }
       case ServiceType.Cred:
         if (data.action === CredServiceAction.Send) {
@@ -125,6 +127,8 @@ export class AriesAgent {
           return this.getCreatedSchemas(data.token);
         } else if (data.action === SchemaServiceAction.Create) {
           return this.authorSchema(data.data, data.token);
+        } else if (data.action === SchemaServiceAction.Find) {
+          return this.findSchema(data.token, data.data.schema_name, data.data.schema_version);
         }
       case ServiceType.Wallet:
         if (data.action === WalletServiceAction.Create) {
@@ -426,6 +430,32 @@ export class AriesAgent {
     }
   }
 
+  private async findSchema(
+    token: string | undefined = '',
+    schema_name: string | undefined = '',
+    schema_version: string | undefined = ''
+  ): Promise<AriesSchema> {
+    try {
+      logger.debug(`Fetching details for schema with name: ${schema_name} and version: ${schema_version}`);
+      const url = (
+        `${this.acaPyUtils.getAdminUrl()}/schemas/created` +
+        `?schema_name=${encodeURIComponent(schema_name)}&schema_version=${encodeURIComponent(schema_version)}`
+      );
+      const response = await Axios.get(
+        url,
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      return response.data.schema_ids[0];
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
   private async getCredDefDetailsForSchema(
     token: string | undefined,
     schema_id: string
@@ -437,6 +467,32 @@ export class AriesAgent {
         ...this.acaPyUtils.getRequestConfig(token),
         ...{ params: { schema_id: schema_id } },
       });
+      return response.data.credential_definition_ids[0];
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async findCredentialDefinition(
+    token: string | undefined = '',
+    schema_name: string | undefined = '',
+    schema_version: string | undefined = ''
+  ): Promise<AriesSchema> {
+    try {
+      logger.debug(`Fetching details for credential definition with name: ${schema_name} and version: ${schema_version}`);
+      const url = (
+        `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created` +
+        `?schema_name=${encodeURIComponent(schema_name)}&schema_version=${encodeURIComponent(schema_version)}`
+      );
+      const response = await Axios.get(
+        url,
+        this.acaPyUtils.getRequestConfig(token)
+      );
       return response.data.credential_definition_ids[0];
     } catch (e) {
       const error = e as AxiosError;
@@ -483,7 +539,7 @@ export class AriesAgent {
     }
   }
 
-  async publishCredentialDefinition(
+  async authorCredentialDefinition(
     credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {
@@ -495,7 +551,14 @@ export class AriesAgent {
       const response = await Axios.post(
         url,
         credDef,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              conn_id: credDef.conn_id,
+              create_transaction_for_endorser: true
+            }
+          },        }
       );
       return response.data as CredDefServiceResponse;
     } catch (e) {

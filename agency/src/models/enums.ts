@@ -6,6 +6,7 @@ export enum ConnectionServiceAction {
 export enum CredDefServiceAction {
   Create = 'Create',
   Details = 'Details',
+  Find = 'Find',
 }
 
 export enum CredServiceAction {
@@ -35,6 +36,7 @@ export enum SchemaServiceAction {
   Create = 'Create',
   List = 'List',
   Details = 'Details',
+  Find = 'Find',
 }
 
 export enum WalletServiceAction {
@@ -83,5 +85,6 @@ export enum CredState_2_0 {
 }
 
 export enum EndorserState {
-  TransactionEndorsed = 'transaction_endorsed'
+  TransactionEndorsed = 'transaction_endorsed',
+  TransactionCompleted = 'transaction_completed'
 }

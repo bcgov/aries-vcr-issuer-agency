@@ -5,9 +5,11 @@ import { CredState_2_0, EndorserServiceAction, EndorserState, ServiceType, Webho
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data {
-  state?: CredState_2_0 | EndorserState;
-  cred_ex_id?: string;
   _id?: string;
+  cred_ex_id?: string;
+  state?: CredState_2_0 | EndorserState;
+  thread_id?: string;
+  messages_attach?: any[];
 }
 
 interface ServiceOptions { }
@@ -46,6 +48,15 @@ export class Webhooks {
                 transaction_id: data._id
               }
             } as AriesAgentData);
+          } else if (state === EndorserState.TransactionCompleted) {
+            const txnMsgId = data?.messages_attach?.[0]?.['@id'] || '';
+            if (txnMsgId) {
+              // TODO: This wont scale
+              this.app.service('events').emit(txnMsgId, data);
+            } else {
+              // TODO: Gracefully handle the error here
+              return { result: 'Error' };
+            }
           }
           return { result: 'Success' };
       default:
