@@ -17,6 +17,7 @@ export enum CredServiceAction {
 export enum EndorserServiceAction {
   Set_Metadata = 'Metadata',
   Create_Request = 'Request',
+  Write_Transaction = 'Write'
 }
 
 export enum LedgerServiceAction {
@@ -61,6 +62,7 @@ export enum ServiceType {
 export enum WebhookTopic {
   Connections = 'connections',
   IssueCredential = 'issue_credential',
+  EndorseTransaction = 'endorse_transaction'
 }
 
 export enum WebhookTopic_2_0 {
@@ -78,4 +80,8 @@ export enum CredState_2_0 {
   OfferSent = 'offer-sent',
   RequestReceived = 'request-received',
   CredentialIssued = 'credential-issued',
+}
+
+export enum EndorserState {
+  TransactionEndorsed = 'transaction_endorsed'
 }

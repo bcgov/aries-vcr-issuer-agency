@@ -137,6 +137,8 @@ export class AriesAgent {
       case ServiceType.Endorser:
         if (data.action === EndorserServiceAction.Set_Metadata) {
           return this.setEndorserMetadata(data.data, data.token);
+        } else if (data.action === EndorserServiceAction.Write_Transaction) {
+          return this.writeTransaction(data.data.transaction_id, data.token);
         }
       default:
         return new NotImplemented(
@@ -689,4 +691,30 @@ export class AriesAgent {
     }
   }
 
+  private async writeTransaction(
+    transaction_id: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      logger.debug(
+        `Write transaction with id ${transaction_id} to ledger`
+      );
+
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${transaction_id}/write`;
+
+      const response = await Axios.post(
+        url,
+        {},
+        this.acaPyUtils.getRequestConfig(token)
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
 }

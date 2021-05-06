@@ -38,6 +38,8 @@ export class AriesAgent {
       case ServiceType.Endorser:
         if (data.action === EndorserServiceAction.Set_Metadata) {
           return this.setEndorserRole(data.data.connection_id);
+        } else if (data.action === EndorserServiceAction.Endorse_Transaction) {
+          return this.endorseTransaction(data.data.transaction_id);
         }
       default:
         return new NotImplemented(
@@ -60,6 +62,30 @@ export class AriesAgent {
           ...this.acaPyUtils.getRequestConfig(),
           ...{ params: { transaction_my_job: endorserRole } },
         }
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async endorseTransaction(transaction_id: string): Promise<boolean> {
+    try {
+      logger.debug(
+        `Endorse transaction with id ${transaction_id}`
+      );
+
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${transaction_id}/endorse`;
+
+      const response = await Axios.post(
+        url,
+        {},
+        this.acaPyUtils.getRequestConfig()
       );
       return response.status === 200 ? true : false;
     } catch (e) {

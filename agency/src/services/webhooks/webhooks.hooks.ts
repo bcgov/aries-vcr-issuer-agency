@@ -1,8 +1,9 @@
 import { HookContext } from '@feathersjs/feathers';
+import { extractSubwallet } from '../../utils/hooks/webhooks';
 
 export default {
   before: {
-    all: [],
+    all: [extractSubwallet],
     create: [],
   },
 

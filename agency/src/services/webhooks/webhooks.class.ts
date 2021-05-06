@@ -1,11 +1,13 @@
 import { NotImplemented } from '@feathersjs/errors';
 import { Params } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { CredState_2_0, WebhookTopic_2_0 } from '../../models/enums';
+import { CredState_2_0, EndorserServiceAction, EndorserState, ServiceType, WebhookTopic, WebhookTopic_2_0 } from '../../models/enums';
+import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data {
-  state?: CredState_2_0;
+  state?: CredState_2_0 | EndorserState;
   cred_ex_id?: string;
+  _id?: string;
 }
 
 interface ServiceOptions { }
@@ -34,6 +36,18 @@ export class Webhooks {
           }
         }
         return { result: 'Success' };
+        case WebhookTopic.EndorseTransaction:
+          if (state === EndorserState.TransactionEndorsed) {
+            await this.app.service('aries-agent').create({
+              service: ServiceType.Endorser,
+              action: EndorserServiceAction.Write_Transaction,
+              token: params?.wallet?.token || '',
+              data: {
+                transaction_id: data._id
+              }
+            } as AriesAgentData);
+          }
+          return { result: 'Success' };
       default:
         return new NotImplemented(`Webhook ${topic} is not supported`);
     }
