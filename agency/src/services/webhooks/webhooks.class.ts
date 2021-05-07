@@ -31,7 +31,7 @@ export class Webhooks {
         if (state === CredState_2_0.CredentialIssued) {
           const cred_ex_id = data?.cred_ex_id;
           if (cred_ex_id) {
-            this.app.service('issuer/credential').emit(cred_ex_id, data);
+            this.app.service('events').emit(cred_ex_id, data);
           } else {
             // TODO: Gracefully handle the error here
             return { result: 'Error' };
@@ -51,7 +51,6 @@ export class Webhooks {
           } else if (state === EndorserState.TransactionCompleted) {
             const txnMsgId = data?.messages_attach?.[0]?.['@id'] || '';
             if (txnMsgId) {
-              // TODO: This wont scale
               this.app.service('events').emit(txnMsgId, data);
             } else {
               // TODO: Gracefully handle the error here

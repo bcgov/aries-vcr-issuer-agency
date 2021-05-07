@@ -178,7 +178,7 @@ export class Credential extends CredentialBase {
     params: IssuerServiceParams,
     idx?: number
   ): Promise<void> {
-    const credService = this.app.service('issuer/credential');
+    const credService = this.app.service('events');
     return new Promise((resolve) =>
       credService.once(credExId, () => {
         const res = { credExId, order: idx, success: true };
