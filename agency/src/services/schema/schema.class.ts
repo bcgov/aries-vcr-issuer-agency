@@ -22,7 +22,7 @@ interface ServiceOptions { }
 
 export class Schema implements ServiceSwaggerAddon {
   app: Application;
-  options: ServiceOptions;
+  options: ServiceSwaggerOptions;
 
   constructor(options: ServiceOptions = {}, app: Application) {
     this.options = options;
