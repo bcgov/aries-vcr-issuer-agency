@@ -15,7 +15,6 @@ import webHooks from './webhooks/webhooks.service';
 export function services(app: Application): void {
   app.configure(admin);
   app.configure(credential);
-  app.configure(events);
   app.configure(issuerProfile);
   app.configure(issuerAuthentication);
   app.configure(schema);
@@ -24,7 +23,8 @@ export function services(app: Application): void {
 }
 
 export function internalServices(app: Application): void {
-  app.configure(issuerModel);
   app.configure(ariesAgent);
+  app.configure(events);
+  app.configure(issuerModel);
   app.configure(webHooks);
 }
