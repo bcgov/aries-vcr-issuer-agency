@@ -437,13 +437,18 @@ export class AriesAgent {
   ): Promise<AriesSchema> {
     try {
       logger.debug(`Fetching details for schema with name: ${schema_name} and version: ${schema_version}`);
-      const url = (
-        `${this.acaPyUtils.getAdminUrl()}/schemas/created` +
-        `?schema_name=${encodeURIComponent(schema_name)}&schema_version=${encodeURIComponent(schema_version)}`
-      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/schemas/created`;
       const response = await Axios.get(
         url,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              schema_name,
+              schema_version
+            }
+          }
+        }
       );
       return response.data.schema_ids[0];
     } catch (e) {
@@ -485,13 +490,18 @@ export class AriesAgent {
   ): Promise<AriesSchema> {
     try {
       logger.debug(`Fetching details for credential definition with name: ${schema_name} and version: ${schema_version}`);
-      const url = (
-        `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created` +
-        `?schema_name=${encodeURIComponent(schema_name)}&schema_version=${encodeURIComponent(schema_version)}`
-      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
       const response = await Axios.get(
         url,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              schema_name,
+              schema_version
+            }
+          }
+        }
       );
       return response.data.credential_definition_ids[0];
     } catch (e) {
