@@ -1,11 +1,15 @@
-import { HookContext, Paginated, Service } from '@feathersjs/feathers';
+import { HookContext, Service } from '@feathersjs/feathers';
 
-export async function preProcessCredentials(context: HookContext): Promise<HookContext<any, Service<any>>> {
+export async function preProcessCredentials(
+  context: HookContext
+): Promise<HookContext<any, Service<any>>> {
   context.params.credentials = { pending: [], results: [] };
   return context;
 }
 
-export async function postProcessCredentials(context: HookContext): Promise<HookContext<any, Service<any>>> {
+export async function postProcessCredentials(
+  context: HookContext
+): Promise<HookContext<any, Service<any>>> {
   const params = context.params;
   params.credentials.results
     .sort((a: any, b: any) => a.order - b.order)

@@ -13,5 +13,7 @@ export class Events {
   }
 
   // Required so tsc wont throw an error
-  setup() { }
+  setup(): void {
+    return;
+  }
 }

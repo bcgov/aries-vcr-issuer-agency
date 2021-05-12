@@ -1,19 +1,14 @@
 import { BadRequest } from '@feathersjs/errors';
-import {
-  ServiceSwaggerAddon,
-  ServiceSwaggerOptions,
-} from 'feathers-swagger/types';
+import { ServiceSwaggerAddon, ServiceSwaggerOptions } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
+import { AriesCredDefServiceRequest } from '../../models/credential-definition';
 import {
-  AriesCredDefServiceRequest,
-  CredDefServiceResponse,
-} from '../../models/credential-definition';
-import { CredDefServiceAction, EndorserServiceAction, SchemaServiceAction, ServiceType } from '../../models/enums';
-import {
-  AriesSchema,
-  AriesSchemaServiceRequest,
-  SchemaServiceModel,
-} from '../../models/schema';
+  CredDefServiceAction,
+  EndorserServiceAction,
+  SchemaServiceAction,
+  ServiceType
+} from '../../models/enums';
+import { AriesSchemaServiceRequest, SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
 import { deferServiceOnce } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';

@@ -38,26 +38,26 @@ export class Webhooks {
           }
         }
         return { result: 'Success' };
-        case WebhookTopic.EndorseTransaction:
-          if (state === EndorserState.TransactionEndorsed) {
-            await this.app.service('aries-agent').create({
-              service: ServiceType.Endorser,
-              action: EndorserServiceAction.Write_Transaction,
-              token: params?.wallet?.token || '',
-              data: {
-                transaction_id: data._id
-              }
-            } as AriesAgentData);
-          } else if (state === EndorserState.TransactionCompleted) {
-            const txnMsgId = data?.messages_attach?.[0]?.['@id'] || '';
-            if (txnMsgId) {
-              this.app.service('events').emit(txnMsgId, data);
-            } else {
-              // TODO: Gracefully handle the error here
-              return { result: 'Error' };
+      case WebhookTopic.EndorseTransaction:
+        if (state === EndorserState.TransactionEndorsed) {
+          await this.app.service('aries-agent').create({
+            service: ServiceType.Endorser,
+            action: EndorserServiceAction.Write_Transaction,
+            token: params?.wallet?.token || '',
+            data: {
+              transaction_id: data._id
             }
+          } as AriesAgentData);
+        } else if (state === EndorserState.TransactionCompleted) {
+          const txnMsgId = data?.messages_attach?.[0]?.['@id'] || '';
+          if (txnMsgId) {
+            this.app.service('events').emit(txnMsgId, data);
+          } else {
+            // TODO: Gracefully handle the error here
+            return { result: 'Error' };
           }
-          return { result: 'Success' };
+        }
+        return { result: 'Success' };
       default:
         return new NotImplemented(`Webhook ${topic} is not supported`);
     }
