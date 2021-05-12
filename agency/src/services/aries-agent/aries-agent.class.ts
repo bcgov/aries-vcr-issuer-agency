@@ -581,6 +581,7 @@ export class AriesAgent {
     }
   }
 
+  // TODO: Need to type response
   private async handleIssuerRegistration(
     payload: IssuerRegistrationPayload,
     token: string | undefined
