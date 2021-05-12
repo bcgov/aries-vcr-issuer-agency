@@ -8,6 +8,7 @@ import {
   SchemaServiceAction,
   ServiceType
 } from '../../models/enums';
+import { CredDefError, EndorserError, SchemaError } from '../../models/errors';
 import { AriesSchemaServiceRequest, SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
 import { deferServiceOnce } from '../../utils/sleep';
@@ -73,7 +74,7 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!schemaAuthorTxn) {
-          throw new ErrorEvent('Invalid Schema author transaction returned');
+          throw new SchemaError('Invalid Schema author transaction returned');
         }
 
         const schemaRequestTxn = await this.app.service('aries-agent').create({
@@ -87,17 +88,17 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!schemaRequestTxn) {
-          throw new ErrorEvent('Invalid Schema create request transaction returned');
+          throw new EndorserError('Invalid Schema create request transaction returned');
         }
 
         const schemaTxnMsgId = schemaRequestTxn?.messages_attach?.[0]?.['@id'] || '';
         if (!schemaTxnMsgId) {
-          throw new ErrorEvent('Message Attachment ID could not be found');
+          throw new EndorserError('Message Attachment ID could not be found');
         }
 
         const schemaTxnResult = await deferServiceOnce(schemaTxnMsgId, this.app.service('events'));
         if (!schemaTxnResult.id) {
-          throw new ErrorEvent('Event Emitter ID could not be found');
+          throw new EndorserError('Event Emitter ID could not be found');
         }
 
         const schemaId = await this.app.service('aries-agent').create({
@@ -111,10 +112,18 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!schemaId) {
-          throw new ErrorEvent('Schema ID could not be found');
+          throw new SchemaError('Schema ID could not be found');
         }
 
         schema.schema_id = schemaId;
+
+        // add the new schema to the profile
+        schemaList.push(schema);
+
+        // Save data to controller db
+        await this.app.service('issuer/model').patch(params.profile._id, {
+          schemas: schemaList,
+        } as Partial<SchemaServiceModel>);
 
         // create credential definition based on schema
         const credDefAuthorTxn = await this.app.service('aries-agent').create({
@@ -130,7 +139,7 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!credDefAuthorTxn) {
-          throw new ErrorEvent('Invalid Credential Definition author transaction returned');
+          throw new CredDefError('Invalid Credential Definition author transaction returned');
         }
 
         const credDefRequestTxn = await this.app.service('aries-agent').create({
@@ -144,17 +153,19 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!credDefRequestTxn) {
-          throw new ErrorEvent('Invalid Credential Defintiion create request transaction returned');
+          throw new EndorserError(
+            'Invalid Credential Defintiion create request transaction returned'
+          );
         }
 
         const credDefTxnMsgId = credDefRequestTxn?.messages_attach?.[0]?.['@id'] || '';
         if (!credDefTxnMsgId) {
-          throw new ErrorEvent('Message Attachment ID could not be found');
+          throw new EndorserError('Message Attachment ID could not be found');
         }
 
         const credDefTxnResult = await deferServiceOnce(credDefTxnMsgId, this.app.service('events'));
         if (!credDefTxnResult.id) {
-          throw new ErrorEvent('Event Emitter ID could not be found');
+          throw new EndorserError('Event Emitter ID could not be found');
         }
 
         const credDefId = await this.app.service('aries-agent').create({
@@ -168,13 +179,10 @@ export class Schema implements ServiceSwaggerAddon {
         } as AriesAgentData);
 
         if (!credDefId) {
-          throw new ErrorEvent('Credential Defnition ID could not be found');
+          throw new CredDefError('Credential Defnition ID could not be found');
         }
 
         schema.credential_definition_id = credDefId;
-
-        // // add the new schema to the profile
-        schemaList.push(schema);
       }
 
       // Save data to controller db
