@@ -1,3 +1,14 @@
+/**
+ * This service was created to call and handle service events within webhooks.
+ * 
+ * Often, one-time events will be created and wrapped within a promise to be resolved
+ * when a webhook is called externally. Since webhooks wont have any context of which service the
+ * one-time event is created this service is purpose built to attach these one-time events to that
+ * can be called by webhooks.
+ * 
+ * For example: See Schema publishing and Credential issuance handling in webhooks.
+ */
+
 // Initializes the `event` service on path `/event`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
