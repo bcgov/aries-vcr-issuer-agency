@@ -74,23 +74,36 @@ export class AriesAgent {
   //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create(data: AriesAgentData, params?: Params): Promise<any> {
     switch (data.service) {
-      case ServiceType.Multitenancy:
-        if (data.action === MultitenancyServiceAction.Create) {
-          return this.newSubWallet(data.data as MultitenancyServiceRequest);
-        }
-      case ServiceType.Wallet:
-        if (data.action === WalletServiceAction.Create) {
-          return this.newDID(data.token);
-        } else if (data.action === WalletServiceAction.Fetch) {
-          return this.getPublicDID(data.token);
-        } else if (data.action === WalletServiceAction.Publish) {
-          return this.publishDID(data.data.did, data.token);
-        }
       case ServiceType.Connection:
         if (data.action === ConnectionServiceAction.CreateVCR) {
           return this.newRegistryConnection(data.data.alias, data.token);
         } else if (data.action === ConnectionServiceAction.CreateEndorser) {
           return this.newEndorserConnection(data.data.alias, data.token);
+        }
+      case ServiceType.CredDef:
+        if (data.action === CredDefServiceAction.Details) {
+          return this.getCredDefDetailsForSchema(
+            data.token,
+            data.data.schema_id
+          );
+        } else if (data.action === CredDefServiceAction.Create) {
+          return this.authorCredentialDefinition(data.data, data.token);
+        } else if (data.action === CredDefServiceAction.Find) {
+          return this.findCredentialDefinition(data.token, data.data.schema_name, data.data.schema_version);
+        }
+      case ServiceType.Cred:
+        if (data.action === CredServiceAction.Send) {
+          return this.sendCredential(data.data, data.token);
+        } else if (data.action === CredDefServiceAction.Create) {
+          return this.createCredential(data.data, data.token);
+        }
+      case ServiceType.IssuerRegistration:
+        if (data.action === IssuerRegistrationServiceAction.Submit) {
+          return this.handleIssuerRegistration(data.data, data.token);
+        }
+      case ServiceType.Endorser:
+        if (data.action === EndorserServiceAction.Create_Request) {
+          return this.createEndorserRequest(data.data, data.token);
         }
       case ServiceType.Ledger:
         if (data.action === LedgerServiceAction.TAA_Fetch) {
@@ -103,20 +116,9 @@ export class AriesAgent {
             data.data.version
           );
         }
-      case ServiceType.CredDef:
-        if (data.action === CredDefServiceAction.Details) {
-          return this.getCredDefDetailsForSchema(
-            data.token,
-            data.data.schema_id
-          );
-        } else if (data.action === CredDefServiceAction.Create) {
-          return this.publishCredentialDefinition(data.data, data.token);
-        }
-      case ServiceType.Cred:
-        if (data.action === CredServiceAction.Send) {
-          return this.sendCredential(data.data, data.token);
-        } else if (data.action === CredDefServiceAction.Create) {
-          return this.createCredential(data.data, data.token);
+      case ServiceType.Multitenancy:
+        if (data.action === MultitenancyServiceAction.Create) {
+          return this.newSubWallet(data.data as MultitenancyServiceRequest);
         }
       case ServiceType.Schema:
         if (data.action === SchemaServiceAction.Details) {
@@ -124,15 +126,23 @@ export class AriesAgent {
         } else if (data.action === SchemaServiceAction.List) {
           return this.getCreatedSchemas(data.token);
         } else if (data.action === SchemaServiceAction.Create) {
-          return this.publishSchema(data.data, data.token);
+          return this.authorSchema(data.data, data.token);
+        } else if (data.action === SchemaServiceAction.Find) {
+          return this.findSchema(data.token, data.data.schema_name, data.data.schema_version);
         }
-      case ServiceType.IssuerRegistration:
-        if (data.action === IssuerRegistrationServiceAction.Submit) {
-          return this.handleIssuerRegistration(data.data, data.token);
+      case ServiceType.Wallet:
+        if (data.action === WalletServiceAction.Create) {
+          return this.newDID(data.token);
+        } else if (data.action === WalletServiceAction.Fetch) {
+          return this.getPublicDID(data.token);
+        } else if (data.action === WalletServiceAction.Publish) {
+          return this.publishDID(data.data.did, data.token);
         }
       case ServiceType.Endorser:
         if (data.action === EndorserServiceAction.Set_Metadata) {
           return this.setEndorserMetadata(data.data, data.token);
+        } else if (data.action === EndorserServiceAction.Write_Transaction) {
+          return this.writeTransaction(data.data.transaction_id, data.token);
         }
       default:
         return new NotImplemented(
@@ -420,6 +430,37 @@ export class AriesAgent {
     }
   }
 
+  private async findSchema(
+    token: string | undefined = '',
+    schema_name: string | undefined = '',
+    schema_version: string | undefined = ''
+  ): Promise<AriesSchema> {
+    try {
+      logger.debug(`Fetching details for schema with name: ${schema_name} and version: ${schema_version}`);
+      const url = `${this.acaPyUtils.getAdminUrl()}/schemas/created`;
+      const response = await Axios.get(
+        url,
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              schema_name,
+              schema_version
+            }
+          }
+        }
+      );
+      return response.data.schema_ids[0];
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
   private async getCredDefDetailsForSchema(
     token: string | undefined,
     schema_id: string
@@ -442,20 +483,27 @@ export class AriesAgent {
     }
   }
 
-  private async publishSchema(
-    schema: AriesSchemaServiceRequest,
-    token: string | undefined
+  private async findCredentialDefinition(
+    token: string | undefined = '',
+    schema_name: string | undefined = '',
+    schema_version: string | undefined = ''
   ): Promise<AriesSchema> {
     try {
-      const url = `${this.acaPyUtils.getAdminUrl()}/schemas`;
-      logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
-      const response = await Axios.post(
+      logger.debug(`Fetching details for credential definition with name: ${schema_name} and version: ${schema_version}`);
+      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
+      const response = await Axios.get(
         url,
-        schema,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              schema_name,
+              schema_version
+            }
+          }
+        }
       );
-      const schemaResponse = response.data as AriesSchema;
-      return schemaResponse;
+      return response.data.credential_definition_ids[0];
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(
@@ -466,7 +514,42 @@ export class AriesAgent {
     }
   }
 
-  async publishCredentialDefinition(
+  private async authorSchema(
+    schema: AriesSchemaServiceRequest,
+    token: string | undefined
+  ): Promise<AriesSchema> {
+    try {
+      const url = `${this.acaPyUtils.getAdminUrl()}/schemas`;
+      logger.debug(`Publishing schema to ledger: ${JSON.stringify(schema)}`);
+      const response = await Axios.post(
+        url,
+        {
+          schema_name: schema.schema_name,
+          schema_version: schema.schema_version,
+          attributes: schema.attributes,
+        },
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              conn_id: schema.conn_id,
+              create_transaction_for_endorser: true
+            }
+          },
+        }
+      );
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  async authorCredentialDefinition(
     credDef: AriesCredDefServiceRequest,
     token: string | undefined
   ): Promise<CredDefServiceResponse> {
@@ -478,7 +561,14 @@ export class AriesAgent {
       const response = await Axios.post(
         url,
         credDef,
-        this.acaPyUtils.getRequestConfig(token)
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{
+            params: {
+              conn_id: credDef.conn_id,
+              create_transaction_for_endorser: true
+            }
+          },        }
       );
       return response.data as CredDefServiceResponse;
     } catch (e) {
@@ -491,6 +581,7 @@ export class AriesAgent {
     }
   }
 
+  // TODO: Need to type response
   private async handleIssuerRegistration(
     payload: IssuerRegistrationPayload,
     token: string | undefined
@@ -533,8 +624,7 @@ export class AriesAgent {
         credential,
         this.acaPyUtils.getRequestConfig(token)
       );
-      const credentialResponse = response.data;
-      return credentialResponse;
+      return response.data;
     } catch (e) {
       const error = e as AxiosError;
       throw new AriesAgentError(
@@ -558,9 +648,9 @@ export class AriesAgent {
         credential,
         this.acaPyUtils.getRequestConfig(token)
       );
-      const credentialResponse = response.data;
-      return credentialResponse;
-    } catch (error) {
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
       throw new AriesAgentError(
         error.response?.statusText || error.message,
         error.response?.status,
@@ -634,6 +724,62 @@ export class AriesAgent {
           ...this.acaPyUtils.getRequestConfig(token),
           ...{ params: { transaction_my_job: authorRole } },
         }
+      );
+      return response.status === 200 ? true : false;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  // TODO: Need to type response
+  private async createEndorserRequest(
+    request: any,
+    token: string | undefined
+  ): Promise<any> {
+    try {
+      logger.debug(
+        `Creating new endorser request: ${JSON.stringify(request)}`
+      );
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/create-request`;
+      const response = await Axios.post(
+        url,
+        { expires_time: request.expires_time },
+        {
+          ...this.acaPyUtils.getRequestConfig(token),
+          ...{ params: { tran_id: request.tran_id } }
+        },
+      );
+      return response.data;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async writeTransaction(
+    transaction_id: string,
+    token: string | undefined
+  ): Promise<boolean> {
+    try {
+      logger.debug(
+        `Write transaction with id ${transaction_id} to ledger`
+      );
+
+      const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${transaction_id}/write`;
+
+      const response = await Axios.post(
+        url,
+        {},
+        this.acaPyUtils.getRequestConfig(token)
       );
       return response.status === 200 ? true : false;
     } catch (e) {

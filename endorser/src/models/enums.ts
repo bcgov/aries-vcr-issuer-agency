@@ -15,5 +15,14 @@ export enum ConnectionState {
 }
 
 export enum EndorserServiceAction {
-  Set_Metadata = 'Metadata',
+  Endorse_Transaction = 'Endorse',
+  Set_Metadata = 'Metadata'
+}
+
+export enum EndorserTopic {
+  EndorseTransaction = 'endorse_transaction'
+}
+
+export enum EndorserState {
+  RequestReceived = 'request_received'
 }

@@ -30,6 +30,8 @@ export interface AriesSchemaServiceRequest {
   schema_version: string;
   schema_name: string;
   attributes: string[];
+  conn_id: string;
+  create_transaction_for_endorser: boolean;
 }
 
 export interface SchemaServiceModel extends AriesSchemaServiceRequest {

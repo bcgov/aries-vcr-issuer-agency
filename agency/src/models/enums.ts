@@ -6,6 +6,7 @@ export enum ConnectionServiceAction {
 export enum CredDefServiceAction {
   Create = 'Create',
   Details = 'Details',
+  Find = 'Find',
 }
 
 export enum CredServiceAction {
@@ -16,6 +17,8 @@ export enum CredServiceAction {
 
 export enum EndorserServiceAction {
   Set_Metadata = 'Metadata',
+  Create_Request = 'Request',
+  Write_Transaction = 'Write'
 }
 
 export enum LedgerServiceAction {
@@ -33,6 +36,7 @@ export enum SchemaServiceAction {
   Create = 'Create',
   List = 'List',
   Details = 'Details',
+  Find = 'Find',
 }
 
 export enum WalletServiceAction {
@@ -50,16 +54,17 @@ export enum ServiceType {
   CredDef = 'Credential Definition',
   Cred = 'Credential',
   Endorser = 'Endorser',
-  Schema = 'Schema',
+  IssuerRegistration = 'IssuerRegistration',
   Ledger = 'Ledger',
   Multitenancy = 'Multitenancy',
+  Schema = 'Schema',
   Wallet = 'Wallet',
-  IssuerRegistration = 'IssuerRegistration',
 }
 
 export enum WebhookTopic {
   Connections = 'connections',
   IssueCredential = 'issue_credential',
+  EndorseTransaction = 'endorse_transaction'
 }
 
 export enum WebhookTopic_2_0 {
@@ -77,4 +82,9 @@ export enum CredState_2_0 {
   OfferSent = 'offer-sent',
   RequestReceived = 'request-received',
   CredentialIssued = 'credential-issued',
+}
+
+export enum EndorserState {
+  TransactionEndorsed = 'transaction_endorsed',
+  TransactionCompleted = 'transaction_completed'
 }

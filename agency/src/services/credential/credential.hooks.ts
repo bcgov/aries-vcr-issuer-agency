@@ -1,4 +1,3 @@
-import { HookContext, Service } from '@feathersjs/feathers';
 import { authenticateIssuer } from '../../utils/hooks/authentication';
 import { postProcessCredentials, preProcessCredentials } from '../../utils/hooks/credential';
 import { checkValidIssuerProfile } from '../../utils/hooks/issuer-profile';

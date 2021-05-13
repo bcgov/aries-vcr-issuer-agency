@@ -1,9 +1,6 @@
 import { Conflict } from '@feathersjs/errors';
 import { NullableId, Paginated, Params } from '@feathersjs/feathers';
-import {
-  ServiceSwaggerAddon,
-  ServiceSwaggerOptions,
-} from 'feathers-swagger/types';
+import { ServiceSwaggerAddon, ServiceSwaggerOptions, } from 'feathers-swagger/types';
 import { v4 as uuidv4 } from 'uuid';
 import { Application } from '../../declarations';
 import logger from '../../logger';
@@ -16,10 +13,7 @@ import {
   WalletServiceAction,
 } from '../../models/enums';
 import { IssuerProfileModel } from '../../models/issuer-model';
-import {
-  MultitenancyServiceRequest,
-  MultitenancyServiceResponse,
-} from '../../models/multitenancy';
+import { MultitenancyServiceRequest, MultitenancyServiceResponse } from '../../models/multitenancy';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 

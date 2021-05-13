@@ -1,20 +1,17 @@
 import { BadRequest } from '@feathersjs/errors';
-import {
-  ServiceSwaggerAddon,
-  ServiceSwaggerOptions,
-} from 'feathers-swagger/types';
+import { ServiceSwaggerAddon, ServiceSwaggerOptions } from 'feathers-swagger/types';
 import { Application } from '../../declarations';
+import { AriesCredDefServiceRequest } from '../../models/credential-definition';
 import {
-  AriesCredDefServiceRequest,
-  CredDefServiceResponse,
-} from '../../models/credential-definition';
-import { SchemaServiceAction, ServiceType } from '../../models/enums';
-import {
-  AriesSchema,
-  AriesSchemaServiceRequest,
-  SchemaServiceModel,
-} from '../../models/schema';
+  CredDefServiceAction,
+  EndorserServiceAction,
+  SchemaServiceAction,
+  ServiceType
+} from '../../models/enums';
+import { CredDefError, EndorserError, SchemaError } from '../../models/errors';
+import { AriesSchemaServiceRequest, SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
+import { deferServiceOnce } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface ServiceOptions { }
@@ -38,7 +35,6 @@ export class Schema implements ServiceSwaggerAddon {
   ): Promise<Partial<SchemaServiceModel> | Error> {
     try {
       if (Array.isArray(data)) {
-        // return Promise.all(data.map((current) => this.create(current, params)));
         return new BadRequest(
           'Only one schema definition can be submitted at once.'
         );
@@ -65,7 +61,7 @@ export class Schema implements ServiceSwaggerAddon {
 
       if (isNewSchema) {
         // post schema on ledger
-        const schemaResponse = (await this.app.service('aries-agent').create({
+        const schemaAuthorTxn = await this.app.service('aries-agent').create({
           service: ServiceType.Schema,
           action: SchemaServiceAction.Create,
           token: params.profile.wallet.token,
@@ -73,26 +69,120 @@ export class Schema implements ServiceSwaggerAddon {
             schema_name: schema.schema_name,
             schema_version: schema.schema_version,
             attributes: schema.attributes,
+            conn_id: params?.profile?.endorser?.connection_id || '',
           } as AriesSchemaServiceRequest,
-        } as AriesAgentData)) as AriesSchema;
-        schema.schema_id = schemaResponse.schema_id || schemaResponse.schema.id;
+        } as AriesAgentData);
 
-        // TODO: Should this be part of issuing the schema, or as a separate step?
-        // create credential definition based on schema
-        const credDefId = (await this.app.service('aries-agent').create({
-          service: ServiceType.CredDef,
-          action: SchemaServiceAction.Create,
+        if (!schemaAuthorTxn) {
+          throw new SchemaError('Invalid Schema author transaction returned');
+        }
+
+        const schemaRequestTxn = await this.app.service('aries-agent').create({
+          service: ServiceType.Endorser,
+          action: EndorserServiceAction.Create_Request,
           token: params.profile.wallet.token,
           data: {
-            schema_id: schemaResponse.schema_id,
-            tag: params.profile.normalizedName,
-            support_revocation: false,
-          } as AriesCredDefServiceRequest,
-        } as AriesAgentData)) as CredDefServiceResponse;
-        schema.credential_definition_id = credDefId.credential_definition_id;
+            tran_id: schemaAuthorTxn?.txn?._id || '',
+            expires_time: new Date().toISOString()
+          }
+        } as AriesAgentData);
+
+        if (!schemaRequestTxn) {
+          throw new EndorserError('Invalid Schema create request transaction returned');
+        }
+
+        const schemaTxnMsgId = schemaRequestTxn?.messages_attach?.[0]?.['@id'] || '';
+        if (!schemaTxnMsgId) {
+          throw new EndorserError('Message Attachment ID could not be found');
+        }
+
+        const schemaTxnResult = await deferServiceOnce(schemaTxnMsgId, this.app.service('events'));
+        if (!schemaTxnResult.id) {
+          throw new EndorserError('Event Emitter ID could not be found');
+        }
+
+        const schemaId = await this.app.service('aries-agent').create({
+          service: ServiceType.Schema,
+          action: SchemaServiceAction.Find,
+          token: params.profile.wallet.token,
+          data: {
+            schema_name: schema.schema_name,
+            schema_version: schema.schema_version,
+          }
+        } as AriesAgentData);
+
+        if (!schemaId) {
+          throw new SchemaError('Schema ID could not be found');
+        }
+
+        schema.schema_id = schemaId;
 
         // add the new schema to the profile
         schemaList.push(schema);
+
+        // Save data to controller db
+        await this.app.service('issuer/model').patch(params.profile._id, {
+          schemas: schemaList,
+        } as Partial<SchemaServiceModel>);
+
+        // create credential definition based on schema
+        const credDefAuthorTxn = await this.app.service('aries-agent').create({
+          service: ServiceType.CredDef,
+          action: CredDefServiceAction.Create,
+          token: params.profile.wallet.token,
+          data: {
+            schema_id: schemaId,
+            tag: params.profile.normalizedName,
+            support_revocation: false,
+            conn_id: params?.profile?.endorser?.connection_id || '',
+          } as AriesCredDefServiceRequest,
+        } as AriesAgentData);
+
+        if (!credDefAuthorTxn) {
+          throw new CredDefError('Invalid Credential Definition author transaction returned');
+        }
+
+        const credDefRequestTxn = await this.app.service('aries-agent').create({
+          service: ServiceType.Endorser,
+          action: EndorserServiceAction.Create_Request,
+          token: params.profile.wallet.token,
+          data: {
+            tran_id: credDefAuthorTxn?.txn?._id || '',
+            expires_time: new Date().toISOString()
+          }
+        } as AriesAgentData);
+
+        if (!credDefRequestTxn) {
+          throw new EndorserError(
+            'Invalid Credential Defintiion create request transaction returned'
+          );
+        }
+
+        const credDefTxnMsgId = credDefRequestTxn?.messages_attach?.[0]?.['@id'] || '';
+        if (!credDefTxnMsgId) {
+          throw new EndorserError('Message Attachment ID could not be found');
+        }
+
+        const credDefTxnResult = await deferServiceOnce(credDefTxnMsgId, this.app.service('events'));
+        if (!credDefTxnResult.id) {
+          throw new EndorserError('Event Emitter ID could not be found');
+        }
+
+        const credDefId = await this.app.service('aries-agent').create({
+          service: ServiceType.CredDef,
+          action: CredDefServiceAction.Find,
+          token: params.profile.wallet.token,
+          data: {
+            schema_name: schema.schema_name,
+            schema_version: schema.schema_version,
+          }
+        } as AriesAgentData);
+
+        if (!credDefId) {
+          throw new CredDefError('Credential Defnition ID could not be found');
+        }
+
+        schema.credential_definition_id = credDefId;
       }
 
       // Save data to controller db

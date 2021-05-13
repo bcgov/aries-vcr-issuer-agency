@@ -4,14 +4,17 @@ import { Application } from '../../declarations';
 import {
   ConnectionState,
   EndorserServiceAction,
+  EndorserState,
+  EndorserTopic,
   ServiceType,
   WebhookTopic
 } from '../../models/enums';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface Data {
-  state: ConnectionState;
+  state: ConnectionState | EndorserState;
   connection_id?: string;
+  _id?: string;
 }
 
 interface ServiceOptions {}
@@ -39,6 +42,17 @@ export class Webhooks implements Partial<ServiceMethods<Data>> {
             data: {
               connection_id: data.connection_id,
             },
+          } as AriesAgentData);
+        }
+        return { result: 'Success' };
+      case EndorserTopic.EndorseTransaction:
+        if (state === EndorserState.RequestReceived) {
+          await this.app.service('aries-agent').create({
+            service: ServiceType.Endorser,
+            action: EndorserServiceAction.Endorse_Transaction,
+            data: {
+              transaction_id: data._id
+            }
           } as AriesAgentData);
         }
         return { result: 'Success' };
