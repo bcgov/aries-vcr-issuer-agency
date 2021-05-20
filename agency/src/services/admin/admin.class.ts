@@ -1,6 +1,9 @@
 import { Conflict } from '@feathersjs/errors';
 import { NullableId, Paginated, Params } from '@feathersjs/feathers';
-import { ServiceSwaggerAddon, ServiceSwaggerOptions, } from 'feathers-swagger/types';
+import {
+  ServiceSwaggerAddon,
+  ServiceSwaggerOptions,
+} from 'feathers-swagger/types';
 import { v4 as uuidv4 } from 'uuid';
 import { Application } from '../../declarations';
 import logger from '../../logger';
@@ -8,12 +11,16 @@ import { ConnectionServiceResponse } from '../../models/connection';
 import {
   ConnectionServiceAction,
   EndorserServiceAction,
+  LedgerServiceAction,
   MultitenancyServiceAction,
   ServiceType,
   WalletServiceAction,
 } from '../../models/enums';
 import { IssuerProfileModel } from '../../models/issuer-model';
-import { MultitenancyServiceRequest, MultitenancyServiceResponse } from '../../models/multitenancy';
+import {
+  MultitenancyServiceRequest,
+  MultitenancyServiceResponse,
+} from '../../models/multitenancy';
 import { WalletServiceResponse } from '../../models/wallet';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
@@ -133,6 +140,35 @@ export class Admin implements ServiceSwaggerAddon {
           connection_id: endorser_connection.connection_id,
           did: endorser_connection.their_public_did,
         },
+      } as AriesAgentData);
+
+      // Register DID on ledger
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Endorser,
+        action: EndorserServiceAction.Register_DID,
+        token: subWallet.token,
+        data: {
+          connection_id: endorser_connection.connection_id,
+          did: subWalletDid.result.did,
+          verkey: subWalletDid.result.verkey,
+          alias: data.name,
+        },
+      } as AriesAgentData);
+
+      // Set DID as public
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Wallet,
+        action: WalletServiceAction.Publish,
+        token: subWallet.token,
+        data: { did: subWalletDid.result.did },
+      } as AriesAgentData);
+
+      // Accept TAA
+      await this.app.service('aries-agent').create({
+        service: ServiceType.Endorser,
+        action: LedgerServiceAction.TAA_Accept,
+        token: subWallet.token,
+        data: {},
       } as AriesAgentData);
 
       logger.debug(`Created new profile with name ${data.name}`);
