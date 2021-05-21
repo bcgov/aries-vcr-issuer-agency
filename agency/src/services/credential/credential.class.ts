@@ -8,13 +8,12 @@ import {
   AriesCredPreview,
   AriesCredPreviewAttribute,
   AriesCredServiceRequest,
-  CredExResponse,
   CredServiceModel,
 } from '../../models/credential';
 import { CredServiceAction, ServiceType } from '../../models/enums';
 import { SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
-import { WebhookData } from '../../models/webhooks';
+import { deferServiceOnce } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface ServiceOptions {}
@@ -181,26 +180,10 @@ export class Credential extends CredentialBase {
     idx?: number
   ): Promise<void> {
     const credService = this.app.service('events');
-    return new Promise(resolve => {
-      const res: CredExResponse = { credExId, success: true, order: idx };
-      // Force resolve promise with error.
-      const timeoutId = setTimeout(() => {
-        res.success = false;
-        res.error = `Timeout received for Credential Exchange ID: ${credExId}`;
-        params.credentials.results.push(res);
-        resolve(res);
-      }, this.app.get('agent').credExTimeout);
-
-      // Cancel the timeout and resolve the promise with data.
-      credService.once(credExId, (data: WebhookData) => {
-        clearTimeout(timeoutId);
-        if (data.error_msg) {
-          res.success = false;
-          res.error = data.error_msg;
-        }
-        params.credentials.results.push(res);
-        resolve(res);
-      })
+    return deferServiceOnce(credExId, credService, {
+      order: idx,
+      timeout: this.app.get('agent').credExTimeout,
+      cb: (res) => params.credentials.results.push(res)
     }).then();
   }
 

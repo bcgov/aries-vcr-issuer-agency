@@ -53,7 +53,7 @@ export class Webhooks {
           if (txnMsgId) {
             this.app.service('events').emit(txnMsgId, data);
           } else {
-            return new EndorserError('Transaction ID not found.')
+            return new EndorserError('Transaction ID not found.');
           }
         }
         return { result: 'Success' };
