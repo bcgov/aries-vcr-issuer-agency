@@ -9,6 +9,7 @@ import {
   WebhookTopic,
   WebhookTopic_2_0
 } from '../../models/enums';
+import { CredExError, EndorserError } from '../../models/errors';
 import { WebhookData } from '../../models/webhooks';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
@@ -33,11 +34,10 @@ export class Webhooks {
           if (cred_ex_id) {
             this.app.service('events').emit(cred_ex_id, data);
           } else {
-            // TODO: Gracefully handle the error here
-            return { result: 'Error' };
+            return new CredExError('Credential Exchange ID not found.');
           }
         }
-        return { result: 'Success' };
+        return { result: 'Success', success: true };
       case WebhookTopic.EndorseTransaction:
         if (state === EndorserState.TransactionEndorsed) {
           await this.app.service('aries-agent').create({
@@ -53,8 +53,7 @@ export class Webhooks {
           if (txnMsgId) {
             this.app.service('events').emit(txnMsgId, data);
           } else {
-            // TODO: Gracefully handle the error here
-            return { result: 'Error' };
+            return new EndorserError('Transaction ID not found.')
           }
         }
         return { result: 'Success' };

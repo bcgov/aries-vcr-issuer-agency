@@ -98,7 +98,7 @@ export class Schema implements ServiceSwaggerAddon {
 
         const schemaTxnResult = await deferServiceOnce(schemaTxnMsgId, this.app.service('events'));
         if (!schemaTxnResult.id) {
-          throw new EndorserError('Event Emitter ID could not be found');
+          throw new EndorserError('Transaction ID could not be found');
         }
 
         const schemaId = await this.app.service('aries-agent').create({
@@ -165,7 +165,7 @@ export class Schema implements ServiceSwaggerAddon {
 
         const credDefTxnResult = await deferServiceOnce(credDefTxnMsgId, this.app.service('events'));
         if (!credDefTxnResult.id) {
-          throw new EndorserError('Event Emitter ID could not be found');
+          throw new EndorserError('Transaction ID could not be found');
         }
 
         const credDefId = await this.app.service('aries-agent').create({

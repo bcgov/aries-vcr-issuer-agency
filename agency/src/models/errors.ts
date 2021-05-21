@@ -10,6 +10,11 @@ export class AriesAgentError extends FeathersError {
   }
 }
 
+export class CredExError extends FeathersError {
+  constructor(message: string | Error, data?: unknown) {
+    super(message, 'cred-ex-error', 422, 'CredExError', data);
+  }
+}
 export class CredDefError extends FeathersError {
   constructor(message: string | Error, data?: unknown) {
     super(message, 'cred-def-error', 500, 'CredDefError', data);
