@@ -82,6 +82,7 @@ export enum CredState_2_0 {
   OfferSent = 'offer-sent',
   RequestReceived = 'request-received',
   CredentialIssued = 'credential-issued',
+  Done = 'done',
 }
 
 export enum EndorserState {
