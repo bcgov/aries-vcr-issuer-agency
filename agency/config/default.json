@@ -38,6 +38,9 @@
     },
     "alias": "ENDORSER_ALIAS"
   },
+  "issuer": {
+    "taa_method": "service_agreement"
+  },
   "logging": {
     "logLevel": "LOG_LEVEL"
   },
