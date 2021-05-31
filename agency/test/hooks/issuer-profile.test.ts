@@ -4,16 +4,10 @@ import memory from 'feathers-memory';
 import app from '../../src/app';
 import { DuplicatedProfileError } from '../../src/models/errors';
 import { GeneralError } from '@feathersjs/errors';
-
-const profile = {
-  '_id': 'abcdef',
-  'api-key': 'valid-api-key',
-  'name': 'Valid Test Issuer',
-  'normalizedName': 'Valid_Test_Issuer',
-};
+import profile from '../data/profile.json';
 
 describe('\'issuer-profile\' hooks', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     const options = {
       paginate: app.get('paginate')
     };

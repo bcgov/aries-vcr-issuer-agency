@@ -202,7 +202,7 @@ export class Schema implements ServiceSwaggerAddon {
         credential_definition_id: schema.credential_definition_id,
       };
     } catch (e) {
-      return e as Error;
+      throw e as Error;
     }
   }
 
