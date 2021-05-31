@@ -13,6 +13,7 @@ import {
 import { CredServiceAction, ServiceType } from '../../models/enums';
 import { SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
+import { deferServiceOnce } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface ServiceOptions {}
@@ -179,13 +180,11 @@ export class Credential extends CredentialBase {
     idx?: number
   ): Promise<void> {
     const credService = this.app.service('events');
-    return new Promise((resolve) =>
-      credService.once(credExId, () => {
-        const res = { credExId, order: idx, success: true };
-        params.credentials.results.push(res);
-        resolve(res);
-      })
-    ).then();
+    return deferServiceOnce(credExId, credService, {
+      order: idx,
+      timeout: this.app.get('agent').credExTimeout,
+      cb: (res) => params.credentials.results.push(res)
+    }).then();
   }
 
   formatCredServiceRequest(

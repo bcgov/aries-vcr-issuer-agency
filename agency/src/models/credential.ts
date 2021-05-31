@@ -28,3 +28,10 @@ export interface AriesCredServiceRequest {
   auto_issue?: boolean;
   auto_offer?: boolean;
 }
+
+export interface CredExResponse {
+  credExId: string;
+  success: boolean;
+  order?: number;
+  error?: string;
+}

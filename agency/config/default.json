@@ -20,7 +20,9 @@
     "adminUrl": "AGENCY_ADMIN_URL",
     "headers": {
       "x-api-key": "AGENCY_ADMIN_API_KEY"
-    }
+    },
+    "credExTimeout": "CRED_EX_TIMEOUT",
+    "transactionTimeout": "TRANSACTION_TIMEOUT"
   },
   "aries-vcr": {
     "adminUrl": "REGISTRY_ADMIN_URL",

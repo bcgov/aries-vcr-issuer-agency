@@ -40,6 +40,9 @@ export class Schema implements ServiceSwaggerAddon {
         );
       }
 
+      const agent = this.app.get('agent');
+      const eventsService = this.app.service('events');
+
       let schemaList = (params.profile.schemas || []) as SchemaServiceModel[];
       let schema = data as SchemaServiceModel;
       let isNewSchema = true;
@@ -96,9 +99,11 @@ export class Schema implements ServiceSwaggerAddon {
           throw new EndorserError('Message Attachment ID could not be found');
         }
 
-        const schemaTxnResult = await deferServiceOnce(schemaTxnMsgId, this.app.service('events'));
+        const schemaTxnResult = await deferServiceOnce(schemaTxnMsgId, eventsService, {
+          timeout: agent.transactionTimeout
+        });
         if (!schemaTxnResult.id) {
-          throw new EndorserError('Event Emitter ID could not be found');
+          throw new EndorserError('Transaction ID could not be found');
         }
 
         const schemaId = await this.app.service('aries-agent').create({
@@ -163,9 +168,11 @@ export class Schema implements ServiceSwaggerAddon {
           throw new EndorserError('Message Attachment ID could not be found');
         }
 
-        const credDefTxnResult = await deferServiceOnce(credDefTxnMsgId, this.app.service('events'));
+        const credDefTxnResult = await deferServiceOnce(credDefTxnMsgId, eventsService, {
+          timeout: agent.transactionTimeout
+        });
         if (!credDefTxnResult.id) {
-          throw new EndorserError('Event Emitter ID could not be found');
+          throw new EndorserError('Transaction ID could not be found');
         }
 
         const credDefId = await this.app.service('aries-agent').create({
