@@ -148,8 +148,8 @@ services:
       - ENDORSER_ADMIN_API_KEY=${ENDORSER_ADMIN_API_KEY}
       - ENDORSER_ALIAS=${ENDORSER_ALIAS}
       - LOG_LEVEL=${LOG_LEVEL}
-      - CRED_EX_TIMEOUT=${CRED_EX_TIMEOUT-120000}
-      - TRANSACTION_TIMEOUT=${TRANSACTION_TIMEOUT-120000}
+      - CRED_EX_TIMEOUT=${CRED_EX_TIMEOUT}
+      - TRANSACTION_TIMEOUT=${TRANSACTION_TIMEOUT}
     volumes:
       - ../agency:/usr/src/controller
       - agency-controller-data:/usr/src/controller/node_modules
