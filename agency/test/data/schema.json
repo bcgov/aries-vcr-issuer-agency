@@ -1,0 +1,121 @@
+{
+    "schema_name": "table-reservation",
+    "schema_version": "0.1",
+    "attributes": [
+        "reservation_number",
+        "guest_name",
+        "reservation_date",
+        "reservation_date_cancelled",
+        "another_date",
+        "num_guests"
+    ],
+    "metadata": {
+        "topic": [
+            {
+                "name": "reservation_number",
+                "topic_type": "table-reservation"
+            }
+        ],
+        "cardinality": [
+            "reservation_number"
+        ],
+        "date_fields": {
+            "effective_date": "reservation_date",
+            "revoked_date": "reservation_date_cancelled",
+            "other_date_fields": [
+                "another_date"
+            ]
+        },
+        "address_fields": [],
+        "search_fields": [
+            "reservation_number",
+            "guest_name"
+        ],
+        "labels": {
+            "schema": {
+                "en": "Pizza Joint Reservation",
+                "it": "Prenotazione Pizzeria"
+            },
+            "attributes": [
+                {
+                    "name": "reservation_number",
+                    "translations": {
+                        "en": {
+                            "label": "Reservation Number",
+                            "description": "The reservation identifier"
+                        },
+                        "it": {
+                            "label": "Numero Prenotazione",
+                            "description": "Il numero di prenotazione"
+                        }
+                    }
+                },
+                {
+                    "name": "guest_name",
+                    "translations": {
+                        "en": {
+                            "label": "Guest Name",
+                            "description": "The name used for the reservation"
+                        },
+                        "it": {
+                            "label": "Nome Prenotazione",
+                            "description": "Il nome utilizzato per prenotare"
+                        }
+                    }
+                },
+                {
+                    "name": "reservation_date",
+                    "translations": {
+                        "en": {
+                            "label": "Reservation Date",
+                            "description": "The reservation date"
+                        },
+                        "it": {
+                            "label": "Data Prenotazione",
+                            "description": "Data Prenotazione"
+                        }
+                    }
+                },
+                {
+                    "name": "reservation_date_cancelled",
+                    "translations": {
+                        "en": {
+                            "label": "Cancellation Date ",
+                            "description": "The cancellation date (if any)"
+                        },
+                        "it": {
+                            "label": "Data Cancellazione",
+                            "description": "La data della cancellazione - se presente"
+                        }
+                    }
+                },
+                {
+                    "name": "another_date",
+                    "translations": {
+                        "en": {
+                            "label": "Another Date ",
+                            "description": "Another (if any)"
+                        },
+                        "it": {
+                            "label": "Altra Data",
+                            "description": "Un'altra data - se presente"
+                        }
+                    }
+                },
+                {
+                    "name": "num_guests",
+                    "translations": {
+                        "en": {
+                            "label": "Number of Guests",
+                            "description": "The number of guests"
+                        },
+                        "it": {
+                            "label": "Numero Ospiti",
+                            "description": "Il numero di ospiti per questa prenotazione"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
