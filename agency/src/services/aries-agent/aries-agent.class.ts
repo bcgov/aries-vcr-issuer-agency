@@ -89,7 +89,11 @@ export class AriesAgent {
         } else if (data.action === CredDefServiceAction.Create) {
           return this.authorCredentialDefinition(data.data, data.token);
         } else if (data.action === CredDefServiceAction.Find) {
-          return this.findCredentialDefinition(data.token, data.data.schema_name, data.data.schema_version);
+          return this.findCredentialDefinition(
+            data.token,
+            data.data.schema_name,
+            data.data.schema_version
+          );
         }
       case ServiceType.Cred:
         if (data.action === CredServiceAction.Send) {
@@ -104,17 +108,20 @@ export class AriesAgent {
       case ServiceType.Endorser:
         if (data.action === EndorserServiceAction.Create_Request) {
           return this.createEndorserRequest(data.data, data.token);
+        } else if (data.action === EndorserServiceAction.Set_Metadata) {
+          return this.setEndorserMetadata(data.data, data.token);
+        } else if (data.action === EndorserServiceAction.Write_Transaction) {
+          return this.writeTransaction(data.data.transaction_id, data.token);
+        } else if (data.action === EndorserServiceAction.Register_DID) {
+          return this.registerDID(
+            data.data.did,
+            data.data.verkey,
+            data.data.alias
+          );
         }
       case ServiceType.Ledger:
-        if (data.action === LedgerServiceAction.TAA_Fetch) {
-          return this.fetchTAA(data.token);
-        } else if (data.action === LedgerServiceAction.TAA_Accept) {
-          return this.acceptTAA(
-            data.token,
-            data.data.mechanism,
-            data.data.text,
-            data.data.version
-          );
+        if (data.action === LedgerServiceAction.TAA_Accept) {
+          return this.acceptTAA(data.token);
         }
       case ServiceType.Multitenancy:
         if (data.action === MultitenancyServiceAction.Create) {
@@ -128,7 +135,11 @@ export class AriesAgent {
         } else if (data.action === SchemaServiceAction.Create) {
           return this.authorSchema(data.data, data.token);
         } else if (data.action === SchemaServiceAction.Find) {
-          return this.findSchema(data.token, data.data.schema_name, data.data.schema_version);
+          return this.findSchema(
+            data.token,
+            data.data.schema_name,
+            data.data.schema_version
+          );
         }
       case ServiceType.Wallet:
         if (data.action === WalletServiceAction.Create) {
@@ -137,12 +148,6 @@ export class AriesAgent {
           return this.getPublicDID(data.token);
         } else if (data.action === WalletServiceAction.Publish) {
           return this.publishDID(data.data.did, data.token);
-        }
-      case ServiceType.Endorser:
-        if (data.action === EndorserServiceAction.Set_Metadata) {
-          return this.setEndorserMetadata(data.data, data.token);
-        } else if (data.action === EndorserServiceAction.Write_Transaction) {
-          return this.writeTransaction(data.data.transaction_id, data.token);
         }
       default:
         return new NotImplemented(
@@ -342,10 +347,42 @@ export class AriesAgent {
   private async fetchTAA(token: string | undefined): Promise<any> {
     try {
       logger.debug('Fetching TAA');
+      if (this.app.get('taa')) {
+        // Return cached version
+        return this.app.get('taa');
+      }
       const url = `${this.acaPyUtils.getAdminUrl()}/ledger/taa`;
       const response = await Axios.get(
         url,
         this.acaPyUtils.getRequestConfig(token)
+      );
+      this.app.set('taa', response.data.result);
+      return response.data.result;
+    } catch (e) {
+      const error = e as AxiosError;
+      throw new AriesAgentError(
+        error.response?.statusText || error.message,
+        error.response?.status,
+        error.response?.data
+      );
+    }
+  }
+
+  private async registerDID(
+    did: string,
+    verkey: string,
+    alias: string
+  ): Promise<any> {
+    try {
+      logger.debug(`Registering did ${did} as AUTHOR (no role) on ledger`);
+      const url = `${this.acaPyUtils.getEndorserAdminUrl()}/ledger/register-nym`;
+      const response = await Axios.post(
+        url,
+        {},
+        {
+          ...this.acaPyUtils.getEndorserRequestConfig(),
+          ...{ params: { did: did, verkey: verkey, alias: alias } },
+        }
       );
       return response.data.result;
     } catch (e) {
@@ -358,21 +395,22 @@ export class AriesAgent {
     }
   }
 
-  private async acceptTAA(
-    token: string | undefined,
-    mechanism: string,
-    text: string,
-    version: string
-  ): Promise<any> {
+  private async acceptTAA(token: string | undefined): Promise<any> {
     try {
+      const taa = await this.fetchTAA(token);
+      if (!taa.taa_required) {
+        // Just return success without doing anything as it is not required
+        return {};
+      }
+
       logger.debug('Accepting TAA');
       const url = `${this.acaPyUtils.getAdminUrl()}/ledger/taa/accept`;
       const response = await Axios.post(
         url,
         {
-          mechanism: mechanism,
-          text: text,
-          version: version,
+          mechanism: this.app.get('issuer').taa_method,
+          text: taa.taa_record.text,
+          version: taa.taa_record.version,
         },
         this.acaPyUtils.getRequestConfig(token)
       );
@@ -436,20 +474,19 @@ export class AriesAgent {
     schema_version: string | undefined = ''
   ): Promise<AriesSchema> {
     try {
-      logger.debug(`Fetching details for schema with name: ${schema_name} and version: ${schema_version}`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/schemas/created`;
-      const response = await Axios.get(
-        url,
-        {
-          ...this.acaPyUtils.getRequestConfig(token),
-          ...{
-            params: {
-              schema_name,
-              schema_version
-            }
-          }
-        }
+      logger.debug(
+        `Fetching details for schema with name: ${schema_name} and version: ${schema_version}`
       );
+      const url = `${this.acaPyUtils.getAdminUrl()}/schemas/created`;
+      const response = await Axios.get(url, {
+        ...this.acaPyUtils.getRequestConfig(token),
+        ...{
+          params: {
+            schema_name,
+            schema_version,
+          },
+        },
+      });
       return response.data.schema_ids[0];
     } catch (e) {
       const error = e as AxiosError;
@@ -489,20 +526,19 @@ export class AriesAgent {
     schema_version: string | undefined = ''
   ): Promise<AriesSchema> {
     try {
-      logger.debug(`Fetching details for credential definition with name: ${schema_name} and version: ${schema_version}`);
-      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
-      const response = await Axios.get(
-        url,
-        {
-          ...this.acaPyUtils.getRequestConfig(token),
-          ...{
-            params: {
-              schema_name,
-              schema_version
-            }
-          }
-        }
+      logger.debug(
+        `Fetching details for credential definition with name: ${schema_name} and version: ${schema_version}`
       );
+      const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions/created`;
+      const response = await Axios.get(url, {
+        ...this.acaPyUtils.getRequestConfig(token),
+        ...{
+          params: {
+            schema_name,
+            schema_version,
+          },
+        },
+      });
       return response.data.credential_definition_ids[0];
     } catch (e) {
       const error = e as AxiosError;
@@ -533,8 +569,8 @@ export class AriesAgent {
           ...{
             params: {
               conn_id: schema.conn_id,
-              create_transaction_for_endorser: true
-            }
+              create_transaction_for_endorser: true,
+            },
           },
         }
       );
@@ -558,18 +594,15 @@ export class AriesAgent {
         `Publishing credential definition to ledger: ${JSON.stringify(credDef)}`
       );
       const url = `${this.acaPyUtils.getAdminUrl()}/credential-definitions`;
-      const response = await Axios.post(
-        url,
-        credDef,
-        {
-          ...this.acaPyUtils.getRequestConfig(token),
-          ...{
-            params: {
-              conn_id: credDef.conn_id,
-              create_transaction_for_endorser: true
-            }
-          },        }
-      );
+      const response = await Axios.post(url, credDef, {
+        ...this.acaPyUtils.getRequestConfig(token),
+        ...{
+          params: {
+            conn_id: credDef.conn_id,
+            create_transaction_for_endorser: true,
+          },
+        },
+      });
       return response.data as CredDefServiceResponse;
     } catch (e) {
       const error = e as AxiosError;
@@ -742,17 +775,15 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<any> {
     try {
-      logger.debug(
-        `Creating new endorser request: ${JSON.stringify(request)}`
-      );
+      logger.debug(`Creating new endorser request: ${JSON.stringify(request)}`);
       const url = `${this.acaPyUtils.getAdminUrl()}/transactions/create-request`;
       const response = await Axios.post(
         url,
         { expires_time: request.expires_time },
         {
           ...this.acaPyUtils.getRequestConfig(token),
-          ...{ params: { tran_id: request.tran_id } }
-        },
+          ...{ params: { tran_id: request.tran_id } },
+        }
       );
       return response.data;
     } catch (e) {
@@ -770,9 +801,7 @@ export class AriesAgent {
     token: string | undefined
   ): Promise<boolean> {
     try {
-      logger.debug(
-        `Write transaction with id ${transaction_id} to ledger`
-      );
+      logger.debug(`Write transaction with id ${transaction_id} to ledger`);
 
       const url = `${this.acaPyUtils.getAdminUrl()}/transactions/${transaction_id}/write`;
 
