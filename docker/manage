@@ -134,6 +134,8 @@ configureEnvironment () {
   export REGISTRY_ADMIN_URL=${REGISTRY_ADMIN_URL:-http://vcr-agent:8024}
   export REGISTRY_ADMIN_API_KEY=${REGISTRY_ADMIN_API_KEY}
   export REGISTRY_ALIAS=${REGISTRY_ALIAS:-"aries-vcr"}
+  export CRED_EX_TIMEOUT=${CRED_EX_TIMEOUT:-120000}
+  export TRANSACTION_TIMEOUT=${TRANSACTION_TIMEOUT:-120000}
 
   # db
   export DB_SERVICE="db"
