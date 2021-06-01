@@ -1,10 +1,11 @@
 {
     "_id": "abcdef",
+    "did": "valid-did",
     "api-key": "valid-api-key",
     "name": "Valid Test Issuer",
     "normalizedName": "Valid_Test_Issuer",
     "vcr": {
-        "connection_id": "valid-test-issuer-connection-id"
+        "connection_id": "valid-connection-id"
     },
     "wallet": {
         "token": "valid-test-issuer-token"

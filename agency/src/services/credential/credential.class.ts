@@ -16,7 +16,7 @@ import { IssuerServiceParams } from '../../models/service-params';
 import { deferServiceOnce } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
-interface ServiceOptions {}
+interface ServiceOptions { }
 
 abstract class CredentialBase implements ServiceSwaggerAddon {
   protected abstract formatCredServiceRequest(
@@ -25,26 +25,14 @@ abstract class CredentialBase implements ServiceSwaggerAddon {
     params: IssuerServiceParams
   ): AriesCredServiceRequest;
 
-  protected abstract findSchema(
-    schemas: SchemaServiceModel[],
-    credSchemaName: string,
-    redSchemaVersion: string
-  ): SchemaServiceModel | undefined;
-
-  protected abstract dispatch(
-    action: CredServiceAction,
-    data: AriesCredServiceRequest,
+  protected abstract findExistingSchema(
+    data: CredServiceModel,
     params: IssuerServiceParams
-  ): Promise<any | Error>;
-
-  protected abstract sendCredServiceRequest(
-    offer: AriesCredServiceRequest,
-    params: IssuerServiceParams
-  ): Promise<any | Error>;
-
-  protected abstract receiveCredServiceResponse(
-    params: IssuerServiceParams
-  ): Promise<any[] | Error>;
+  ): {
+    credSchemaName: string;
+    credSchemaVersion: string;
+    existingSchema: SchemaServiceModel | undefined;
+  };
 
   protected abstract create(
     data: CredServiceModel,
@@ -133,6 +121,19 @@ export class Credential extends CredentialBase {
     this.app = app;
   }
 
+  private findSchema(
+    schemas: SchemaServiceModel[],
+    credSchemaName: string,
+    credSchemaVersion: string
+  ): SchemaServiceModel | undefined {
+    return schemas.find((schema: SchemaServiceModel) => {
+      return (
+        schema.schema_name === credSchemaName &&
+        schema.schema_version === credSchemaVersion
+      );
+    });
+  }
+
   private formatCredAttributes(
     cred: CredServiceModel
   ): AriesCredPreviewAttribute[] {
@@ -187,6 +188,33 @@ export class Credential extends CredentialBase {
     }).then();
   }
 
+  private async dispatch(
+    action: CredServiceAction,
+    data: AriesCredServiceRequest,
+    params: IssuerServiceParams
+  ): Promise<any | Error> {
+    return await this.app.service('aries-agent').create({
+      service: ServiceType.Cred,
+      action,
+      token: params?.profile?.wallet?.token,
+      data,
+    } as AriesAgentData);
+  }
+
+  private async sendCredServiceRequest(
+    offer: AriesCredServiceRequest,
+    params: IssuerServiceParams
+  ): Promise<any | Error> {
+    return await this.dispatch(CredServiceAction.Create, offer, params);
+  }
+
+  private async receiveCredServiceResponse(
+    params: IssuerServiceParams
+  ): Promise<any[]> {
+    await Promise.all(params.credentials.pending);
+    return params.credentials.results;
+  }
+
   formatCredServiceRequest(
     existingSchema: SchemaServiceModel,
     data: CredServiceModel,
@@ -200,19 +228,6 @@ export class Credential extends CredentialBase {
       params,
       existingSchema
     );
-  }
-
-  findSchema(
-    schemas: SchemaServiceModel[],
-    credSchemaName: string,
-    credSchemaVersion: string
-  ): SchemaServiceModel | undefined {
-    return schemas.find((schema: SchemaServiceModel) => {
-      return (
-        schema.schema_name === credSchemaName &&
-        schema.schema_version === credSchemaVersion
-      );
-    });
   }
 
   findExistingSchema(
@@ -237,33 +252,6 @@ export class Credential extends CredentialBase {
         credSchemaVersion
       ),
     };
-  }
-
-  async dispatch(
-    action: CredServiceAction,
-    data: AriesCredServiceRequest,
-    params: IssuerServiceParams
-  ): Promise<any | Error> {
-    return await this.app.service('aries-agent').create({
-      service: ServiceType.Cred,
-      action,
-      token: params?.profile?.wallet?.token,
-      data,
-    } as AriesAgentData);
-  }
-
-  async sendCredServiceRequest(
-    offer: AriesCredServiceRequest,
-    params: IssuerServiceParams
-  ): Promise<any | Error> {
-    return await this.dispatch(CredServiceAction.Create, offer, params);
-  }
-
-  async receiveCredServiceResponse(
-    params: IssuerServiceParams
-  ): Promise<any[]> {
-    await Promise.all(params.credentials.pending);
-    return params.credentials.results;
   }
 
   async createOne(
@@ -309,7 +297,7 @@ export class Credential extends CredentialBase {
   }
 
   async create(
-    data: CredServiceModel,
+    data: CredServiceModel | CredServiceModel[],
     params: IssuerServiceParams
   ): Promise<any | Error> {
     if (Array.isArray(data)) {

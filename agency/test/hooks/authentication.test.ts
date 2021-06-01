@@ -1,7 +1,7 @@
+import app from '../../src/app';
 import { Forbidden } from '@feathersjs/errors';
 import { HookContext } from '@feathersjs/feathers';
 import memory from 'feathers-memory';
-import app from '../../src/app';
 import { authenticateIssuer } from '../../src/utils/hooks/authentication';
 
 describe('\'authentication\' hooks', () => {

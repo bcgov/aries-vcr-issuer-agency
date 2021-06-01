@@ -1,6 +1,8 @@
 {
     "schema_name": "table-reservation",
     "schema_version": "0.1",
+    "schema_id": "table-reservation:0.1",
+    "credential_definition_id": "valid-did:table-reservation:0.1",
     "attributes": [
         "reservation_number",
         "guest_name",

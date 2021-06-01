@@ -1,9 +1,10 @@
 import app from '../../src/app';
-import memory from 'feathers-memory';
 import { HookContext } from '@feathersjs/feathers';
+import memory from 'feathers-memory';
 import { IssuerServiceParams } from '../../src/models/service-params';
 import { SchemaServiceModel } from '../../src/models/schema';
 import { CredDefError, EndorserError, SchemaError } from '../../src/models/errors';
+
 import profile from '../data/profile.json';
 import schema from '../data/schema.json';
 
@@ -14,20 +15,20 @@ const setupSuccessfulAgent = () => {
   const ariesAgentService = app.service('aries-agent');
   const ariesAgentCreate = jest.fn();
   ariesAgentCreate
-    .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-    .mockReturnValueOnce(Promise.resolve({
+    .mockResolvedValueOnce('schema-author-transaction-id')
+    .mockResolvedValueOnce({
       messages_attach: [{
         '@id': 'schema-message-attachment-id'
       }]
-    }))
-    .mockReturnValueOnce(Promise.resolve('schema-id'))
-    .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
-    .mockReturnValueOnce(Promise.resolve({
+    })
+    .mockResolvedValueOnce('schema-id')
+    .mockResolvedValueOnce('credential-definition-author-transaction-id')
+    .mockResolvedValueOnce({
       messages_attach: [{
         '@id': 'credential-definition-message-attachment-id'
       }]
-    }))
-    .mockReturnValueOnce(Promise.resolve('credential-definition-id'));
+    })
+    .mockResolvedValueOnce('credential-definition-id');
   ariesAgentService.create = ariesAgentCreate;
 };
 
@@ -37,6 +38,8 @@ const context = {
   },
   app
 } as unknown as HookContext;
+
+const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
 
 describe('\'schema\' service', () => {
   beforeEach(async () => {
@@ -59,7 +62,6 @@ describe('\'schema\' service', () => {
 
   it('should return a list of schemas', async () => {
     const schemaService = app.service('issuer/schema');
-    const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
     expect(await schemaService.find(params)).toEqual([]);
   });
 
@@ -69,10 +71,9 @@ describe('\'schema\' service', () => {
       const schemaService = app.service('issuer/schema');
 
       const ariesAgentCreate = jest.fn();
-      ariesAgentCreate.mockReturnValue(Promise.resolve(undefined));
+      ariesAgentCreate.mockReturnValue(undefined);
       ariesAgentService.create = ariesAgentCreate;
 
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
         .rejects.toThrowError(SchemaError);
 
@@ -84,11 +85,10 @@ describe('\'schema\' service', () => {
 
       const ariesAgentCreate = jest.fn();
       ariesAgentCreate
-        .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-        .mockReturnValueOnce(Promise.resolve(undefined));
+        .mockResolvedValueOnce('schema-author-transaction-id')
+        .mockResolvedValueOnce(undefined);
       ariesAgentService.create = ariesAgentCreate;
 
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
         .rejects.toThrowError(EndorserError);
     });
@@ -99,11 +99,10 @@ describe('\'schema\' service', () => {
 
       const ariesAgentCreate = jest.fn();
       ariesAgentCreate
-        .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-        .mockReturnValueOnce(Promise.resolve({}));
+        .mockResolvedValueOnce('schema-author-transaction-id')
+        .mockResolvedValueOnce({});
       ariesAgentService.create = ariesAgentCreate;
 
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
         .rejects.toThrowError(EndorserError);
     });
@@ -114,16 +113,15 @@ describe('\'schema\' service', () => {
 
       const ariesAgentCreate = jest.fn();
       ariesAgentCreate
-        .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-        .mockReturnValueOnce(Promise.resolve({
+        .mockResolvedValueOnce('schema-author-transaction-id')
+        .mockResolvedValueOnce({
           messages_attach: [{
             '@id': 'schema-message-attachment-id'
           }]
-        }))
-        .mockReturnValueOnce(Promise.resolve(undefined));
+        })
+        .mockResolvedValueOnce(undefined);
       ariesAgentService.create = ariesAgentCreate;
 
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
         .rejects.toThrowError(SchemaError);
     });
@@ -135,17 +133,16 @@ describe('\'schema\' service', () => {
 
         const ariesAgentCreate = jest.fn();
         ariesAgentCreate
-          .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({
+          .mockResolvedValueOnce('schema-author-transaction-id')
+          .mockResolvedValueOnce({
             messages_attach: [{
               '@id': 'schema-message-attachment-id'
             }]
-          }))
-          .mockReturnValueOnce(Promise.resolve('schema-id'))
-          .mockReturnValueOnce(Promise.resolve(undefined));
+          })
+          .mockResolvedValueOnce('schema-id')
+          .mockResolvedValueOnce(undefined);
         ariesAgentService.create = ariesAgentCreate;
 
-        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(CredDefError);
       });
@@ -157,18 +154,17 @@ describe('\'schema\' service', () => {
 
         const ariesAgentCreate = jest.fn();
         ariesAgentCreate
-          .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({
+          .mockResolvedValueOnce('schema-author-transaction-id')
+          .mockResolvedValueOnce({
             messages_attach: [{
               '@id': 'schema-message-attachment-id'
             }]
-          }))
-          .mockReturnValueOnce(Promise.resolve('schema-id'))
-          .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve(undefined));
+          })
+          .mockResolvedValueOnce('schema-id')
+          .mockResolvedValueOnce('credential-definition-author-transaction-id')
+          .mockResolvedValueOnce(undefined);
         ariesAgentService.create = ariesAgentCreate;
 
-        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(EndorserError);
       });
@@ -180,18 +176,17 @@ describe('\'schema\' service', () => {
 
         const ariesAgentCreate = jest.fn();
         ariesAgentCreate
-          .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({
+          .mockResolvedValueOnce('schema-author-transaction-id')
+          .mockResolvedValueOnce({
             messages_attach: [{
               '@id': 'schema-message-attachment-id'
             }]
-          }))
-          .mockReturnValueOnce(Promise.resolve('schema-id'))
-          .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({}));
+          })
+          .mockResolvedValueOnce('schema-id')
+          .mockResolvedValueOnce('credential-definition-author-transaction-id')
+          .mockResolvedValueOnce({});
         ariesAgentService.create = ariesAgentCreate;
 
-        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(EndorserError);
       });
@@ -203,23 +198,22 @@ describe('\'schema\' service', () => {
 
         const ariesAgentCreate = jest.fn();
         ariesAgentCreate
-          .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({
+          .mockResolvedValueOnce('schema-author-transaction-id')
+          .mockResolvedValueOnce({
             messages_attach: [{
               '@id': 'schema-message-attachment-id'
             }]
-          }))
-          .mockReturnValueOnce(Promise.resolve('schema-id'))
-          .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
-          .mockReturnValueOnce(Promise.resolve({
+          })
+          .mockResolvedValueOnce('schema-id')
+          .mockResolvedValueOnce('credential-definition-author-transaction-id')
+          .mockResolvedValueOnce({
             messages_attach: [{
               '@id': 'credential-definition-message-attachment-id'
             }]
-          }))
-          .mockReturnValueOnce(Promise.resolve(undefined));
+          })
+          .mockResolvedValueOnce(undefined);
         ariesAgentService.create = ariesAgentCreate;
 
-        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(CredDefError);
       });
@@ -233,7 +227,6 @@ describe('\'schema\' service', () => {
         .mockReset()
         .mockResolvedValueOnce({ id: 'deferred-id', success: false });
 
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
         .rejects.toThrowError(EndorserError);
     });
@@ -249,7 +242,6 @@ describe('\'schema\' service', () => {
           .mockResolvedValueOnce({ id: 'deferred-id', success: true })
           .mockResolvedValueOnce({ id: 'deferred-id', success: false });
 
-        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(EndorserError);
       });
@@ -261,13 +253,11 @@ describe('\'schema\' service', () => {
     beforeEach(() => setupSuccessfulAgent());
 
     it('should store schema in issuer profile', async () => {
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       await schemaService.create(schema as unknown as SchemaServiceModel, params);
       expect(await schemaService.find({ query: { '_id': profile._id }, ...params })).toHaveLength(1);
     });
 
     it('should return a valid result', async () => {
-      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
       const result = await schemaService.create(schema as unknown as SchemaServiceModel, params);
       expect(result).toEqual({
         schema_id: 'schema-id',
