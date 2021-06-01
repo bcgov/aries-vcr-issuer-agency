@@ -7,6 +7,30 @@ import { CredDefError, EndorserError, SchemaError } from '../../src/models/error
 import profile from '../data/profile.json';
 import schema from '../data/schema.json';
 
+import * as sleep from '../../src/utils/sleep';
+jest.mock('../../src/utils/sleep');
+
+const setupSuccessfulAgent = () => {
+  const ariesAgentService = app.service('aries-agent');
+  const ariesAgentCreate = jest.fn();
+  ariesAgentCreate
+    .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
+    .mockReturnValueOnce(Promise.resolve({
+      messages_attach: [{
+        '@id': 'schema-message-attachment-id'
+      }]
+    }))
+    .mockReturnValueOnce(Promise.resolve('schema-id'))
+    .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
+    .mockReturnValueOnce(Promise.resolve({
+      messages_attach: [{
+        '@id': 'credential-definition-message-attachment-id'
+      }]
+    }))
+    .mockReturnValueOnce(Promise.resolve('credential-definition-id'));
+  ariesAgentService.create = ariesAgentCreate;
+};
+
 const context = {
   params: {
     headers: { 'issuer-api-key': 'valid-api-key' }
@@ -16,6 +40,10 @@ const context = {
 
 describe('\'schema\' service', () => {
   beforeEach(async () => {
+    jest.spyOn(sleep, 'deferServiceOnce')
+      .mockReset()
+      .mockResolvedValue({ id: 'deferred-id', success: true });
+
     const options = {
       id: '_id',
       paginate: app.get('paginate')
@@ -195,31 +223,42 @@ describe('\'schema\' service', () => {
         await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
           .rejects.toThrowError(CredDefError);
       });
+
+    it('should throw an error if differed schema endrosement was unsuccessful', async () => {
+      const schemaService = app.service('issuer/schema');
+
+      setupSuccessfulAgent();
+
+      jest.spyOn(sleep, 'deferServiceOnce')
+        .mockReset()
+        .mockResolvedValueOnce({ id: 'deferred-id', success: false });
+
+      const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
+      await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
+        .rejects.toThrowError(EndorserError);
+    });
+
+    it('should throw an error if differed credential definition endrosement was unsuccessful',
+      async () => {
+        const schemaService = app.service('issuer/schema');
+
+        setupSuccessfulAgent();
+
+        jest.spyOn(sleep, 'deferServiceOnce')
+          .mockReset()
+          .mockResolvedValueOnce({ id: 'deferred-id', success: true })
+          .mockResolvedValueOnce({ id: 'deferred-id', success: false });
+
+        const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;
+        await expect(schemaService.create(schema as unknown as SchemaServiceModel, params))
+          .rejects.toThrowError(EndorserError);
+      });
   });
 
   describe('schema successfully written to ledger', () => {
-    const ariesAgentService = app.service('aries-agent');
     const schemaService = app.service('issuer/schema');
 
-    beforeEach(() => {
-      const ariesAgentCreate = jest.fn();
-      ariesAgentCreate
-        .mockReturnValueOnce(Promise.resolve('schema-author-transaction-id'))
-        .mockReturnValueOnce(Promise.resolve({
-          messages_attach: [{
-            '@id': 'schema-message-attachment-id'
-          }]
-        }))
-        .mockReturnValueOnce(Promise.resolve('schema-id'))
-        .mockReturnValueOnce(Promise.resolve('credential-definition-author-transaction-id'))
-        .mockReturnValueOnce(Promise.resolve({
-          messages_attach: [{
-            '@id': 'credential-definition-message-attachment-id'
-          }]
-        }))
-        .mockReturnValueOnce(Promise.resolve('credential-definition-id'));
-      ariesAgentService.create = ariesAgentCreate;
-    });
+    beforeEach(() => setupSuccessfulAgent());
 
     it('should store schema in issuer profile', async () => {
       const params = { profile, headers: context.params.headers } as unknown as IssuerServiceParams;

@@ -29,6 +29,12 @@ describe('\'schema\' hooks', () => {
       await expect(validateSchemaModel(context)).rejects.toThrowError(BadRequest);
     });
 
+    it('throws a bad request if schema metadata is not specified', async () => {
+      const invalidSchema = { ...schema, metadata: undefined };
+      const context = { data: invalidSchema } as unknown as HookContext;
+      await expect(validateSchemaModel(context)).rejects.toThrowError(BadRequest);
+    });
+
     it('throws a bad request if schema metadata topic list is empty', async () => {
       const invalidSchema = { ...schema, metadata: { ...schema.metadata, topic: [] } };
       const context = { data: invalidSchema } as unknown as HookContext;

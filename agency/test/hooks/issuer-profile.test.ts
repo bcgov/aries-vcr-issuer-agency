@@ -27,6 +27,13 @@ describe('\'issuer-profile\' hooks', () => {
   });
 
   it('should throw an error if a duplicate profile exists ', async () => {
+    /**
+     * This is testing the hook to ensure it throws an error when more than one of the same name
+     * exists. The call to the issuer model service simply adds the profile to the db.
+     * Normally the profile would not be directly added to the db as below we would use the admin
+     * service to create the profile.
+     */
+
     await app.service('issuer/model').create(profile);
     await app.service('issuer/model').create(profile);
 
