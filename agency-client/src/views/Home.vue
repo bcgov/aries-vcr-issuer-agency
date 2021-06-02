@@ -1,12 +1,16 @@
 <template>
-  <div class="home">
-    <h1>This is a home page!</h1>
-  </div>
+  <v-container>
+    <Profile />
+  </v-container>
 </template>
 
 <script lang="ts">
+import Profile from '../components/Profile.vue';
+
 export default {
   name: 'Home',
-  conmponents: {}
+  components: {
+    Profile
+  }
 };
 </script>
