@@ -7,9 +7,11 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test:e2e": "vue-cli-service test:e2e",
-    "test:unit": "vue-cli-service test:unit"
+    "test:unit": "vue-cli-service test:unit",
+    "backend": "json-server --watch ./tests/data/db.json --port 3030"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^9.1.2",
@@ -35,6 +37,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
     "eslint-plugin-vue": "^6.2.2",
+    "json-server": "^0.16.3",
     "sass": "~1.32.0",
     "sass-loader": "^10.0.0",
     "typescript": "~4.1.5",
