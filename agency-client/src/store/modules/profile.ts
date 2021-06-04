@@ -12,6 +12,7 @@ export interface IssuerProfile {
   email?: string;
   logo?: string;
   complete: boolean;
+  [key: string]: string | boolean | undefined;
 }
 
 export interface State {
@@ -29,8 +30,14 @@ const getters = {
 };
 
 const actions = {
-  async fetchProfile ({ commit, getters }: ActionContext<State, RootState>): Promise<void> {
+  async fetchProfile ({ commit, getters }:
+    ActionContext<State, RootState>): Promise<void> {
     const response = await axios.get(getters.controller.url.toString() + 'profile');
+    commit('setProfile', response.data);
+  },
+  async updateProfile ({ commit, getters }:
+    ActionContext<State, RootState>, profile: IssuerProfile): Promise<void> {
+    const response = await axios.patch(getters.controller.url.toString() + 'profile', profile);
     commit('setProfile', response.data);
   }
 };

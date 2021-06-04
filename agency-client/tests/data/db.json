@@ -1,9 +1,10 @@
 {
-    "profile": {
-        "name": "Issuer Name",
-        "abbreviation": "YOLO",
-        "email": "info@issuer.com",
-        "url": "http://www.gmail.com",
-        "logo": ""
-    }
+  "profile": {
+    "name": "Pizza Pizza 3",
+    "abbreviation": "PPP",
+    "email": "asdf@asdf.com",
+    "url": "",
+    "logo": "",
+    "complete": true
+  }
 }

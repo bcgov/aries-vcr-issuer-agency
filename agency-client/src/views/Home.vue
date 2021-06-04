@@ -1,16 +1,16 @@
 <template>
   <v-container>
-    <Profile />
+    <ProfileCard />
   </v-container>
 </template>
 
 <script lang="ts">
-import Profile from '../components/Profile.vue';
+import ProfileCard from '../components/profile/ProfileCard.vue';
 
 export default {
   name: 'Home',
   components: {
-    Profile
+    ProfileCard
   }
 };
 </script>
