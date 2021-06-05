@@ -19,7 +19,7 @@ export async function validateSchemaModel(
   const metadata = data.metadata;
   if (!data.metadata) {
     throw new BadRequest(
-      'Scheme metadata must be specified.'
+      'Schema metadata must be specified.'
     );
   }
   if (metadata.topic.length === 0) {
