@@ -35,7 +35,7 @@ interface Data {
 }
 
 @Component
-export default class SchemaJSONForm extends Vue {
+export default class SchemaJsonForm extends Vue {
   data (): Data {
     return {
       json: ''

@@ -5,7 +5,7 @@
         <v-btn
           class="remove-attribute"
           icon
-          @click="$emit('removeAttribute', attribute.id)"
+          @click="removeAttribute(attribute.id)"
         >
           <v-icon>mdi-close-circle</v-icon>
         </v-btn>
@@ -61,11 +61,19 @@
         ></v-checkbox>
       </v-col>
     </v-row>
+    <SchemaLabelList
+      :labels="attribute.localizedLabels"
+      @addLabel="addLabel(attribute.id, $event)"
+      @removeLabel="removeLabel(attribute.id, $event)"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
+import { KeyedLocale, KeyedLocalizedLabel } from './SchemaAttributeForm.vue';
+import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
+import { LocalizedLabel } from './SchemLabelForm.vue';
 
 export enum AttributeFieldType {
   TEXT = 1,
@@ -80,11 +88,6 @@ export enum DateFieldType {
   OTHER,
 }
 
-export interface Translation {
-  label: string;
-  description: string;
-}
-
 export interface Attribute {
   id: Readonly<number>;
   name: string;
@@ -92,10 +95,14 @@ export interface Attribute {
   cardinal: boolean;
   search: boolean;
   dateType: DateFieldType | null;
-  translations?: Record<string, Translation>;
+  localizedLabels?: Record<string, Translation>;
 }
 
-@Component
+@Component({
+  components: {
+    SchemaLabelList
+  }
+})
 export default class extends Vue {
   attributeFieldType = AttributeFieldType;
   dateFieldType = DateFieldType;
@@ -114,6 +121,21 @@ export default class extends Vue {
   ];
 
   @Prop() attribute!: Attribute;
+
+  @Emit('removeAttribute')
+  removeAttribute (id: number): number {
+    return id;
+  }
+
+  @Emit('addLabel')
+  addLabel (id: number, localizedLabel: LocalizedLabel): KeyedLocalizedLabel {
+    return { id, localizedLabel };
+  }
+
+  @Emit('removeLabel')
+  removeLabel (id: number, locale: string): KeyedLocale {
+    return { id, locale };
+  }
 }
 </script>
 

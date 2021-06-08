@@ -9,7 +9,7 @@
         <SchemaForm />
       </v-tab-item>
       <v-tab-item value="schema-json-form">
-        <SchemaJSONForm />
+        <SchemaJsonForm />
       </v-tab-item>
     </v-tabs-items>
   </v-container>
@@ -18,7 +18,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import SchemaForm from '../components/schema/SchemaForm.vue';
-import SchemaJSONForm from '../components/schema/SchemaJSONForm.vue';
+import SchemaJsonForm from '../components/schema/SchemaJsonForm.vue';
 
 interface Data {
   tab: string | null;
@@ -28,7 +28,7 @@ interface Data {
   name: 'Schema',
   components: {
     SchemaForm,
-    SchemaJSONForm
+    SchemaJsonForm
   }
 })
 export default class extends Vue {

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { ActionContext } from 'vuex';
 import { State as RootState } from '@/store/index';
 
-interface SchemaTopic {
+interface Topic {
   name: string;
   topic_type: string;
 }
@@ -23,13 +23,13 @@ interface Translation {
   description: string;
 }
 
-interface SchemaAttributeTranslation {
-  name: string;
+export interface MetadataTranslation {
+  name?: string;
   translations: Record<string, Translation>;
 }
 
-interface CredentialMetadata {
-  topic: SchemaTopic[];
+export interface Metadata {
+  topic: Topic[];
   cardinality: string[];
   date_fields: {
     effective_date: string;
@@ -39,16 +39,16 @@ interface CredentialMetadata {
   address_fields: AddressMetadata[];
   search_fields: string[];
   labels: {
-    schema: Record<string, string>;
-    attributes: SchemaAttributeTranslation[];
+    schema: MetadataTranslation;
+    attributes: MetadataTranslation[];
   };
 }
 
 export interface Schema {
-  shcema_name: string;
+  schema_name: string;
   schema_version: string;
   attributes: string[];
-  metadata: CredentialMetadata;
+  metadata: Metadata;
 }
 
 export interface State {
