@@ -105,6 +105,9 @@ export class Schema implements ServiceSwaggerAddon {
         if (!schemaTxnResult.id) {
           throw new EndorserError('Transaction ID could not be found');
         }
+        if (!schemaTxnResult.success) {
+          throw new EndorserError('There was a problem endorsing the transaction');
+        }
 
         const schemaId = await this.app.service('aries-agent').create({
           service: ServiceType.Schema,
@@ -174,6 +177,9 @@ export class Schema implements ServiceSwaggerAddon {
         if (!credDefTxnResult.id) {
           throw new EndorserError('Transaction ID could not be found');
         }
+        if (!credDefTxnResult.success) {
+          throw new EndorserError('There was a problem endorsing the transaction');
+        }
 
         const credDefId = await this.app.service('aries-agent').create({
           service: ServiceType.CredDef,
@@ -202,7 +208,7 @@ export class Schema implements ServiceSwaggerAddon {
         credential_definition_id: schema.credential_definition_id,
       };
     } catch (e) {
-      return e as Error;
+      throw e as Error;
     }
   }
 
