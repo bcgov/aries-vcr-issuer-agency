@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
-import Profile from '../views/Profile.vue';
+import Home from '@/views/Home.vue';
+import Profile from '@/views/Profile.vue';
+import Schema from '@/views/Schema.vue';
 
 Vue.use(VueRouter);
 
@@ -15,6 +16,11 @@ const routes: Array<RouteConfig> = [
     path: '/profile/edit',
     name: 'EditProfile',
     component: Profile
+  },
+  {
+    path: '/schema/add',
+    name: 'AddSchema',
+    component: Schema
   }
 ];
 

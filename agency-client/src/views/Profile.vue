@@ -1,14 +1,17 @@
 <template>
-    <ProfileForm />
+  <ProfileForm />
 </template>
 
 <script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+
 import ProfileForm from '../components/profile/ProfileForm.vue';
 
-export default {
+@Component({
   name: 'Profile',
   components: {
     ProfileForm
   }
-};
+})
+export default class ProfileView extends Vue {}
 </script>

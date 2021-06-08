@@ -4,7 +4,7 @@
       <v-card>
         <v-card-title>Issuer Profile</v-card-title>
         <v-container>
-          <v-row>
+          <v-row dense>
             <v-col cols="12" md="12">
               <v-text-field
                 label="Name"
@@ -13,13 +13,19 @@
                 v-model="profile.name"
                 :rules="[() => !!profile.name || 'This field is required']"
               ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="12">
               <v-text-field
                 label="Abbreviation"
                 outlined
                 required
                 v-model="profile.abbreviation"
-                :rules="[() => !!profile.abbreviation || 'This field is required']"
+                :rules="[
+                  () => !!profile.abbreviation || 'This field is required',
+                ]"
               ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="12">
               <v-text-field
                 label="Email"
                 outlined
@@ -27,6 +33,8 @@
                 v-model="profile.email"
                 :rules="[() => !!profile.email || 'This field is required']"
               ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="12">
               <v-text-field
                 label="Logo"
                 outlined
@@ -34,6 +42,8 @@
                 persistent-hint
                 v-model="profile.logo"
               ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="12">
               <v-text-field
                 label="Url"
                 outlined
@@ -66,22 +76,19 @@ import { IssuerProfile } from '../../store/modules/profile';
     ...mapGetters(['profile'])
   },
   methods: {
-    ...mapActions(['fetchProfile', 'updateProfile'])
+    ...mapActions(['updateProfile'])
   }
 })
 export default class ProfileForm extends Vue {
   profile!: IssuerProfile;
 
-  fetchProfile!: () => void;
   updateProfile!: (profile: IssuerProfile) => void;
-
-  created (): void {
-    this.fetchProfile();
-  }
 
   submit (e: Event): void {
     e.preventDefault();
-    const isFormValid = (this.$refs.form as Vue & { validate: () => boolean }).validate();
+    const isFormValid = (
+      this.$refs.form as Vue & { validate: () => boolean }
+    ).validate();
     if (isFormValid) {
       this.updateProfile(this.profile);
       router.push('/');

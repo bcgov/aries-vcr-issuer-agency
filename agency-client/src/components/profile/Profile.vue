@@ -3,8 +3,8 @@
     <v-alert v-if="profile && !profile.complete" prominent type="info">
       <v-row align="center">
         <v-col class="grow">
-          Please complete your profile to enable Issuer features.</v-col
-        >
+          Please complete your profile to enable Issuer features.
+        </v-col>
         <v-col class="shrink">
           <v-btn router-link to="/profile/edit">Complete profile</v-btn>
         </v-col>
@@ -17,6 +17,7 @@
         ></v-skeleton-loader>
       </div>
       <div v-else>
+        <v-card-title>Issuer Profile</v-card-title>
         <v-list-item three-line>
           <v-list-item-avatar tile size="80" color="grey"></v-list-item-avatar>
           <v-list-item-content>
@@ -63,21 +64,12 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { mapActions, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 @Component({
   computed: {
     ...mapGetters(['profile'])
-  },
-  methods: {
-    ...mapActions(['fetchProfile'])
   }
 })
-export default class ProfileCard extends Vue {
-  fetchProfile!: () => void;
-
-  created (): void {
-    this.fetchProfile();
-  }
-}
+export default class Profile extends Vue {}
 </script>

@@ -1,10 +1,11 @@
 {
   "profile": {
     "name": "Pizza Pizza 3",
-    "abbreviation": "PPP",
-    "email": "asdf@asdf.com",
-    "url": "",
+    "abbreviation": "ABCD",
+    "email": "adsf@adsf.com",
+    "url": "www.gmail.com",
     "logo": "",
     "complete": true
-  }
+  },
+  "schema": []
 }
