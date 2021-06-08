@@ -51,6 +51,7 @@ interface Data {
   name: string;
   version: string;
   attributes: Attribute[];
+  label: Record<string, string>;
 }
 
 @Component({
@@ -63,6 +64,7 @@ export default class SchemaForm extends Vue {
     return {
       name: '',
       version: '',
+      label: {},
       attributes: []
     };
   }

@@ -5,7 +5,7 @@
         <v-btn
           class="remove-attribute"
           icon
-          @click="removeAttribute(attribute.id)"
+          @click="$emit('removeAttribute', attribute.id)"
         >
           <v-icon>mdi-close-circle</v-icon>
         </v-btn>
@@ -114,10 +114,6 @@ export default class extends Vue {
   ];
 
   @Prop() attribute!: Attribute;
-
-  removeAttribute (id: number): void {
-    console.log(id);
-  }
 }
 </script>
 

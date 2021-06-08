@@ -5,6 +5,7 @@
       v-for="attribute in attributes"
       :key="attribute.id"
       :attribute="attribute"
+      @removeAttribute="removeAttribute"
     />
     <v-btn block @click="addAttribute">
       <v-icon left>mdi-plus-circle</v-icon>
@@ -34,6 +35,11 @@ export default class SchemaAttributeForm extends Vue {
       search: false,
       dateType: null
     });
+  }
+
+  removeAttribute (id: number): void {
+    const idx = this.attributes.findIndex((attr: Attribute) => attr.id === id);
+    this.attributes.splice(idx, 1);
   }
 }
 </script>
