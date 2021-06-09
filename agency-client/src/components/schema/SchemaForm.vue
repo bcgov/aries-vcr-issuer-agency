@@ -72,6 +72,7 @@ import {
 } from './SchemaAttributeInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import {
+  AddressMetadata,
   DateMetadata,
   Metadata,
   MetadataTranslation,
@@ -139,11 +140,17 @@ export default class SchemaForm extends Vue {
       .map((attribute) => attribute.name);
   }
 
-  get schemaMetadataAddressFields (): string[] {
-    // TODO
+  get schemaMetadataAddressFields (): AddressMetadata[] {
     return this.attributes
       .filter((attribute) => attribute.type === AttributeFieldType.ADDRESS)
-      .map((attribute) => attribute.name);
+      .map((attribute) => ({
+        addressee: attribute?.address?.addressee || '',
+        civic_address: attribute?.address?.civic_address || '',
+        city: attribute?.address?.city || '',
+        province: attribute?.address?.province || '',
+        postal_code: attribute?.address?.postal_code || '',
+        country: attribute?.address?.country || ''
+      }));
   }
 
   get schemaMetadataDateFields (): DateMetadata {

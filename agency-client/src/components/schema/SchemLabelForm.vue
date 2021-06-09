@@ -10,9 +10,12 @@
         v-on="!displayForm && on"
         :close="displayForm"
         close-icon="mdi-close-circle"
+        icon="mdi-plus-circle"
         @click:close="cancel"
       >
-        <v-icon v-if="!displayForm">mdi-plus-circle</v-icon>
+        <v-icon left size="18px" style="padding-left: 4px" v-if="!displayForm"
+          >mdi-plus-circle</v-icon
+        >
         <span>Add Description</span>
       </v-chip>
     </template>

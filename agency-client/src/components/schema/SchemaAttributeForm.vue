@@ -49,7 +49,15 @@ export default class SchemaAttributeForm extends Vue {
       type: null,
       cardinal: false,
       search: false,
-      dateType: null
+      dateType: null,
+      address: {
+        addressee: '',
+        civic_address: '',
+        city: '',
+        province: '',
+        postal_code: '',
+        country: ''
+      }
     };
   }
 
