@@ -106,16 +106,35 @@ export default class SchemaForm extends Vue {
   }
 
   get attributeMetadataTranslations (): MetadataTranslation[] {
-    return this.attributes.map((attribute) =>
-      this.metadataTranslations(attribute.localizedLabels || {}, attribute.name)
-    );
+    return this.attributes
+      .filter((attribute) => Object.keys(attribute?.localizedLabels || {}).length)
+      .map((attribute) =>
+        this.metadataTranslations(
+          attribute.localizedLabels || {},
+          attribute.name
+        )
+      );
+  }
+
+  get schemaMetadataSearchFields (): string[] {
+    return this.attributes
+      .filter((attribute) => attribute.search)
+      .map((attribute) => attribute.name);
+  }
+
+  get schemaMetadataCardinality (): string[] {
+    return this.attributes
+      .filter((attribute) => attribute.cardinal)
+      .map((attribute) => attribute.name);
   }
 
   get schemaMetadata (): Metadata {
     return {
       labels: {
         schema: this.schemaMetadataTranslations,
-        attributes: this.attributeMetadataTranslations
+        attributes: this.attributeMetadataTranslations,
+        cardinality: this.schemaMetadataCardinality,
+        search_fields: this.schemaMetadataSearchFields
       }
     } as unknown as Metadata;
   }

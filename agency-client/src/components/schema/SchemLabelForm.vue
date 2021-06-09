@@ -91,6 +91,7 @@ interface Data {
 export default class SchemaLabelForm extends Vue {
   displayForm!: boolean;
 
+  // TODO: Get a full list
   locales = [
     { label: 'English', value: 'en' },
     { label: 'French', value: 'fr' },
