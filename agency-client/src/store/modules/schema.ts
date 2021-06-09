@@ -9,13 +9,19 @@ interface Topic {
   topic_type: string;
 }
 
-interface AddressMetadata {
+export interface AddressMetadata {
   addressee: string;
   civic_address: string;
   city: string;
   province: string;
   postal_code: string;
   country: string;
+}
+
+export interface DateMetadata {
+  effective_date: string;
+  revoked_date: string;
+  other_date_fields: string[];
 }
 
 interface Translation {
@@ -31,11 +37,7 @@ export interface MetadataTranslation {
 export interface Metadata {
   topic: Topic[];
   cardinality: string[];
-  date_fields: {
-    effective_date: string;
-    revoked_date: string;
-    other_date_fields: string[];
-  };
+  date_fields: DateMetadata
   address_fields: AddressMetadata[];
   search_fields: string[];
   labels: {

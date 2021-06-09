@@ -1,6 +1,10 @@
 <template>
   <v-form ref="form">
-    <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
+    <!-- TODO: Remove when done -->
+    <v-container>
+      <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
+    </v-container>
+    <!--  -->
     <v-container>
       <v-card elevation="2">
         <v-card-title>Schema Form</v-card-title>
@@ -61,9 +65,14 @@ import SchemaAttributeForm, {
   KeyedLocale,
   KeyedLocalizedLabel
 } from './SchemaAttributeForm.vue';
-import { Attribute, AttributeFieldType } from './SchemaAttributeInput.vue';
+import {
+  Attribute,
+  AttributeFieldType,
+  DateFieldType
+} from './SchemaAttributeInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import {
+  DateMetadata,
   Metadata,
   MetadataTranslation,
   Schema
@@ -107,7 +116,9 @@ export default class SchemaForm extends Vue {
 
   get attributeMetadataTranslations (): MetadataTranslation[] {
     return this.attributes
-      .filter((attribute) => Object.keys(attribute?.localizedLabels || {}).length)
+      .filter(
+        (attribute) => Object.keys(attribute?.localizedLabels || {}).length
+      )
       .map((attribute) =>
         this.metadataTranslations(
           attribute.localizedLabels || {},
@@ -129,9 +140,31 @@ export default class SchemaForm extends Vue {
   }
 
   get schemaMetadataAddressFields (): string[] {
+    // TODO
     return this.attributes
       .filter((attribute) => attribute.type === AttributeFieldType.ADDRESS)
       .map((attribute) => attribute.name);
+  }
+
+  get schemaMetadataDateFields (): DateMetadata {
+    const dateAttributes = this.attributes.filter(
+      (attribute) => attribute.type === AttributeFieldType.DATE
+    );
+    const effectiveDateAttribute = dateAttributes.find(
+      (attribute) => attribute.dateType === DateFieldType.EFFECTIVE
+    );
+    const revokedDateAttribute = dateAttributes.find(
+      (attribute) => attribute.dateType === DateFieldType.REVOKED
+    );
+    const otherDateAttributes = dateAttributes
+      .filter((attribute) => attribute.dateType === DateFieldType.OTHER)
+      .map((attribute) => attribute.name);
+
+    return {
+      effective_date: effectiveDateAttribute?.name || '',
+      revoked_date: revokedDateAttribute?.name || '',
+      other_date_fields: otherDateAttributes
+    };
   }
 
   get schemaMetadata (): Metadata {
@@ -141,6 +174,7 @@ export default class SchemaForm extends Vue {
         attributes: this.attributeMetadataTranslations,
         cardinality: this.schemaMetadataCardinality,
         address_fields: this.schemaMetadataAddressFields,
+        date_fields: this.schemaMetadataDateFields,
         search_fields: this.schemaMetadataSearchFields
       }
     } as unknown as Metadata;
