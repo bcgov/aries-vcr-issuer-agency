@@ -1,6 +1,6 @@
 <template>
   <v-form ref="form">
-    {{ schema }}
+    <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
     <v-container>
       <v-card elevation="2">
         <v-card-title>Schema Form</v-card-title>
@@ -61,7 +61,7 @@ import SchemaAttributeForm, {
   KeyedLocale,
   KeyedLocalizedLabel
 } from './SchemaAttributeForm.vue';
-import { Attribute } from './SchemaAttributeInput.vue';
+import { Attribute, AttributeFieldType } from './SchemaAttributeInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import {
   Metadata,
@@ -128,12 +128,19 @@ export default class SchemaForm extends Vue {
       .map((attribute) => attribute.name);
   }
 
+  get schemaMetadataAddressFields (): string[] {
+    return this.attributes
+      .filter((attribute) => attribute.type === AttributeFieldType.ADDRESS)
+      .map((attribute) => attribute.name);
+  }
+
   get schemaMetadata (): Metadata {
     return {
       labels: {
         schema: this.schemaMetadataTranslations,
         attributes: this.attributeMetadataTranslations,
         cardinality: this.schemaMetadataCardinality,
+        address_fields: this.schemaMetadataAddressFields,
         search_fields: this.schemaMetadataSearchFields
       }
     } as unknown as Metadata;
