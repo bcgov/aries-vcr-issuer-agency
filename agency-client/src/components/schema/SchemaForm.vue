@@ -54,24 +54,7 @@
         </v-card>
       </v-container>
     </v-form>
-    <v-container>
-      <v-card elevation="2">
-        <v-card-title>
-          <span>JSON Schema Output</span>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="showJsonOutput = !showJsonOutput">
-            <v-icon>{{
-              showJsonOutput ? "mdi-chevron-up" : "mdi-chevron-down"
-            }}</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-expand-transition>
-          <v-container v-if="showJsonOutput">
-            <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
-          </v-container>
-        </v-expand-transition>
-      </v-card>
-    </v-container>
+    <SchemaJsonOutput :schema="schema" />
   </div>
 </template>
 
@@ -88,12 +71,14 @@ import {
   DateFieldType
 } from './SchemaAttributeInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
+import SchemaJsonOutput from './SchemaJsonOutput.vue';
 import {
   AddressMetadata,
   DateMetadata,
   Metadata,
   MetadataTranslation,
-  Schema
+  Schema,
+  TopicMetadata
 } from '../../store/modules/schema';
 
 interface Data {
@@ -101,13 +86,13 @@ interface Data {
   version: string;
   attributes: Attribute[];
   localizedLabels: Record<string, Translation>;
-  showJsonOutput: boolean;
 }
 
 @Component({
   components: {
     SchemaLabelList,
-    SchemaAttributeForm
+    SchemaAttributeForm,
+    SchemaJsonOutput
   }
 })
 export default class SchemaForm extends Vue {
@@ -192,8 +177,18 @@ export default class SchemaForm extends Vue {
     };
   }
 
+  get schemaMetadataTopic (): TopicMetadata[] {
+    return this.attributes
+      .filter((attribute) => attribute?.topic?.mapped)
+      .map((attribute) => ({
+        name: attribute?.name || '',
+        topic_type: attribute?.topic?.schema || this.name
+      }));
+  }
+
   get schemaMetadata (): Metadata {
     return {
+      topic: this.schemaMetadataTopic,
       labels: {
         schema: this.schemaMetadataTranslations,
         attributes: this.attributeMetadataTranslations,
@@ -210,8 +205,7 @@ export default class SchemaForm extends Vue {
       name: '',
       version: '',
       attributes: [],
-      localizedLabels: {},
-      showJsonOutput: false
+      localizedLabels: {}
     };
   }
 
@@ -322,11 +316,11 @@ export default class SchemaForm extends Vue {
     return this.attributes.find((attribute) => attribute.id === id);
   }
 
-  private replaceAttribute (id: number, attribiute: Attribute): void {
+  private replaceAttribute (id: number, attribute: Attribute): void {
     this.attributes.splice(
-      this.attributes.findIndex((attribiute) => attribiute.id === id),
+      this.attributes.findIndex((attribute) => attribute.id === id),
       1,
-      attribiute
+      attribute
     );
   }
 }

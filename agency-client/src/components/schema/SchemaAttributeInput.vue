@@ -56,19 +56,26 @@
       v-if="attribute.type === attributeFieldType.ADDRESS"
     />
     <v-row dense no-gutters>
-      <v-col cols="12" md="3">
-        <v-checkbox
-          label="Searchable attribute"
+      <v-col cols="12" md="12">
+        <v-switch
+          label="Make attribute searchable"
+          inset
           dense
+          hide-details
           v-model="attribute.search"
-        ></v-checkbox>
+        ></v-switch>
       </v-col>
-      <v-col cols="12" md="3">
-        <v-checkbox
-          label="Cardinal attribute"
+      <v-col cols="12" md="12">
+        <v-switch
+          label="Attribute has cardinality"
+          inset
           dense
+          hide-details
           v-model="attribute.cardinal"
-        ></v-checkbox>
+        ></v-switch>
+      </v-col>
+      <v-col cols="12" md="12">
+        <SchemaTopicInput :topic="attribute.topic" />
       </v-col>
     </v-row>
     <SchemaLabelList
@@ -83,6 +90,7 @@
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import { KeyedLocale, KeyedLocalizedLabel } from './SchemaAttributeForm.vue';
 import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
+import SchemaTopicInput from './SchemaTopicInput.vue';
 import SchemaAttributeAddressInput from './SchemaAttributeAddressInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import { AddressMetadata as Address } from '../../store/modules/schema';
@@ -100,12 +108,18 @@ export enum DateFieldType {
   OTHER,
 }
 
+export interface Topic {
+  mapped: boolean;
+  schema: string;
+}
+
 export interface Attribute {
   id: Readonly<number>;
   name: string;
   type: AttributeFieldType | null;
   cardinal: boolean;
   search: boolean;
+  topic: Topic | null;
   dateType?: DateFieldType | null;
   localizedLabels?: Record<string, Translation>;
   address?: Address | null;
@@ -113,6 +127,7 @@ export interface Attribute {
 
 @Component({
   components: {
+    SchemaTopicInput,
     SchemaAttributeAddressInput,
     SchemaLabelList
   }

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { ActionContext } from 'vuex';
 import { State as RootState } from '@/store/index';
 
-interface Topic {
+export interface TopicMetadata {
   name: string;
   topic_type: string;
 }
@@ -24,7 +24,7 @@ export interface DateMetadata {
   other_date_fields: string[];
 }
 
-interface Translation {
+export interface Translation {
   label: string;
   description: string;
 }
@@ -35,7 +35,7 @@ export interface MetadataTranslation {
 }
 
 export interface Metadata {
-  topic: Topic[];
+  topic: TopicMetadata[];
   cardinality: string[];
   date_fields: DateMetadata
   address_fields: AddressMetadata[];

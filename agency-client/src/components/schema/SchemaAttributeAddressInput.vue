@@ -3,14 +3,14 @@
     <p>Address</p>
     <v-row dense>
       <v-col cols="12" md="12">
-        <v-select
+        <v-combobox
           label="Country"
           outlined
           dense
           required
           v-model="address.country"
           :rules="[() => !!address.country || 'This field is required']"
-        ></v-select>
+        ></v-combobox>
       </v-col>
       <v-col cols="12" md="12">
         <v-text-field

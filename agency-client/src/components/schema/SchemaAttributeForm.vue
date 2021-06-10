@@ -49,6 +49,10 @@ export default class SchemaAttributeForm extends Vue {
       type: null,
       cardinal: false,
       search: false,
+      topic: {
+        mapped: false,
+        schema: ''
+      },
       dateType: null,
       address: {
         addressee: '',

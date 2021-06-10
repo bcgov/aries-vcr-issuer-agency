@@ -25,7 +25,7 @@
           <p>Localized Description</p>
           <v-row dense>
             <v-col cols="12">
-              <v-select
+              <v-combobox
                 label="Langauge"
                 outlined
                 required
@@ -36,7 +36,7 @@
                 :rules="[
                   () => !!localizedLabel.locale || 'This field is required',
                 ]"
-              ></v-select>
+              ></v-combobox>
             </v-col>
             <v-col cols="12">
               <v-text-field
