@@ -212,7 +212,7 @@ export default class SchemaForm extends Vue {
       e = {
         ...e,
         topic:
-          'Should have at least on Attribute mapped as a Topic of a Credential'
+          'Should have at least one Attribute mapped as a Topic of a Credential'
       };
     }
     if (
@@ -306,7 +306,6 @@ export default class SchemaForm extends Vue {
 
   submit (e: Event): void {
     e.preventDefault();
-    console.log(this.$refs.form);
     const isFormValid = (
       this.$refs.form as Vue & { validate: () => boolean }
     ).validate();

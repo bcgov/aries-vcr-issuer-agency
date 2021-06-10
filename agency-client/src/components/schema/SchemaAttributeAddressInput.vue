@@ -10,6 +10,7 @@
           required
           v-model="address.country"
           :rules="[() => !!address.country || 'This field is required']"
+          @input="handleCountryInput"
         ></v-combobox>
       </v-col>
       <v-col cols="12" md="12">
@@ -83,5 +84,9 @@ export default class SchemaAttributeAddressInput extends Vue {
     })
   })
   address!: Address;
+
+  handleCountryInput (country: string): void {
+    this.address.country = country;
+  }
 }
 </script>
