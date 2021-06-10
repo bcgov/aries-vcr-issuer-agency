@@ -2,6 +2,7 @@
   <div>
     <v-form ref="form">
       <v-container>
+        <SchemaAlert :errors="errors" />
         <v-card elevation="2">
           <v-card-title>Schema Form</v-card-title>
           <v-container>
@@ -60,6 +61,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import SchemaAlert from './SchemaAlert.vue';
 import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
 import SchemaAttributeForm, {
   KeyedLocale,
@@ -90,6 +92,7 @@ interface Data {
 
 @Component({
   components: {
+    SchemaAlert,
     SchemaLabelList,
     SchemaAttributeForm,
     SchemaJsonOutput
@@ -200,6 +203,47 @@ export default class SchemaForm extends Vue {
     } as unknown as Metadata;
   }
 
+  get errors (): Record<string, string> {
+    let e = {};
+    if (!this.attributes.length) {
+      e = { ...e, attribute: 'Should have at least one Attribute' };
+    }
+    if (!this.attributes.some((attribute) => attribute?.topic?.mapped)) {
+      e = {
+        ...e,
+        topic:
+          'Should have at least on Attribute mapped as a Topic of a Credential'
+      };
+    }
+    if (
+      !this.attributes.some(
+        (attribute) =>
+          attribute.type === AttributeFieldType.DATE &&
+          attribute.dateType === DateFieldType.EFFECTIVE
+      )
+    ) {
+      e = {
+        ...e,
+        effective_date:
+          'Should have at least one Attribute that is the Effective Date of a Credential'
+      };
+    }
+    if (
+      !this.attributes.some(
+        (attribute) =>
+          attribute.type === AttributeFieldType.DATE &&
+          attribute.dateType === DateFieldType.REVOKED
+      )
+    ) {
+      e = {
+        ...e,
+        revoked_date:
+          'Should have at least one Attribute that is the Revoked Date of a Credential'
+      };
+    }
+    return e;
+  }
+
   data (): Data {
     return {
       name: '',
@@ -261,15 +305,15 @@ export default class SchemaForm extends Vue {
   }
 
   submit (e: Event): void {
-    // TODO: Need to add a validator to ensure at least one attribute is added
-    // TODO: Need to add a validator to ensure at least one effective_date is added
-    // TODO: Need to add a validator to ensure at least one revoked_date is added
-    // TODO: Need to add a validator to ensure at least one attribute mapped as topic
     e.preventDefault();
+    console.log(this.$refs.form);
     const isFormValid = (
-      this.$refs.form as Vue & { validate: () => void }
+      this.$refs.form as Vue & { validate: () => boolean }
     ).validate();
-    console.log(isFormValid);
+    if (!isFormValid || Object.keys(this.errors).length) {
+      return;
+    }
+    // TODO: POST the schema!
   }
 
   private removeLocalozedLabel (
