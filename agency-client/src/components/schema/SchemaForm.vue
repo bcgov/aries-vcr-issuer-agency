@@ -1,61 +1,78 @@
 <template>
-  <v-form ref="form">
-    <!-- TODO: Remove when done -->
-    <v-container>
-      <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
-    </v-container>
-    <!--  -->
+  <div>
+    <v-form ref="form">
+      <v-container>
+        <v-card elevation="2">
+          <v-card-title>Schema Form</v-card-title>
+          <v-container>
+            <div class="schema-identifiers">
+              <p>Identifiers</p>
+              <v-row dense>
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    ref="name"
+                    label="Schema Name"
+                    outlined
+                    required
+                    v-model="name"
+                    :rules="[() => !!name || 'This field is required']"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="12">
+                  <v-text-field
+                    ref="version"
+                    label="Schema Version"
+                    outlined
+                    required
+                    v-model="version"
+                    :rules="[() => !!version || 'This field is required']"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <SchemaLabelList
+                :labels="localizedLabels"
+                @addLabel="addLabel"
+                @removeLabel="removeLabel"
+              />
+            </div>
+            <SchemaAttributeForm
+              :attributes="attributes"
+              @addAttribute="addAttribute"
+              @removeAttribute="removeAttribute"
+              @addLabel="addAttrbuteLabel"
+              @removeLabel="removeAttributeLabel"
+            />
+          </v-container>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-btn text router-link to="/"> Cancel </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn text color="primary" type="submit" @click="submit">
+              Save
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-container>
+    </v-form>
     <v-container>
       <v-card elevation="2">
-        <v-card-title>Schema Form</v-card-title>
-        <v-container>
-          <div class="schema-identifiers">
-            <p>Identifiers</p>
-            <v-row dense>
-              <v-col cols="12" md="12">
-                <v-text-field
-                  ref="name"
-                  label="Schema Name"
-                  outlined
-                  required
-                  v-model="name"
-                  :rules="[() => !!name || 'This field is required']"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-text-field
-                  ref="version"
-                  label="Schema Version"
-                  outlined
-                  required
-                  v-model="version"
-                  :rules="[() => !!version || 'This field is required']"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <SchemaLabelList
-              :labels="localizedLabels"
-              @addLabel="addLabel"
-              @removeLabel="removeLabel"
-            />
-          </div>
-          <SchemaAttributeForm
-            :attributes="attributes"
-            @addAttribute="addAttribute"
-            @removeAttribute="removeAttribute"
-            @addLabel="addAttrbuteLabel"
-            @removeLabel="removeAttributeLabel"
-          />
-        </v-container>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-btn text router-link to="/"> Cancel </v-btn>
+        <v-card-title>
+          <span>JSON Schema Output</span>
           <v-spacer></v-spacer>
-          <v-btn text color="primary" type="submit"> Save </v-btn>
-        </v-card-actions>
+          <v-btn icon @click="showJsonOutput = !showJsonOutput">
+            <v-icon>{{
+              showJsonOutput ? "mdi-chevron-up" : "mdi-chevron-down"
+            }}</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-expand-transition>
+          <v-container v-if="showJsonOutput">
+            <pre>{{ JSON.stringify(schema, null, 2) }}</pre>
+          </v-container>
+        </v-expand-transition>
       </v-card>
     </v-container>
-  </v-form>
+  </div>
 </template>
 
 <script lang="ts">
@@ -84,6 +101,7 @@ interface Data {
   version: string;
   attributes: Attribute[];
   localizedLabels: Record<string, Translation>;
+  showJsonOutput: boolean;
 }
 
 @Component({
@@ -192,7 +210,8 @@ export default class SchemaForm extends Vue {
       name: '',
       version: '',
       attributes: [],
-      localizedLabels: {}
+      localizedLabels: {},
+      showJsonOutput: false
     };
   }
 
@@ -245,6 +264,17 @@ export default class SchemaForm extends Vue {
       );
       this.replaceAttribute(id, attribute);
     }
+  }
+
+  submit (e: Event): void {
+    // TODOD: Need to add a validator to ensure at least one attribute is added
+    // TODO: Need to add a validator to ensue at least on effective_date is added
+    // TODO: Need to add a validator to ensue at least on revoked_date is added
+    e.preventDefault();
+    const isFormValid = (
+      this.$refs.form as Vue & { validate: () => void }
+    ).validate();
+    console.log(isFormValid);
   }
 
   private removeLocalozedLabel (

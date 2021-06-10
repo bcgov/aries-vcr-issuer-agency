@@ -43,7 +43,14 @@
         ></v-text-field>
       </v-col>
       <v-col cols="12" md="4">
-        <v-text-field label="City" outlined dense required></v-text-field>
+        <v-text-field
+          label="City"
+          outlined
+          dense
+          required
+          v-model="address.city"
+          :rules="[() => !!address.city || 'This field is required']"
+        ></v-text-field>
       </v-col>
       <v-col cols="12" md="4">
         <v-text-field
