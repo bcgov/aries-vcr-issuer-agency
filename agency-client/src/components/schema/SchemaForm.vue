@@ -267,9 +267,10 @@ export default class SchemaForm extends Vue {
   }
 
   submit (e: Event): void {
-    // TODOD: Need to add a validator to ensure at least one attribute is added
-    // TODO: Need to add a validator to ensue at least on effective_date is added
-    // TODO: Need to add a validator to ensue at least on revoked_date is added
+    // TODO: Need to add a validator to ensure at least one attribute is added
+    // TODO: Need to add a validator to ensure at least one effective_date is added
+    // TODO: Need to add a validator to ensure at least one revoked_date is added
+    // TODO: Need to add a validator to ensure at least one attribute mapped as topic
     e.preventDefault();
     const isFormValid = (
       this.$refs.form as Vue & { validate: () => void }

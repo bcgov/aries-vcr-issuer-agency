@@ -51,7 +51,7 @@
         ></v-select>
       </v-col>
     </v-row>
-    <SchemaAttributeAddressForm
+    <SchemaAttributeAddressInput
       :address="attribute.address"
       v-if="attribute.type === attributeFieldType.ADDRESS"
     />
@@ -83,7 +83,7 @@
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import { KeyedLocale, KeyedLocalizedLabel } from './SchemaAttributeForm.vue';
 import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
-import SchemaAttributeAddressForm from './SchemaAttributeAddressForm.vue';
+import SchemaAttributeAddressInput from './SchemaAttributeAddressInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import { AddressMetadata as Address } from '../../store/modules/schema';
 
@@ -113,7 +113,7 @@ export interface Attribute {
 
 @Component({
   components: {
-    SchemaAttributeAddressForm,
+    SchemaAttributeAddressInput,
     SchemaLabelList
   }
 })

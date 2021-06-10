@@ -71,7 +71,7 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 import { AddressMetadata as Address } from '../../store/modules/schema';
 
 @Component
-export default class SchemaAttributeAddressForm extends Vue {
+export default class SchemaAttributeAddressInput extends Vue {
   @Prop({
     default: () => ({
       addressee: '',
