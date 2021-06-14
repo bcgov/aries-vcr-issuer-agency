@@ -18,7 +18,15 @@
       </div>
       <div v-else>
         <v-card-title>Issuer Profile</v-card-title>
-        <v-list-item three-line>
+        <v-list-item v-if="profile && !profile.complete">
+          <v-list-item-content>
+            <v-list-item-subtitle>
+              Nothing to show here! Click on 'COMPLETE PROFILE' to create a
+              Profile.
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item v-else three-line>
           <v-list-item-avatar tile size="80" color="grey"></v-list-item-avatar>
           <v-list-item-content>
             <v-list-item-title>

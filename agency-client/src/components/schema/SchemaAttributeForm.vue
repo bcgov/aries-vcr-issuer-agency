@@ -6,12 +6,13 @@
         v-for="attribute in attributes"
         :key="attribute.id"
         :attribute="attribute"
+        :isEditMode="isEditMode"
         @removeAttribute="removeAttribute"
         @addLabel="addLabel"
         @removeLabel="removeLabel"
       />
     </div>
-    <v-btn block elevation="0" @click="addAttribute">
+    <v-btn block elevation="0" :disabled="isEditMode" @click="addAttribute">
       <v-icon left>mdi-plus-circle</v-icon>
       <span>Add Attribute</span>
     </v-btn>
@@ -20,7 +21,8 @@
 
 <script lang="ts">
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
-import SchemaAttributeInput, { Attribute } from './SchemaAttributeInput.vue';
+import { Attribute } from '../../utils/schema';
+import SchemaAttributeInput from './SchemaAttributeInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 
 export interface KeyedLocalizedLabel {
@@ -40,6 +42,7 @@ export interface KeyedLocale {
 })
 export default class SchemaAttributeForm extends Vue {
   @Prop() attributes!: Attribute[];
+  @Prop({ default: false }) isEditMode!: boolean;
 
   @Emit('addAttribute')
   addAttribute (): Attribute {

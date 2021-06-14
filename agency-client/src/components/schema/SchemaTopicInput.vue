@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import { Topic } from './SchemaAttributeInput.vue';
+import { Topic } from '../../utils/schema';
 
 @Component
 export default class SchemaTopicInput extends Vue {

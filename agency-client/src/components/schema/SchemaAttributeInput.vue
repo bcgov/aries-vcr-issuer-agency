@@ -8,6 +8,7 @@
           plain
           block
           elevation="0"
+          :disabled="isEditMode"
           @click="removeAttribute(attribute.id)"
         >
           <v-icon>mdi-delete</v-icon>
@@ -89,41 +90,11 @@
 <script lang="ts">
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import { KeyedLocale, KeyedLocalizedLabel } from './SchemaAttributeForm.vue';
-import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
+import SchemaLabelList from './SchemaLabelList.vue';
 import SchemaTopicInput from './SchemaTopicInput.vue';
 import SchemaAttributeAddressInput from './SchemaAttributeAddressInput.vue';
 import { LocalizedLabel } from './SchemLabelForm.vue';
-import { AddressMetadata as Address } from '../../store/modules/schema';
-
-export enum AttributeFieldType {
-  TEXT = 1,
-  NUMBER,
-  DATE,
-  ADDRESS,
-}
-
-export enum DateFieldType {
-  EFFECTIVE = 1,
-  REVOKED,
-  OTHER,
-}
-
-export interface Topic {
-  mapped: boolean;
-  schema: string;
-}
-
-export interface Attribute {
-  id: Readonly<number>;
-  name: string;
-  type: AttributeFieldType | null;
-  cardinal: boolean;
-  search: boolean;
-  topic: Topic | null;
-  dateType?: DateFieldType | null;
-  localizedLabels?: Record<string, Translation>;
-  address?: Address | null;
-}
+import { Attribute, AttributeFieldType, DateFieldType } from '../../utils/schema';
 
 @Component({
   components: {
@@ -138,7 +109,7 @@ export default class extends Vue {
 
   attributeTypes = [
     { label: 'Text', value: AttributeFieldType.TEXT },
-    { label: 'Number', value: AttributeFieldType.NUMBER },
+    // { label: 'Number', value: AttributeFieldType.NUMBER },
     { label: 'Date', value: AttributeFieldType.DATE },
     { label: 'Address', value: AttributeFieldType.ADDRESS }
   ];
@@ -150,6 +121,7 @@ export default class extends Vue {
   ];
 
   @Prop() attribute!: Attribute;
+  @Prop({ default: false }) isEditMode!: boolean;
 
   @Emit('removeAttribute')
   removeAttribute (id: number): number {

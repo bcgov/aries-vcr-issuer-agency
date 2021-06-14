@@ -17,6 +17,7 @@
                     required
                     v-model="name"
                     :rules="[() => !!name || 'This field is required']"
+                    :disabled="isEditMode"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="12">
@@ -27,6 +28,7 @@
                     required
                     v-model="version"
                     :rules="[() => !!version || 'This field is required']"
+                    :disabled="isEditMode"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -38,6 +40,7 @@
             </div>
             <SchemaAttributeForm
               :attributes="attributes"
+              :isEditMode="isEditMode"
               @addAttribute="addAttribute"
               @removeAttribute="removeAttribute"
               @addLabel="addAttrbuteLabel"
@@ -55,12 +58,12 @@
         </v-card>
       </v-container>
     </v-form>
-    <SchemaJsonOutput :schema="schema" />
+    <SchemaJsonOutput :schema="schemaJson" />
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Prop, Vue } from 'vue-property-decorator';
 import SchemaAlert from './SchemaAlert.vue';
 import SchemaLabelList, { Translation } from './SchemaLabelList.vue';
 import SchemaAttributeForm, {
@@ -70,8 +73,10 @@ import SchemaAttributeForm, {
 import {
   Attribute,
   AttributeFieldType,
-  DateFieldType
-} from './SchemaAttributeInput.vue';
+  DateFieldType,
+  formatAttributes,
+  formatLocalizedLabels
+} from '../../utils/schema';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import SchemaJsonOutput from './SchemaJsonOutput.vue';
 import {
@@ -104,7 +109,13 @@ export default class SchemaForm extends Vue {
   attributes!: Attribute[];
   localizedLabels!: Record<string, Translation>;
 
-  get schema (): Partial<Schema> {
+  @Prop() schema!: Schema | undefined;
+
+  get isEditMode (): boolean {
+    return !!this.schema;
+  }
+
+  get schemaJson (): Partial<Schema> {
     return {
       schema_name: this.name,
       schema_version: this.version.toString(),
@@ -206,13 +217,13 @@ export default class SchemaForm extends Vue {
   get errors (): Record<string, string> {
     let e = {};
     if (!this.attributes.length) {
-      e = { ...e, attribute: 'Should have at least one Attribute' };
+      e = { ...e, attribute: 'must have at least one attribute' };
     }
     if (!this.attributes.some((attribute) => attribute?.topic?.mapped)) {
       e = {
         ...e,
         topic:
-          'Should have at least one Attribute mapped as a Topic of a Credential'
+          'must have at least one attribute mapped as a Topic of a Credential'
       };
     }
     if (
@@ -225,7 +236,7 @@ export default class SchemaForm extends Vue {
       e = {
         ...e,
         effective_date:
-          'Should have at least one Attribute that is the Effective Date of a Credential'
+          'must have at least one attribute that is the Effective Date of a Credential'
       };
     }
     if (
@@ -238,18 +249,22 @@ export default class SchemaForm extends Vue {
       e = {
         ...e,
         revoked_date:
-          'Should have at least one Attribute that is the Revoked Date of a Credential'
+          'must have at least one attribute that is the Revoked Date of a Credential'
       };
     }
     return e;
   }
 
   data (): Data {
+    // const schemaLabels = this.schema?.metadata?.labels;
+    // const schemaTranslations = schemaLabels?.schema?.translations ||
+    //   schemaLabels?.schema as unknown as Record<string, Translation>;
+
     return {
-      name: '',
-      version: '',
-      attributes: [],
-      localizedLabels: {}
+      name: this.schema?.schema_name || '',
+      version: this.schema?.schema_version || '',
+      attributes: this.formatSchemaAttributes(this.schema),
+      localizedLabels: this.formatSchemaLocalizedLabels(this.schema)
     };
   }
 
@@ -309,10 +324,9 @@ export default class SchemaForm extends Vue {
     const isFormValid = (
       this.$refs.form as Vue & { validate: () => boolean }
     ).validate();
-    if (!isFormValid || Object.keys(this.errors).length) {
-      return;
+    if (isFormValid && !Object.keys(this.errors).length) {
+      // TODO: POST the schema!
     }
-    // TODO: POST the schema!
   }
 
   private removeLocalozedLabel (
@@ -365,6 +379,23 @@ export default class SchemaForm extends Vue {
       1,
       attribute
     );
+  }
+
+  private formatSchemaAttributes (schema?: Schema): Attribute[] {
+    if (!schema) {
+      return [];
+    }
+    return formatAttributes(schema.metadata, schema.attributes);
+  }
+
+  private formatSchemaLocalizedLabels (
+    schema?: Schema
+  ): Record<string, Translation> {
+    const labels = schema?.metadata?.labels?.schema;
+    if (!(schema && labels)) {
+      return {};
+    }
+    return formatLocalizedLabels(labels);
   }
 }
 </script>

@@ -21,6 +21,11 @@ const routes: Array<RouteConfig> = [
     path: '/schema/add',
     name: 'AddSchema',
     component: Schema
+  },
+  {
+    path: '/schema/:id/edit',
+    name: 'EditSchema',
+    component: Schema
   }
 ];
 

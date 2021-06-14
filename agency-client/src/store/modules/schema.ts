@@ -47,6 +47,7 @@ export interface Metadata {
 }
 
 export interface Schema {
+  id: number;
   schema_name: string;
   schema_version: string;
   attributes: string[];
@@ -62,6 +63,7 @@ const state = {
 };
 
 const getters = {
+  schemaById: (state: State) => (id: number): Schema | undefined => state.schemas.find(schema => schema.id === id),
   schemas: (state: State): Schema[] => state.schemas
 };
 
@@ -69,10 +71,15 @@ const actions = {
   async fetchSchemas ({ commit, getters }: ActionContext<State, RootState>): Promise<void> {
     const response = await axios.get(getters.controller.url.toString() + 'schema');
     commit('setSchemas', response.data);
+  },
+  async postSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
+    const response = await axios.post(getters.controller.url.toString() + 'schema', schema);
+    commit('addSchema', response.data);
   }
 };
 
 const mutations = {
+  addSchema: (state: State, schema: Schema): Schema[] => (state.schemas = [...state.schemas, schema]),
   setSchemas: (state: State, schemas: Schema[]): Schema[] => (state.schemas = schemas)
 };
 

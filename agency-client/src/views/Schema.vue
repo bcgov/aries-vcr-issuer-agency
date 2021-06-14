@@ -6,22 +6,25 @@
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item value="schema-form">
-        <SchemaForm />
+        <SchemaForm :schema="schema" />
       </v-tab-item>
       <v-tab-item value="schema-json-form">
-        <SchemaJsonForm />
+        <SchemaJsonForm :schema="schema" />
       </v-tab-item>
     </v-tabs-items>
   </v-container>
 </template>
 
 <script lang="ts">
+import { Schema } from 'ajv';
 import { Component, Vue } from 'vue-property-decorator';
+import { mapGetters } from 'vuex';
 import SchemaForm from '../components/schema/SchemaForm.vue';
 import SchemaJsonForm from '../components/schema/SchemaJsonForm.vue';
 
 interface Data {
   tab: string | null;
+  schema: Schema | null | undefined;
 }
 
 @Component({
@@ -29,13 +32,29 @@ interface Data {
   components: {
     SchemaForm,
     SchemaJsonForm
+  },
+  methods: {
+    ...mapGetters(['schemaById'])
   }
 })
 export default class extends Vue {
+  tab!: string;
+  schema!: Schema | null | undefined;
+
+  schemaById: (id: number) => Schema | undefined = this.$store.getters.schemaById;
+
   data (): Data {
     return {
-      tab: null
+      tab: null,
+      schema: null
     };
+  }
+
+  created (): void {
+    const id = +this.$route.params.id;
+    if (id) {
+      this.schema = this.schemaById(id);
+    }
   }
 }
 </script>
