@@ -87,6 +87,7 @@ import {
   Schema,
   TopicMetadata
 } from '../../store/modules/schema';
+import { mapActions } from 'vuex';
 
 interface Data {
   name: string;
@@ -101,6 +102,9 @@ interface Data {
     SchemaLabelList,
     SchemaAttributeForm,
     SchemaJsonOutput
+  },
+  methods: {
+    ...mapActions(['addSchema', 'updateSchema'])
   }
 })
 export default class SchemaForm extends Vue {
@@ -108,6 +112,9 @@ export default class SchemaForm extends Vue {
   version!: number;
   attributes!: Attribute[];
   localizedLabels!: Record<string, Translation>;
+
+  addSchema!: (schema: Schema) => void;
+  updateSchema!: (schema: Schema) => void;
 
   @Prop() schema!: Schema | undefined;
 
@@ -256,10 +263,6 @@ export default class SchemaForm extends Vue {
   }
 
   data (): Data {
-    // const schemaLabels = this.schema?.metadata?.labels;
-    // const schemaTranslations = schemaLabels?.schema?.translations ||
-    //   schemaLabels?.schema as unknown as Record<string, Translation>;
-
     return {
       name: this.schema?.schema_name || '',
       version: this.schema?.schema_version || '',
@@ -325,7 +328,11 @@ export default class SchemaForm extends Vue {
       this.$refs.form as Vue & { validate: () => boolean }
     ).validate();
     if (isFormValid && !Object.keys(this.errors).length) {
-      // TODO: POST the schema!
+      if (this.isEditMode) {
+        this.updateSchema(this.schemaJson as Schema);
+      } else {
+        this.addSchema(this.schemaJson as Schema);
+      }
     }
   }
 

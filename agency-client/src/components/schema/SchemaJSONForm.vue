@@ -56,11 +56,11 @@
 </template>
 
 <script lang="ts">
-import { Schema } from 'ajv';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { mapActions } from 'vuex';
 import validate from '../../json-schemas/schema';
 import router from '../../router';
+import { Schema } from '../../store/modules/schema';
 
 interface Data {
   jsonInput: string;
@@ -71,7 +71,7 @@ interface Data {
 
 @Component({
   methods: {
-    ...mapActions(['postSchema'])
+    ...mapActions(['addSchema', 'updateSchema'])
   }
 })
 export default class SchemaJsonForm extends Vue {
@@ -79,9 +79,15 @@ export default class SchemaJsonForm extends Vue {
   jsonOutput!: unknown;
   parseError!: boolean;
   validationError!: boolean;
-  postSchema!: (schema: Schema) => void;
+
+  addSchema!: (schema: Schema) => void;
+  updateSchema!: (schema: Schema) => void;
 
   @Prop() schema!: Schema | undefined;
+
+  get isEditMode (): boolean {
+    return !!this.schema;
+  }
 
   get errors (): Record<string, string> {
     let e: { [key: string]: string } = {};
@@ -91,13 +97,36 @@ export default class SchemaJsonForm extends Vue {
         e = { [error.instancePath || '/']: error.message || '' };
       }
     }
+    if (this.isEditMode && this.schema) {
+      const current = this.jsonOutput as Schema;
+      const nameChanged = current.schema_name !== this.schema.schema_name;
+      const versionChanged =
+        current.schema_version !== this.schema.schema_version;
+      const attributesChanged =
+        JSON.stringify(current.attributes) !==
+        JSON.stringify(this.schema.attributes);
+      if (nameChanged || versionChanged || attributesChanged) {
+        e = {
+          ...e,
+          '/metadata': 'can only have metadata changed when updating a Schema'
+        };
+      }
+    }
     return e;
   }
 
   data (): Data {
+    let input = '';
+    let output = {};
+    if (this.schema) {
+      input = JSON.stringify(this.schema, null, 2);
+      this.parseJson(input);
+      output = this.jsonOutput as Schema;
+    }
+
     return {
-      jsonInput: '',
-      jsonOutput: {},
+      jsonInput: input,
+      jsonOutput: output,
       parseError: false,
       validationError: false
     };
@@ -119,7 +148,11 @@ export default class SchemaJsonForm extends Vue {
 
   submit (): void {
     if (!(this.parseError && this.validationError)) {
-      this.postSchema(this.jsonOutput as Schema);
+      if (this.isEditMode) {
+        this.updateSchema(this.jsonOutput as Schema);
+      } else {
+        this.addSchema(this.jsonOutput as Schema);
+      }
       router.push('/');
     }
   }

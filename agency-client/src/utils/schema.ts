@@ -102,7 +102,7 @@ export function formatDataType (
     return { type: AttributeFieldType.DATE, subtype: DateFieldType.EFFECTIVE };
   } else if (metadata?.date_fields?.revoked_date === attribute) {
     return { type: AttributeFieldType.DATE, subtype: DateFieldType.REVOKED };
-  } else if (metadata?.date_fields?.revoked_date.indexOf(attribute) >= 0) {
+  } else if (metadata?.date_fields?.other_date_fields.indexOf(attribute) >= 0) {
     return { type: AttributeFieldType.DATE, subtype: DateFieldType.OTHER };
   }
   return type;

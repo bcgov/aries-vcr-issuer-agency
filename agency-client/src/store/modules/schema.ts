@@ -72,14 +72,25 @@ const actions = {
     const response = await axios.get(getters.controller.url.toString() + 'schema');
     commit('setSchemas', response.data);
   },
-  async postSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
+  async addSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
     const response = await axios.post(getters.controller.url.toString() + 'schema', schema);
     commit('addSchema', response.data);
+  },
+  async updateSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
+    const response = await axios.put(getters.controller.url.toString() + 'schema', schema);
+    commit('setSchema', { ...response.data, id: schema.id });
   }
 };
 
 const mutations = {
-  addSchema: (state: State, schema: Schema): Schema[] => (state.schemas = [...state.schemas, schema]),
+  addSchema: (state: State, added: Schema): Schema[] => (state.schemas = [
+    ...state.schemas, added
+  ]),
+  setSchema: (state: State, updated: Schema): Schema[] => {
+    const schemas = [...state.schemas];
+    schemas.splice(state.schemas.findIndex(schema => schema.id === updated.id), 1, updated);
+    return (state.schemas = schemas);
+  },
   setSchemas: (state: State, schemas: Schema[]): Schema[] => (state.schemas = schemas)
 };
 
