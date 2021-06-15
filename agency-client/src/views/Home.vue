@@ -1,40 +1,44 @@
 <template>
   <div>
-    <v-container>
-      <Profile />
-    </v-container>
-    <v-container v-if="profile && profile.complete">
-      <SchemaList />
-    </v-container>
+    <v-progress-linear indeterminate v-if="loading"></v-progress-linear>
+    <AppRouterView v-else />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { mapActions, mapGetters } from 'vuex';
-import Profile from '../components/profile/Profile.vue';
-import SchemaList from '../components/schema/SchemaList.vue';
+import { mapActions } from 'vuex';
+import AppRouterView from '../components/app/AppRouterView.vue';
+
+interface Data {
+  loading: boolean;
+}
 
 @Component({
   name: 'Home',
   components: {
-    Profile,
-    SchemaList
-  },
-  computed: {
-    ...mapGetters(['profile'])
+    AppRouterView
   },
   methods: {
     ...mapActions(['fetchProfile', 'fetchSchemas'])
   }
 })
 export default class HomeView extends Vue {
-  fetchProfile!: () => void;
-  fetchSchemas!: () => void;
+  loading!: boolean;
 
-  created (): void {
-    this.fetchProfile();
-    this.fetchSchemas();
+  fetchProfile!: () => Promise<void>;
+  fetchSchemas!: () => Promise<void>;
+
+  data (): Data {
+    return {
+      loading: true
+    };
+  }
+
+  async created (): Promise<void> {
+    await this.fetchProfile();
+    await this.fetchSchemas();
+    this.loading = false;
   }
 }
 </script>

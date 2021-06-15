@@ -71,13 +71,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import { mapGetters } from 'vuex';
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import { IssuerProfile } from '../../store/modules/profile';
 
-@Component({
-  computed: {
-    ...mapGetters(['profile'])
-  }
-})
-export default class Profile extends Vue {}
+@Component
+export default class ProfileCard extends Vue {
+  @Prop() profile!: IssuerProfile;
+}
 </script>

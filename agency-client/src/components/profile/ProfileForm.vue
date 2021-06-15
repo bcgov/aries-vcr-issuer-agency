@@ -66,21 +66,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import { mapActions, mapGetters } from 'vuex';
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import { mapActions } from 'vuex';
 import router from '../../router';
 import { IssuerProfile } from '../../store/modules/profile';
 
 @Component({
-  computed: {
-    ...mapGetters(['profile'])
-  },
   methods: {
     ...mapActions(['updateProfile'])
   }
 })
 export default class ProfileForm extends Vue {
-  profile!: IssuerProfile;
+  @Prop() profile!: IssuerProfile;
 
   updateProfile!: (profile: IssuerProfile) => void;
 

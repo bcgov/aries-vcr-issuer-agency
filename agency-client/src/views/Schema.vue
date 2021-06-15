@@ -34,7 +34,7 @@ interface Data {
     SchemaJsonForm
   },
   methods: {
-    ...mapGetters(['schemaById'])
+    ...mapGetters(['schemaById', 'schemas'])
   }
 })
 export default class extends Vue {

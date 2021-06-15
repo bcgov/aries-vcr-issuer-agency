@@ -37,13 +37,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import { mapGetters } from 'vuex';
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Schema } from '../../store/modules/schema';
 
-@Component({
-  computed: {
-    ...mapGetters(['schemas'])
-  }
-})
-export default class SchemaList extends Vue {}
+@Component
+export default class SchemaList extends Vue {
+  @Prop() schemas!: Schema[];
+}
 </script>
