@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
+import Credential from '@/views/Credential.vue';
 import Dashboard from '@/views/Dashboard.vue';
 import Home from '@/views/Home.vue';
 import Profile from '@/views/Profile.vue';
@@ -42,9 +43,21 @@ const routes: Array<RouteConfig> = [
             component: Schema
           },
           {
-            path: ':id/edit',
+            path: ':name/:version/edit',
             name: 'EditSchema',
             component: Schema
+          }
+        ]
+      },
+      {
+        path: 'credential',
+        name: 'Credential',
+        component: AppRouterView,
+        children: [
+          {
+            path: 'issue',
+            name: 'IssueCredential',
+            component: Credential
           }
         ]
       }

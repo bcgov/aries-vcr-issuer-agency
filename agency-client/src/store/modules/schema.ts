@@ -63,20 +63,33 @@ const state = {
 };
 
 const getters = {
-  schemaById: (state: State) => (id: number): Schema | undefined => state.schemas.find(schema => schema.id === id),
+  schemaByNameVersion: (
+    state: State
+  ) => (
+    name: string, version: string
+  ): Schema | undefined => state.schemas
+    .find(schema => schema.schema_name === name && schema.schema_version === version),
   schemas: (state: State): Schema[] => state.schemas
 };
 
 const actions = {
-  async fetchSchemas ({ commit, getters }: ActionContext<State, RootState>): Promise<void> {
+  async fetchSchemas (
+    { commit, getters }: ActionContext<State, RootState>
+  ): Promise<void> {
     const response = await axios.get(getters.controller.url.toString() + 'schema');
     commit('setSchemas', response.data);
   },
-  async addSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
+  async addSchema (
+    { commit, getters }: ActionContext<State, RootState>,
+    schema: Schema
+  ): Promise<void> {
     const response = await axios.post(getters.controller.url.toString() + 'schema', schema);
     commit('addSchema', response.data);
   },
-  async updateSchema ({ commit, getters }: ActionContext<State, RootState>, schema: Schema): Promise<void> {
+  async updateSchema (
+    { commit, getters }: ActionContext<State, RootState>,
+    schema: Schema
+  ): Promise<void> {
     const response = await axios.put(getters.controller.url.toString() + 'schema', schema);
     commit('setSchema', { ...response.data, id: schema.id });
   }

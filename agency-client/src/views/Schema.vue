@@ -34,14 +34,15 @@ interface Data {
     SchemaJsonForm
   },
   methods: {
-    ...mapGetters(['schemaById', 'schemas'])
+    ...mapGetters(['schemaByNameVersion', 'schemas'])
   }
 })
 export default class extends Vue {
   tab!: string;
   schema!: Schema | null | undefined;
 
-  schemaById: (id: number) => Schema | undefined = this.$store.getters.schemaById;
+  schemaByNameVersion: (name: string, version: string) => Schema | undefined =
+    this.$store.getters.schemaByNameVersion;
 
   data (): Data {
     return {
@@ -51,9 +52,10 @@ export default class extends Vue {
   }
 
   created (): void {
-    const id = +this.$route.params.id;
-    if (id) {
-      this.schema = this.schemaById(id);
+    const name = this.$route.params.name;
+    const version = this.$route.params.version;
+    if (name && version) {
+      this.schema = this.schemaByNameVersion(name, version);
     }
   }
 }
