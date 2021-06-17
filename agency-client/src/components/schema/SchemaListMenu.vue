@@ -6,7 +6,16 @@
       </v-btn>
     </template>
     <v-list dense>
-      <v-list-item router-link to="/credential/issue">
+      <v-list-item
+        router-link
+        :to="{
+          path: `/credential/issue`,
+          query: {
+            schema_name: schema.schema_name,
+            schema_version: schema.schema_version
+          },
+        }"
+      >
         <v-list-item-title>Issue Credential</v-list-item-title>
       </v-list-item>
       <v-list-item

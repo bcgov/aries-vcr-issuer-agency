@@ -74,8 +74,8 @@ import {
   Attribute,
   AttributeFieldType,
   DateFieldType,
-  formatAttributes,
-  formatLocalizedLabels
+  formatSchemaAttributes,
+  formatSchemaLocalizedLabels
 } from '../../utils/schema';
 import { LocalizedLabel } from './SchemLabelForm.vue';
 import SchemaJsonOutput from './SchemaJsonOutput.vue';
@@ -116,7 +116,7 @@ export default class SchemaForm extends Vue {
   addSchema!: (schema: Schema) => void;
   updateSchema!: (schema: Schema) => void;
 
-  @Prop() schema!: Schema | undefined;
+  @Prop() schema!: Schema | null | undefined;
 
   get isEditMode (): boolean {
     return !!this.schema;
@@ -266,8 +266,8 @@ export default class SchemaForm extends Vue {
     return {
       name: this.schema?.schema_name || '',
       version: this.schema?.schema_version || '',
-      attributes: this.formatSchemaAttributes(this.schema),
-      localizedLabels: this.formatSchemaLocalizedLabels(this.schema)
+      attributes: formatSchemaAttributes(this.schema),
+      localizedLabels: formatSchemaLocalizedLabels(this.schema)
     };
   }
 
@@ -386,23 +386,6 @@ export default class SchemaForm extends Vue {
       1,
       attribute
     );
-  }
-
-  private formatSchemaAttributes (schema?: Schema): Attribute[] {
-    if (!schema) {
-      return [];
-    }
-    return formatAttributes(schema.metadata, schema.attributes);
-  }
-
-  private formatSchemaLocalizedLabels (
-    schema?: Schema
-  ): Record<string, Translation> {
-    const labels = schema?.metadata?.labels?.schema;
-    if (!(schema && labels)) {
-      return {};
-    }
-    return formatLocalizedLabels(labels);
   }
 }
 </script>

@@ -2,7 +2,8 @@ import {
   Metadata,
   MetadataTranslation,
   Translation,
-  AddressMetadata as Address
+  AddressMetadata as Address,
+  Schema
 } from '@/store/modules/schema';
 
 export enum AttributeFieldType {
@@ -35,10 +36,22 @@ export interface Attribute {
   address?: Address | null;
 }
 
-export function formatAttributes (
-  metadata: Metadata,
-  attributes: string[]
-): Attribute[] {
+export function formatSchemaAttributes (schema: Schema | null | undefined): Attribute[] {
+  if (!schema) {
+    return [];
+  }
+  return formatAttributes(schema.metadata, schema.attributes);
+}
+
+export function formatSchemaLocalizedLabels (schema: Schema | null | undefined): Record<string, Translation> {
+  const labels = schema?.metadata?.labels?.schema;
+  if (!(schema && labels)) {
+    return {};
+  }
+  return formatLocalizedLabels(labels);
+}
+
+export function formatAttributes (metadata: Metadata, attributes: string[]): Attribute[] {
   return attributes.map((attribute: string, idx: number) => {
     const labels =
       metadata?.labels?.attributes.find(

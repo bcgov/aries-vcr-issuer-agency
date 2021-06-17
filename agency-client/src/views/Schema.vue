@@ -33,8 +33,11 @@ interface Data {
     SchemaForm,
     SchemaJsonForm
   },
+  computed: {
+    ...mapGetters(['schemas'])
+  },
   methods: {
-    ...mapGetters(['schemaByNameVersion', 'schemas'])
+    ...mapGetters(['schemaByNameVersion'])
   }
 })
 export default class extends Vue {
@@ -52,8 +55,7 @@ export default class extends Vue {
   }
 
   created (): void {
-    const name = this.$route.params.name;
-    const version = this.$route.params.version;
+    const { name, version } = this.$route.params;
     if (name && version) {
       this.schema = this.schemaByNameVersion(name, version);
     }
