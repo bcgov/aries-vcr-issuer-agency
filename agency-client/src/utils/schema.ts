@@ -9,13 +9,13 @@ export enum AttributeFieldType {
   TEXT = 1,
   NUMBER,
   DATE,
-  ADDRESS,
+  ADDRESS
 }
 
 export enum DateFieldType {
   EFFECTIVE = 1,
   REVOKED,
-  OTHER,
+  OTHER
 }
 
 export interface Topic {

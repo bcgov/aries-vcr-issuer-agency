@@ -109,9 +109,9 @@ export default class extends Vue {
 
   attributeTypes = [
     { label: 'Text', value: AttributeFieldType.TEXT },
-    // { label: 'Number', value: AttributeFieldType.NUMBER },
-    { label: 'Date', value: AttributeFieldType.DATE },
-    { label: 'Address', value: AttributeFieldType.ADDRESS }
+    { label: 'Date', value: AttributeFieldType.DATE }
+    // { label: 'Number', value: AttributeFieldType.NUMBER }
+    // { label: 'Address', value: AttributeFieldType.ADDRESS }
   ];
 
   dateTypes = [
