@@ -1,12 +1,13 @@
 <template>
   <v-row>
     <v-col cols="12" md="4">
-      <v-switch
+      <v-checkbox
         label="Map attribute as Topic"
         inset
         dense
+        hide-details
         v-model="topic.mapped"
-      ></v-switch>
+      ></v-checkbox>
     </v-col>
     <v-col v-if="topic.mapped" cols="12" md="6">
       <v-combobox
@@ -14,6 +15,7 @@
         hint="Leaving this blank will default to current Schema"
         persistent-hint
         outlined
+        dense
         v-model="topic.schema"
         @input="handleSchemaInput"
       ></v-combobox>

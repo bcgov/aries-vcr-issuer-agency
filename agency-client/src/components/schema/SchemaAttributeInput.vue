@@ -21,6 +21,7 @@
         <v-text-field
           label="Name"
           outlined
+          dense
           required
           :rules="[() => !!attribute.name || 'This field is required']"
           v-model="attribute.name"
@@ -30,6 +31,7 @@
         <v-select
           label="Type"
           outlined
+          dense
           required
           :rules="[() => !!attribute.type || 'This field is required']"
           :items="attributeTypes"
@@ -43,6 +45,7 @@
           v-if="attribute.type === attributeFieldType.DATE"
           label="Date Type"
           outlined
+          dense
           required
           :rules="[() => !!attribute.dateType || 'This field is required']"
           :items="dateTypes"
@@ -52,38 +55,34 @@
         ></v-select>
       </v-col>
     </v-row>
-    <SchemaAttributeAddressInput
-      :address="attribute.address"
-      v-if="attribute.type === attributeFieldType.ADDRESS"
-    />
-    <v-row dense no-gutters>
-      <v-col cols="12" md="12">
-        <v-switch
-          label="Make attribute searchable"
-          inset
-          dense
-          hide-details
-          v-model="attribute.search"
-        ></v-switch>
-      </v-col>
-      <v-col cols="12" md="12">
-        <v-switch
-          label="Attribute has cardinality"
-          inset
-          dense
-          hide-details
-          v-model="attribute.cardinal"
-        ></v-switch>
-      </v-col>
-      <v-col cols="12" md="12">
-        <SchemaTopicInput :topic="attribute.topic" />
-      </v-col>
-    </v-row>
     <SchemaLabelList
       :labels="attribute.localizedLabels"
       @addLabel="addLabel(attribute.id, $event)"
       @removeLabel="removeLabel(attribute.id, $event)"
     />
+    <v-row dense>
+      <v-col cols="12" md="12">
+        <v-checkbox
+          label="Make attribute searchable"
+          inset
+          dense
+          hide-details
+          v-model="attribute.search"
+        ></v-checkbox>
+      </v-col>
+      <v-col cols="12" md="12">
+        <v-checkbox
+          label="Attribute has cardinality"
+          inset
+          dense
+          hide-details
+          v-model="attribute.cardinal"
+        ></v-checkbox>
+      </v-col>
+      <v-col cols="12" md="12">
+        <SchemaTopicInput :topic="attribute.topic" />
+      </v-col>
+    </v-row>
   </div>
 </template>
 
