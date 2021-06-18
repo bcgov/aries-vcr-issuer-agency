@@ -180,55 +180,57 @@ describe('\'credential\' service', () => {
     ]);
   });
 
-  it('should return a valid response even if a credential is not succesffully issued', async () => {
-    const credentialService = app.service('issuer/credential');
-    const profileWithSchema = await app.service('issuer/model').get(profile._id);
-    const params = {
-      profile: profileWithSchema,
-      headers: context.params.headers
-    } as unknown as IssuerServiceParams;
+  it('should return a valid response even if one or more credentials aren\'t succesffully issued',
+    async () => {
+      const credentialService = app.service('issuer/credential');
+      const profileWithSchema = await app.service('issuer/model').get(profile._id);
+      const params = {
+        profile: profileWithSchema,
+        headers: context.params.headers
+      } as unknown as IssuerServiceParams;
 
-    jest.spyOn(sleep, 'deferServiceOnce')
-      .mockReset()
-      .mockImplementationOnce((id) => mockSuccess(params, id))
-      .mockImplementationOnce((id) => mockError(params, id));
+      jest.spyOn(sleep, 'deferServiceOnce')
+        .mockReset()
+        .mockImplementationOnce((id) => mockSuccess(params, id))
+        .mockImplementationOnce((id) => mockError(params, id));
 
-    const credentials = [
-      { ...credential, reservation_number: '000003' },
-      { ...credential, reservation_number: '000004' }
-    ];
-    await credentialService.create(credentials, params);
-    expect(params.credentials.results).toBeInstanceOf(Array);
-    expect(params.credentials.results).toEqual([
-      { cred_ex_id: 'credential-exchange-id', success: true, error: undefined },
-      { cred_ex_id: 'credential-exchange-id', success: false, error: undefined }
-    ]);
-  });
+      const credentials = [
+        { ...credential, reservation_number: '000003' },
+        { ...credential, reservation_number: '000004' }
+      ];
+      await credentialService.create(credentials, params);
+      expect(params.credentials.results).toBeInstanceOf(Array);
+      expect(params.credentials.results).toEqual([
+        { cred_ex_id: 'credential-exchange-id', success: true, error: undefined },
+        { cred_ex_id: 'credential-exchange-id', success: false, error: undefined }
+      ]);
+    });
 
-  it('should return a valid response even if a credential is not succesffully issued', async () => {
-    const credentialService = app.service('issuer/credential');
-    const profileWithSchema = await app.service('issuer/model').get(profile._id);
-    const params = {
-      profile: profileWithSchema,
-      headers: context.params.headers
-    } as unknown as IssuerServiceParams;
+  it('should return a valid response even if all credentials aren\'t succesffully issued',
+    async () => {
+      const credentialService = app.service('issuer/credential');
+      const profileWithSchema = await app.service('issuer/model').get(profile._id);
+      const params = {
+        profile: profileWithSchema,
+        headers: context.params.headers
+      } as unknown as IssuerServiceParams;
 
-    jest.spyOn(sleep, 'deferServiceOnce')
-      .mockReset()
-      .mockImplementationOnce((id) => mockError(params, id))
-      .mockImplementationOnce((id) => mockError(params, id));
+      jest.spyOn(sleep, 'deferServiceOnce')
+        .mockReset()
+        .mockImplementationOnce((id) => mockError(params, id))
+        .mockImplementationOnce((id) => mockError(params, id));
 
-    const credentials = [
-      { ...credential, reservation_number: '000005' },
-      { ...credential, reservation_number: '000006' }
-    ];
-    await credentialService.create(credentials, params);
-    expect(params.credentials.results).toBeInstanceOf(Array);
-    expect(params.credentials.results).toEqual([
-      { cred_ex_id: 'credential-exchange-id', success: false, error: undefined },
-      { cred_ex_id: 'credential-exchange-id', success: false, error: undefined }
-    ]);
-  });
+      const credentials = [
+        { ...credential, reservation_number: '000005' },
+        { ...credential, reservation_number: '000006' }
+      ];
+      await credentialService.create(credentials, params);
+      expect(params.credentials.results).toBeInstanceOf(Array);
+      expect(params.credentials.results).toEqual([
+        { cred_ex_id: 'credential-exchange-id', success: false, error: undefined },
+        { cred_ex_id: 'credential-exchange-id', success: false, error: undefined }
+      ]);
+    });
 
   it('should throw a bad request error when existing schema is not found', async () => {
     const credentialService = app.service('issuer/credential');

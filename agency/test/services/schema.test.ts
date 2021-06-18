@@ -218,7 +218,7 @@ describe('\'schema\' service', () => {
           .rejects.toThrowError(CredDefError);
       });
 
-    it('should throw an error if differed schema endrosement was unsuccessful', async () => {
+    it('should throw an error if deferred schema endrosement was unsuccessful', async () => {
       const schemaService = app.service('issuer/schema');
 
       setupSuccessfulAgent();
@@ -231,7 +231,7 @@ describe('\'schema\' service', () => {
         .rejects.toThrowError(EndorserError);
     });
 
-    it('should throw an error if differed credential definition endrosement was unsuccessful',
+    it('should throw an error if deferred credential definition endrosement was unsuccessful',
       async () => {
         const schemaService = app.service('issuer/schema');
 
