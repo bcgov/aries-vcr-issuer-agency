@@ -3,6 +3,9 @@
 import axios from 'axios';
 import { ActionContext } from 'vuex';
 import { State as RootState } from '@/store/index';
+import { ISSUER_API_KEY } from './app';
+
+const ISSUER_SCHEMA_URL = 'issuer/schema';
 
 export interface TopicMetadata {
   name: string;
@@ -76,21 +79,23 @@ const actions = {
   async fetchSchemas (
     { commit, getters }: ActionContext<State, RootState>
   ): Promise<void> {
-    const response = await axios.get(getters.controller.url.toString() + 'schema');
+    const response = await axios.get(getters.controller.url.toString() + ISSUER_SCHEMA_URL, {
+      headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
+    });
     commit('setSchemas', response.data);
   },
   async addSchema (
     { commit, getters }: ActionContext<State, RootState>,
     schema: Schema
   ): Promise<void> {
-    const response = await axios.post(getters.controller.url.toString() + 'schema', schema);
+    const response = await axios.post(getters.controller.url.toString() + ISSUER_SCHEMA_URL, schema);
     commit('addSchema', response.data);
   },
   async updateSchema (
     { commit, getters }: ActionContext<State, RootState>,
     schema: Schema
   ): Promise<void> {
-    const response = await axios.put(getters.controller.url.toString() + 'schema', schema);
+    const response = await axios.put(getters.controller.url.toString() + ISSUER_SCHEMA_URL, schema);
     commit('setSchema', { ...response.data, id: schema.id });
   }
 };

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container>
+    <v-container v-if="profile">
       <ProfileCard :profile="profile" />
     </v-container>
     <v-container v-if="profile && profile.complete">

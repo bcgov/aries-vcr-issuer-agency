@@ -2,6 +2,9 @@ import axios from 'axios';
 import { ActionContext } from 'vuex';
 import { State as RootState } from '@/store/index';
 import { processProfile } from '@/utils/profile';
+import { ISSUER_API_KEY } from './app';
+
+const ISSUER_PROFILE_URL = 'issuer/profile';
 
 export interface IssuerProfile {
   did?: Readonly<string>;
@@ -11,33 +14,35 @@ export interface IssuerProfile {
   url?: string;
   email?: string;
   logo?: string;
-  complete: boolean;
+  complete?: boolean;
   [key: string]: string | boolean | undefined;
 }
 
 export interface State {
-  profile: IssuerProfile;
+  profile: IssuerProfile | null;
 }
 
 const state: State = {
-  profile: {
-    complete: false
-  }
+  profile: null
 };
 
 const getters = {
-  profile: (state: State): IssuerProfile => state.profile
+  profile: (state: State): IssuerProfile | null => state.profile
 };
 
 const actions = {
   async fetchProfile ({ commit, getters }:
     ActionContext<State, RootState>): Promise<void> {
-    const response = await axios.get(getters.controller.url.toString() + 'profile');
+    const response = await axios.get(getters.controller.url.toString() + ISSUER_PROFILE_URL, {
+      headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
+    });
     commit('setProfile', response.data);
   },
   async updateProfile ({ commit, getters }:
     ActionContext<State, RootState>, profile: IssuerProfile): Promise<void> {
-    const response = await axios.patch(getters.controller.url.toString() + 'profile', profile);
+    const response = await axios.post(getters.controller.url.toString() + ISSUER_PROFILE_URL, profile, {
+      headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
+    });
     commit('setProfile', response.data);
   }
 };

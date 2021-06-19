@@ -1,5 +1,5 @@
 <template>
-  <v-form ref="form">
+  <v-form ref="form" :disabled="loading">
     <v-container>
       <v-card>
         <v-card-title>Issuer Profile</v-card-title>
@@ -58,7 +58,14 @@
         <v-card-actions>
           <v-btn text router-link to="/">Cancel</v-btn>
           <v-spacer></v-spacer>
-          <v-btn text color="primary" type="submit" @click="submit">Save</v-btn>
+          <v-btn
+            text
+            color="primary"
+            type="submit"
+            @click="submit"
+            :disabled="loading"
+            >Save</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-container>
@@ -67,28 +74,34 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import router from '../../router';
 import { IssuerProfile } from '../../store/modules/profile';
 
 @Component({
+  computed: {
+    ...mapGetters(['loading'])
+  },
   methods: {
-    ...mapActions(['updateProfile'])
+    ...mapActions(['setLoading', 'updateProfile'])
   }
 })
 export default class ProfileForm extends Vue {
   @Prop() profile!: IssuerProfile;
 
+  setLoading!: (loading: boolean) => void;
   updateProfile!: (profile: IssuerProfile) => void;
 
-  submit (e: Event): void {
+  async submit (e: Event): Promise<void> {
     e.preventDefault();
     const isFormValid = (
       this.$refs.form as Vue & { validate: () => boolean }
     ).validate();
     if (isFormValid) {
-      this.updateProfile(this.profile);
+      this.setLoading(true);
+      await this.updateProfile(this.profile);
       router.push('/');
+      this.setLoading(false);
     }
   }
 }

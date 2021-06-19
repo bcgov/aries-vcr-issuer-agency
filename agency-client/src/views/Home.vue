@@ -1,44 +1,65 @@
 <template>
   <div>
     <v-progress-linear indeterminate v-if="loading"></v-progress-linear>
-    <AppRouterView v-else />
+    <AppRouterView v-if="authenticated" />
+    <AppLogin v-else />
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import { mapActions } from 'vuex';
+import { Component, Vue, Watch } from 'vue-property-decorator';
+import { mapActions, mapGetters } from 'vuex';
 import AppRouterView from '../components/app/AppRouterView.vue';
-
-interface Data {
-  loading: boolean;
-}
+import AppLogin from '../components/app/AppLogin.vue';
 
 @Component({
   name: 'Home',
   components: {
-    AppRouterView
+    AppRouterView,
+    AppLogin
+  },
+  computed: {
+    ...mapGetters(['loading', 'authenticated'])
   },
   methods: {
-    ...mapActions(['fetchProfile', 'fetchSchemas'])
+    ...mapActions([
+      'setLoading',
+      'fetchProfile',
+      'fetchSchemas',
+      'deauthenticate'
+    ])
   }
 })
 export default class HomeView extends Vue {
-  loading!: boolean;
+  authenticated!: boolean;
 
+  setLoading!: (loading: boolean) => void;
   fetchProfile!: () => Promise<void>;
   fetchSchemas!: () => Promise<void>;
-
-  data (): Data {
-    return {
-      loading: true
-    };
-  }
+  deauthenticate!: () => void;
 
   async created (): Promise<void> {
-    await this.fetchProfile();
-    await this.fetchSchemas();
-    this.loading = false;
+    await this.load();
+  }
+
+  @Watch('authenticated')
+  onAuthenticated (): void {
+    this.load();
+  }
+
+  private async load (): Promise<void> {
+    try {
+      this.setLoading(true);
+      if (this.authenticated) {
+        await this.fetchProfile();
+        await this.fetchSchemas();
+      }
+    } catch (e) {
+      // TODO:
+      this.deauthenticate();
+    } finally {
+      this.setLoading(false);
+    }
   }
 }
 </script>
