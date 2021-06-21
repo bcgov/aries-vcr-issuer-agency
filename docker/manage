@@ -67,7 +67,7 @@ configureEnvironment () {
 
   # global
   export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-vcr-issuer-agency}"
-  export LEDGER_URL=${LEDGER-http://$DOCKERHOST:9000}
+  export LEDGER_URL=${LEDGER_URL-http://$DOCKERHOST:9000}
   export LOG_LEVEL=${LOG_LEVEL:-DEBUG}
 
   # agency
