@@ -3,6 +3,11 @@
     <v-progress-linear indeterminate v-if="loading"></v-progress-linear>
     <AppRouterView v-if="authenticated" />
     <AppLogin v-else />
+    <AppSnackbar
+      v-for="alert in alerts"
+      :key="alert.id"
+      :alert="alert"
+    ></AppSnackbar>
   </div>
 </template>
 
@@ -11,18 +16,22 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 import { mapActions, mapGetters } from 'vuex';
 import AppRouterView from '../components/app/AppRouterView.vue';
 import AppLogin from '../components/app/AppLogin.vue';
+import AppSnackbar from '../components/app/AppSnackbar.vue';
+import { Alert, AlertType } from '../store/modules/alert';
 
 @Component({
   name: 'Home',
   components: {
     AppRouterView,
-    AppLogin
+    AppLogin,
+    AppSnackbar
   },
   computed: {
-    ...mapGetters(['loading', 'authenticated'])
+    ...mapGetters(['loading', 'alerts', 'authenticated'])
   },
   methods: {
     ...mapActions([
+      'addAlert',
       'setLoading',
       'fetchProfile',
       'fetchSchemas',
@@ -32,11 +41,13 @@ import AppLogin from '../components/app/AppLogin.vue';
 })
 export default class HomeView extends Vue {
   authenticated!: boolean;
+  alerts!: Alert[];
 
-  setLoading!: (loading: boolean) => void;
+  addAlert!: (alert: Alert) => void;
+  deauthenticate!: () => void;
   fetchProfile!: () => Promise<void>;
   fetchSchemas!: () => Promise<void>;
-  deauthenticate!: () => void;
+  setLoading!: (loading: boolean) => void;
 
   async created (): Promise<void> {
     await this.load();
@@ -56,6 +67,10 @@ export default class HomeView extends Vue {
       }
     } catch (e) {
       // TODO:
+      this.addAlert({
+        type: AlertType.ERROR,
+        msg: 'Unable to authenticate'
+      });
       this.deauthenticate();
     } finally {
       this.setLoading(false);

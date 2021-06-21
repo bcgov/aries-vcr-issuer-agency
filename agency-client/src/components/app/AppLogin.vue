@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <v-form ref="form">
     <v-container>
       <v-row justify="center">
         <v-col cols="12" md="6">
@@ -15,7 +15,9 @@
             </v-container>
             <v-divider></v-divider>
             <v-card-actions>
-              <v-btn text block color="primary" @click="login">Login</v-btn>
+              <v-btn text block color="primary" type="submit" @click="login"
+                >Login</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-col>
@@ -44,8 +46,9 @@ export default class AppLogin extends Vue {
     };
   }
 
-  login (): void {
-    if (this.key) {
+  login (e: Event): void {
+    e.preventDefault();
+    if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
       this.authenticate(this.key);
     }
   }

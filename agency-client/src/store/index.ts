@@ -1,19 +1,23 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import app, { State as AppState } from './modules/app';
+import alert, { State as AlertState } from './modules/alert';
 import profile, { State as ProfileState } from './modules/profile';
-import schema from './modules/schema';
+import schema, { State as SchemaState } from './modules/schema';
 
 Vue.use(Vuex);
 
 export interface State {
   app: AppState,
-  profile: ProfileState
+  alert: AlertState,
+  profile: ProfileState,
+  schema: SchemaState
 }
 
 const store = new Vuex.Store({
   modules: {
     app,
+    alert,
     profile,
     schema
   }
