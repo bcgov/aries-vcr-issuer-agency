@@ -1,5 +1,5 @@
 <template>
-  <v-form ref="form">
+  <v-form ref="form" :disabled="loading">
     <v-container>
       <v-alert
         text
@@ -37,7 +37,6 @@
                 required
                 :rules="[() => !!jsonInput || 'This field is required']"
                 @input="validateJson"
-                @change="prettyPrintJson"
               ></v-textarea>
             </v-col>
           </v-row>
@@ -46,7 +45,13 @@
         <v-card-actions>
           <v-btn text router-link to="/"> Cancel </v-btn>
           <v-spacer></v-spacer>
-          <v-btn text color="primary" type="submit" @click="submit">
+          <v-btn
+            text
+            color="primary"
+            type="submit"
+            :disabled="loading"
+            @click="submit"
+          >
             Save
           </v-btn>
         </v-card-actions>
@@ -57,7 +62,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import validate from '../../json-schemas/schema';
 import router from '../../router';
 import { Schema } from '../../store/modules/schema';
@@ -70,6 +75,9 @@ interface Data {
 }
 
 @Component({
+  computed: {
+    ...mapGetters(['loading'])
+  },
   methods: {
     ...mapActions(['addSchema', 'updateSchema'])
   }
@@ -139,19 +147,20 @@ export default class SchemaJsonForm extends Vue {
     this.validationError = !valid;
   }
 
-  prettyPrintJson (input: string): void {
-    this.parseJson(input);
-    if (!this.parseError) {
-      this.jsonInput = JSON.stringify(this.jsonOutput, null, 2);
-    }
-  }
+  // prettyPrintJson (input: string): void {
+  //   this.parseJson(input);
+  //   if (!this.parseError) {
+  //     this.jsonInput = JSON.stringify(this.jsonOutput, null, 2);
+  //   }
+  // }
 
-  submit (): void {
+  async submit (e: Event): Promise<void> {
+    e.preventDefault();
     if (!(this.parseError && this.validationError)) {
       if (this.isEditMode) {
-        this.updateSchema(this.jsonOutput as Schema);
+        await this.updateSchema(this.jsonOutput as Schema);
       } else {
-        this.addSchema(this.jsonOutput as Schema);
+        await this.addSchema(this.jsonOutput as Schema);
       }
       router.push('/');
     }

@@ -27,10 +27,10 @@ const getters = {
 };
 
 const actions = {
-  addAlert ({ commit }: ActionContext<State, RootState>, alert: Alert): void {
+  notify ({ commit }: ActionContext<State, RootState>, alert: Alert): void {
     commit('addAlert', alert);
   },
-  removeAlert ({ commit }: ActionContext<State, RootState>, alert: Alert): void {
+  denotify ({ commit }: ActionContext<State, RootState>, alert: Alert): void {
     commit('removeAlert', alert);
   }
 };

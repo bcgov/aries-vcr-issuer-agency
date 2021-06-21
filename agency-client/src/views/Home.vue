@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-progress-linear indeterminate v-if="loading"></v-progress-linear>
+    <v-progress-linear indeterminate fixed v-if="loading"></v-progress-linear>
     <AppRouterView v-if="authenticated" />
     <AppLogin v-else />
     <AppSnackbar
@@ -17,7 +17,7 @@ import { mapActions, mapGetters } from 'vuex';
 import AppRouterView from '../components/app/AppRouterView.vue';
 import AppLogin from '../components/app/AppLogin.vue';
 import AppSnackbar from '../components/app/AppSnackbar.vue';
-import { Alert, AlertType } from '../store/modules/alert';
+import { Alert, AlertType } from '../store/modules/notification';
 
 @Component({
   name: 'Home',
@@ -31,11 +31,11 @@ import { Alert, AlertType } from '../store/modules/alert';
   },
   methods: {
     ...mapActions([
-      'addAlert',
-      'setLoading',
+      'deauthenticate',
       'fetchProfile',
       'fetchSchemas',
-      'deauthenticate'
+      'notify',
+      'setLoading'
     ])
   }
 })
@@ -43,10 +43,10 @@ export default class HomeView extends Vue {
   authenticated!: boolean;
   alerts!: Alert[];
 
-  addAlert!: (alert: Alert) => void;
   deauthenticate!: () => void;
   fetchProfile!: () => Promise<void>;
   fetchSchemas!: () => Promise<void>;
+  notify!: (alert: Alert) => void;
   setLoading!: (loading: boolean) => void;
 
   async created (): Promise<void> {
@@ -67,7 +67,7 @@ export default class HomeView extends Vue {
       }
     } catch (e) {
       // TODO:
-      this.addAlert({
+      this.notify({
         type: AlertType.ERROR,
         msg: 'Unable to authenticate'
       });

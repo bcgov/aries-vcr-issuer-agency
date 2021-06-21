@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-form ref="form">
+    <v-form ref="form" :disabled="loading">
       <v-container>
         <SchemaAlert :errors="errors" />
         <v-card elevation="2">
@@ -51,7 +51,13 @@
           <v-card-actions>
             <v-btn text router-link to="/"> Cancel </v-btn>
             <v-spacer></v-spacer>
-            <v-btn text color="primary" type="submit" @click="submit">
+            <v-btn
+              text
+              color="primary"
+              type="submit"
+              :disabled="loading"
+              @click="submit"
+            >
               Save
             </v-btn>
           </v-card-actions>
@@ -87,7 +93,8 @@ import {
   Schema,
   TopicMetadata
 } from '../../store/modules/schema';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
+import router from '../../router';
 
 interface Data {
   name: string;
@@ -102,6 +109,9 @@ interface Data {
     SchemaLabelList,
     SchemaAttributeForm,
     SchemaJsonOutput
+  },
+  computed: {
+    ...mapGetters(['loading'])
   },
   methods: {
     ...mapActions(['addSchema', 'updateSchema'])
@@ -322,17 +332,18 @@ export default class SchemaForm extends Vue {
     }
   }
 
-  submit (e: Event): void {
+  async submit (e: Event): Promise<void> {
     e.preventDefault();
     const isFormValid = (
       this.$refs.form as Vue & { validate: () => boolean }
     ).validate();
     if (isFormValid && !Object.keys(this.errors).length) {
       if (this.isEditMode) {
-        this.updateSchema(this.schemaJson as Schema);
+        await this.updateSchema(this.schemaJson as Schema);
       } else {
-        this.addSchema(this.schemaJson as Schema);
+        await this.addSchema(this.schemaJson as Schema);
       }
+      router.push('/');
     }
   }
 

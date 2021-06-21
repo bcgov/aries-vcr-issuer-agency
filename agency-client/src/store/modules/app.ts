@@ -37,6 +37,7 @@ const actions = {
     commit('setKey', key);
   },
   deauthenticate ({ commit }: ActionContext<State, RootState>): void {
+    console.log('Logging user out');
     commit('setKey', '');
   },
   setController ({ commit }: ActionContext<State, RootState>, options: { url: string }): void {

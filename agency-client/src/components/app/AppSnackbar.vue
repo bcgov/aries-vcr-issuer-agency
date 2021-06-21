@@ -12,11 +12,11 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import { mapActions } from 'vuex';
-import { Alert } from '../../store/modules/alert';
+import { Alert } from '../../store/modules/notification';
 
 @Component({
   methods: {
-    ...mapActions(['removeAlert'])
+    ...mapActions(['denotify'])
   }
 })
 export default class AppSnackbar extends Vue {
@@ -24,7 +24,7 @@ export default class AppSnackbar extends Vue {
 
   @Prop({ default: null }) alert!: Alert;
 
-  removeAlert!: (alert: Alert) => void;
+  denotify!: (alert: Alert) => void;
 
   data (): { display: boolean } {
     return {
@@ -35,7 +35,7 @@ export default class AppSnackbar extends Vue {
   @Watch('display')
   onDisplay (display: boolean): void {
     if (!display) {
-      this.removeAlert(this.alert);
+      this.denotify(this.alert);
     }
   }
 
