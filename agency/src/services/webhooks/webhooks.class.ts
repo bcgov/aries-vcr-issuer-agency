@@ -45,10 +45,10 @@ export class Webhooks {
             action: EndorserServiceAction.Write_Transaction,
             token: params?.wallet?.token || '',
             data: {
-              transaction_id: data._id
+              transaction_id: data.transaction_id
             }
           } as AriesAgentData);
-        } else if (state === EndorserState.TransactionCompleted) {
+        } else if (state === EndorserState.TransactionAcked) {
           const txnMsgId = data?.messages_attach?.[0]?.['@id'] || '';
           if (txnMsgId) {
             this.app.service('events').emit(txnMsgId, data);

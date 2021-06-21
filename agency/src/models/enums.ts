@@ -87,5 +87,5 @@ export enum CredState_2_0 {
 
 export enum EndorserState {
   TransactionEndorsed = 'transaction_endorsed',
-  TransactionCompleted = 'transaction_completed',
+  TransactionAcked = 'transaction_acked'
 }

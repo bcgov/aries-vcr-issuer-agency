@@ -85,7 +85,7 @@ export class Schema implements ServiceSwaggerAddon {
           action: EndorserServiceAction.Create_Request,
           token: params.profile.wallet.token,
           data: {
-            tran_id: schemaAuthorTxn?.txn?._id || '',
+            tran_id: schemaAuthorTxn?.txn?.transaction_id || '',
             expires_time: new Date().toISOString()
           }
         } as AriesAgentData);
@@ -155,7 +155,7 @@ export class Schema implements ServiceSwaggerAddon {
           action: EndorserServiceAction.Create_Request,
           token: params.profile.wallet.token,
           data: {
-            tran_id: credDefAuthorTxn?.txn?._id || '',
+            tran_id: credDefAuthorTxn?.txn?.transaction_id || '',
             expires_time: new Date().toISOString()
           }
         } as AriesAgentData);

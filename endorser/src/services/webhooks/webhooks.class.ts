@@ -14,7 +14,7 @@ import { AriesAgentData } from '../aries-agent/aries-agent.class';
 interface Data {
   state: ConnectionState | EndorserState;
   connection_id?: string;
-  _id?: string;
+  transaction_id?: string;
 }
 
 interface ServiceOptions {}
@@ -51,7 +51,7 @@ export class Webhooks implements Partial<ServiceMethods<Data>> {
             service: ServiceType.Endorser,
             action: EndorserServiceAction.Endorse_Transaction,
             data: {
-              transaction_id: data._id
+              transaction_id: data.transaction_id
             }
           } as AriesAgentData);
         }
