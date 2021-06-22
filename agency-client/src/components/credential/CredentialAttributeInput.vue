@@ -7,13 +7,14 @@
       dense
       :hint="attributeHint(attribute)"
       :persistent-hint="true"
-      v-model="value"
+      v-model="attribute.value"
       :rules="[
         () =>
           !isRequiredAttribute(attribute) ||
-          !!value ||
+          !!attribute.value ||
           'This field is required',
       ]"
+      @input="onInput(attribute)"
     ></v-text-field>
     <v-menu
       v-else-if="isDateAttribute(attribute)"
@@ -31,11 +32,11 @@
           prepend-inner-icon="mdi-calendar"
           :hint="attributeHint(attribute)"
           :persistent-hint="true"
-          v-model="value"
+          v-model="attribute.value"
           :rules="[
             () =>
               !isRequiredAttribute(attribute) ||
-              !!value ||
+              !!attribute.value ||
               'This field is required',
           ]"
           v-bind="attrs"
@@ -46,14 +47,15 @@
         no-title
         scrollable
         @change="menu = false"
-        v-model="value"
+        v-model="attribute.value"
+        @input="onInput(attribute)"
       ></v-date-picker>
     </v-menu>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import {
   Attribute,
   AttributeFieldType,
@@ -62,7 +64,7 @@ import {
 
 interface Data {
   menu: boolean;
-  value: string;
+  value: string | Date;
 }
 
 @Component
@@ -71,10 +73,15 @@ export default class CredentialAttributeInput extends Vue {
 
   @Prop() attribute!: Attribute;
 
+  @Emit('input')
+  onInput (attribute: Attribute): Attribute {
+    return attribute;
+  }
+
   data (): Data {
     return {
       menu: false,
-      value: ''
+      value: this.attribute.value || ''
     };
   }
 

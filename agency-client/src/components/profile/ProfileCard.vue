@@ -1,25 +1,10 @@
 <template>
   <div>
-    <v-alert v-if="!profile.complete" prominent type="info">
-      <v-row align="center">
-        <v-col class="grow">
-          Please complete your profile to enable Issuer features.
-        </v-col>
-        <v-col class="shrink">
-          <v-btn router-link to="/profile/edit">Complete profile</v-btn>
-        </v-col>
-      </v-row>
-    </v-alert>
     <v-card elevation="2">
       <v-card-title>Issuer Profile</v-card-title>
-      <v-list-item v-if="!profile.complete">
-        <v-list-item-content>
-          <v-list-item-subtitle>
-            Nothing to show here! Click on 'COMPLETE PROFILE' to create a
-            Profile.
-          </v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
+      <v-card-text v-if="!profile.complete">
+        Nothing to show here! Click on 'COMPLETE PROFILE' to create a Profile.
+      </v-card-text>
       <v-list-item v-else three-line>
         <v-list-item-avatar tile size="80" color="grey"></v-list-item-avatar>
         <v-list-item-content>

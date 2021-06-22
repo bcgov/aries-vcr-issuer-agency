@@ -34,6 +34,7 @@ export interface Attribute {
   dateType?: DateFieldType | null;
   localizedLabels?: Record<string, Translation>;
   address?: Address | null;
+  value?: string | Date;
 }
 
 export function formatSchemaAttributes (schema: Schema | null | undefined): Attribute[] {

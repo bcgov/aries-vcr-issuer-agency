@@ -1,27 +1,30 @@
 <template>
   <v-card elevation="2">
     <v-card-title>Schemas</v-card-title>
-    <v-list>
-      <v-list-item v-if="!(schemas && schemas.length)">
-        <v-list-item-content>
-          <v-list-item-subtitle>
-            Nothing to show here! Click on 'PUBLISH SCHEMA' to create a Schema.
-          </v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item v-else v-for="schema in schemas" :key="schema.id">
-        <v-list-item-content>
-          <v-list-item-title>
-            Name: {{ schema.schema_name }}
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Version: {{ schema.schema_version }}
-          </v-list-item-subtitle>
-        </v-list-item-content>
-        <v-spacer></v-spacer>
-        <SchemaListMenu :schema="schema" />
-      </v-list-item>
-    </v-list>
+    <v-card-text v-if="!(schemas && schemas.length)">
+      Nothing to show here! Click on 'PUBLISH SCHEMA' to create a Schema.
+    </v-card-text>
+    <v-virtual-scroll
+      v-else
+      :items="schemas"
+      item-height="64"
+      max-height="70vh"
+    >
+      <template v-slot:default="{ item: schema }">
+        <v-list-item :key="schema.name + ':' + schema.version">
+          <v-list-item-content>
+            <v-list-item-title>
+              Name: {{ schema.schema_name }}
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              Version: {{ schema.schema_version }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
+          <v-spacer></v-spacer>
+          <SchemaListMenu :schema="schema" />
+        </v-list-item>
+      </template>
+    </v-virtual-scroll>
     <v-divider></v-divider>
     <v-card-actions>
       <v-btn text v-if="schemas.length" router-link to="/credential/issue">

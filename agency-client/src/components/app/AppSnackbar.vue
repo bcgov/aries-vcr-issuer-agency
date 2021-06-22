@@ -1,10 +1,13 @@
 <template>
-  <v-snackbar v-model="display" :color="alert.type" @input="onInput">
+  <v-snackbar
+    v-model="display"
+    :color="alert.type"
+    :timeout="alert.timeout || 2000"
+    @input="onInput"
+  >
     {{ alert.msg }}
     <template v-slot:action="{ attrs }">
-      <v-btn color="white" text v-bind="attrs" @click="onClick">
-        Close
-      </v-btn>
+      <v-btn color="white" text v-bind="attrs" @click="onClick"> Close </v-btn>
     </template>
   </v-snackbar>
 </template>

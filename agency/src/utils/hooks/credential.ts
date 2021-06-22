@@ -15,9 +15,9 @@ export async function postProcessCredentials(
     .sort((a: any, b: any) => a.order - b.order)
     .forEach((result: any, idx: number, self: any[]) => {
       self[idx] = {
-        cred_ex_id: result?.credExId,
+        cred_ex_id: result?.credExId || result?.data?.cred_ex_id,
         success: result.success,
-        error: result?.error?.message
+        error: result?.error?.message || result?.error
       };
     });
   if (params.credentials.results.length === 1) {

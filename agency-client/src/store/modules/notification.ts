@@ -10,6 +10,7 @@ export enum AlertType {
 
 export interface Alert {
   id?: number,
+  timeout?: number;
   type: AlertType;
   msg: string;
 }
