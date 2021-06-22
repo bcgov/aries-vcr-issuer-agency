@@ -76,7 +76,7 @@
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { mapActions, mapGetters } from 'vuex';
 import router from '../../router';
-import { IssuerProfile } from '../../store/modules/profile';
+import { IssuerProfile } from '../../store/modules/app';
 
 @Component({
   computed: {

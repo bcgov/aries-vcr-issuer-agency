@@ -46,10 +46,10 @@ export default class AppLogin extends Vue {
     };
   }
 
-  login (e: Event): void {
+  async login (e: Event): Promise<void> {
     e.preventDefault();
     if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
-      this.authenticate(this.key);
+      await this.authenticate(this.key);
     }
   }
 }

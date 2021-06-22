@@ -39,6 +39,9 @@
       </v-list-item>
       <v-divider></v-divider>
       <v-card-actions>
+        <v-btn text @click="deauthenticate">
+          Logout
+        </v-btn>
         <v-spacer></v-spacer>
         <v-btn
           text
@@ -65,9 +68,14 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import { IssuerProfile } from '../../store/modules/profile';
+import { mapActions } from 'vuex';
+import { IssuerProfile } from '../../store/modules/app';
 
-@Component
+@Component({
+  methods: {
+    ...mapActions(['deauthenticate'])
+  }
+})
 export default class ProfileCard extends Vue {
   @Prop() profile!: IssuerProfile;
 }

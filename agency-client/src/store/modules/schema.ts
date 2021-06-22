@@ -4,7 +4,7 @@ import axios from 'axios';
 import { ActionContext } from 'vuex';
 import { State as RootState } from '@/store/index';
 import { ISSUER_API_KEY } from './app';
-import { Alert, AlertType } from './notification';
+import { AlertType } from './notification';
 
 const ISSUER_SCHEMA_URL = 'issuer/schema';
 
@@ -88,7 +88,7 @@ const actions = {
       commit('setSchemas', response.data);
     } catch (error) {
       console.error(error);
-      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' } as Alert);
+      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' });
     } finally {
       dispatch('setLoading', false);
     }
@@ -103,10 +103,10 @@ const actions = {
         headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
       });
       commit('addSchema', response.data);
-      dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully published' } as Alert);
+      dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully published' });
     } catch (error) {
       console.error(error);
-      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' } as Alert);
+      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' });
     } finally {
       dispatch('setLoading', false);
     }
@@ -121,10 +121,10 @@ const actions = {
         headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
       });
       commit('setSchema', { ...response.data, id: schema.id });
-      dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully updated' } as Alert);
+      dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully updated' });
     } catch (error) {
       console.error(error);
-      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' } as Alert);
+      dispatch('notify', { type: AlertType.ERROR, msg: 'There was a problem' });
     } finally {
       dispatch('setLoading', false);
     }
