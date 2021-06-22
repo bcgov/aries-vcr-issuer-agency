@@ -220,13 +220,13 @@ export default class SchemaForm extends Vue {
   get schemaMetadata (): Metadata {
     return {
       topic: this.schemaMetadataTopic,
+      date_fields: this.schemaMetadataDateFields,
+      cardinality: this.schemaMetadataCardinality,
+      search_fields: this.schemaMetadataSearchFields,
+      address_fields: this.schemaMetadataAddressFields,
       labels: {
         schema: this.schemaMetadataTranslations,
-        attributes: this.attributeMetadataTranslations,
-        cardinality: this.schemaMetadataCardinality,
-        address_fields: this.schemaMetadataAddressFields,
-        date_fields: this.schemaMetadataDateFields,
-        search_fields: this.schemaMetadataSearchFields
+        attributes: this.attributeMetadataTranslations
       }
     } as unknown as Metadata;
   }

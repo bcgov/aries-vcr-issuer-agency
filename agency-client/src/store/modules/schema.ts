@@ -102,7 +102,7 @@ const actions = {
       const response = await axios.post(getters.controller.url.toString() + ISSUER_SCHEMA_URL, schema, {
         headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
       });
-      commit('addSchema', response.data);
+      commit('addSchema', { ...schema, ...response.data });
       dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully published' });
     } catch (error) {
       console.error(error);
@@ -117,10 +117,10 @@ const actions = {
   ): Promise<void> {
     try {
       dispatch('setLoading', true);
-      const response = await axios.put(getters.controller.url.toString() + ISSUER_SCHEMA_URL, schema, {
+      const response = await axios.post(getters.controller.url.toString() + ISSUER_SCHEMA_URL, schema, {
         headers: { [ISSUER_API_KEY]: getters.controller[ISSUER_API_KEY] }
       });
-      commit('setSchema', { ...response.data, id: schema.id });
+      commit('setSchema', { ...schema, ...response.data });
       dispatch('notify', { type: AlertType.SUCCESS, msg: 'Schema successfully updated' });
     } catch (error) {
       console.error(error);
@@ -137,7 +137,11 @@ const mutations = {
   ]),
   setSchema: (state: State, updated: Schema): Schema[] => {
     const schemas = [...state.schemas];
-    schemas.splice(state.schemas.findIndex(schema => schema.id === updated.id), 1, updated);
+    schemas.splice(state.schemas
+      .findIndex((schema) => schema.schema_name === updated.schema_name && schema.schema_version === updated.schema_version),
+    1,
+    updated
+    );
     return (state.schemas = schemas);
   },
   setSchemas: (state: State, schemas: Schema[]): Schema[] => (state.schemas = schemas)
