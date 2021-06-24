@@ -3,7 +3,7 @@
     <v-card elevation="2">
       <v-card-title>Issuer Profile</v-card-title>
       <v-card-text v-if="!profile.complete">
-        Nothing to show here! Click on 'COMPLETE PROFILE' to create a Profile.
+        Nothing to show here. Click on 'COMPLETE PROFILE' to create a Profile.
       </v-card-text>
       <v-list-item v-else three-line>
         <v-list-item-avatar tile size="80" color="grey"></v-list-item-avatar>

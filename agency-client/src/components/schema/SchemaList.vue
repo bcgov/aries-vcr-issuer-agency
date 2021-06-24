@@ -2,7 +2,7 @@
   <v-card elevation="2">
     <v-card-title>Schemas</v-card-title>
     <v-card-text v-if="!(schemas && schemas.length)">
-      Nothing to show here! Click on 'PUBLISH SCHEMA' to create a Schema.
+      Nothing to show here. Click on 'PUBLISH SCHEMA' to create a Schema.
     </v-card-text>
     <v-virtual-scroll
       v-else

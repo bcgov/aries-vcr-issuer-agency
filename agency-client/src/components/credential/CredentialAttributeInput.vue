@@ -112,8 +112,7 @@ export default class CredentialAttributeInput extends Vue {
       attribute?.cardinal ||
       attribute?.search ||
       (attribute?.type === AttributeFieldType.DATE &&
-        (attribute?.dateType === DateFieldType.EFFECTIVE ||
-          attribute?.dateType === DateFieldType.REVOKED))
+        attribute?.dateType === DateFieldType.EFFECTIVE)
     );
   }
 }

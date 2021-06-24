@@ -1,11 +1,29 @@
 <template>
-  <CredentialForm :schemas="schemas" :schema="schema" @setSchema="setSchema" />
+  <v-container>
+    <v-tabs v-model="tab">
+      <v-tab href="#credential-form">Form</v-tab>
+      <v-tab href="#credential-json-form">JSON</v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item value="credential-form">
+        <CredentialForm
+          :schemas="schemas"
+          :schema="schema"
+          @setSchema="setSchema"
+        />
+      </v-tab-item>
+      <v-tab-item value="credential-json-form">
+        <CredentialJsonForm :schema="schema" />
+      </v-tab-item>
+    </v-tabs-items>
+  </v-container>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import { mapGetters } from 'vuex';
 import CredentialForm from '../components/credential/CredentialForm.vue';
+import CredentialJsonForm from '../components/credential/CredentialJsonForm.vue';
 import { Schema } from '../store/modules/schema';
 
 interface Data {
@@ -15,7 +33,8 @@ interface Data {
 
 @Component({
   components: {
-    CredentialForm
+    CredentialForm,
+    CredentialJsonForm
   },
   computed: {
     ...mapGetters(['schemas'])
