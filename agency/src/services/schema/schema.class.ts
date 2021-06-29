@@ -11,7 +11,7 @@ import {
 import { CredDefError, EndorserError, SchemaError } from '../../models/errors';
 import { AriesSchemaServiceRequest, SchemaServiceModel } from '../../models/schema';
 import { IssuerServiceParams } from '../../models/service-params';
-import { deferServiceOnce } from '../../utils/sleep';
+import { deferServiceOnce, sleep } from '../../utils/sleep';
 import { AriesAgentData } from '../aries-agent/aries-agent.class';
 
 interface ServiceOptions { }
@@ -109,15 +109,17 @@ export class Schema implements ServiceSwaggerAddon {
           throw new EndorserError('There was a problem endorsing the transaction');
         }
 
-        const schemaId = await this.app.service('aries-agent').create({
-          service: ServiceType.Schema,
-          action: SchemaServiceAction.Find,
-          token: params.profile.wallet.token,
-          data: {
-            schema_name: schema.schema_name,
-            schema_version: schema.schema_version,
-          }
-        } as AriesAgentData);
+        const schemaId = await this.retryUntil(() => {
+          return this.app.service('aries-agent').create({
+            service: ServiceType.Schema,
+            action: SchemaServiceAction.Find,
+            token: params.profile.wallet.token,
+            data: {
+              schema_name: schema.schema_name,
+              schema_version: schema.schema_version,
+            }
+          } as AriesAgentData);
+        });
 
         if (!schemaId) {
           throw new SchemaError('Schema ID could not be found');
@@ -181,15 +183,17 @@ export class Schema implements ServiceSwaggerAddon {
           throw new EndorserError('There was a problem endorsing the transaction');
         }
 
-        const credDefId = await this.app.service('aries-agent').create({
-          service: ServiceType.CredDef,
-          action: CredDefServiceAction.Find,
-          token: params.profile.wallet.token,
-          data: {
-            schema_name: schema.schema_name,
-            schema_version: schema.schema_version,
-          }
-        } as AriesAgentData);
+        const credDefId = await this.retryUntil(() => {
+          return this.app.service('aries-agent').create({
+            service: ServiceType.CredDef,
+            action: CredDefServiceAction.Find,
+            token: params.profile.wallet.token,
+            data: {
+              schema_name: schema.schema_name,
+              schema_version: schema.schema_version,
+            }
+          } as AriesAgentData);
+        });
 
         if (!credDefId) {
           throw new CredDefError('Credential Defnition ID could not be found');
@@ -210,6 +214,43 @@ export class Schema implements ServiceSwaggerAddon {
     } catch (e) {
       throw e as Error;
     }
+  }
+
+  /**
+   * WARNING: This is a temporary hack, and should be used sparingly if at all.
+   * Please remove this function as soon as a fix can be generated.
+   * 
+   * There are situations where a wallet query for created Schemas or Credential Definitions
+   * temporarily returns empty results immediately after an endorsement transaction has
+   * successfully completed and the Schema or Credential Definition has been written
+   * to the ledger.
+   * 
+   * This hack retries the wallet query up to a maximum number of retries, with an exponential
+   * delay on each retry. Upon exhaustion, the function will return an empty result which will
+   * result in an error to be handled by the caller.
+   */
+  private async retryUntil(
+    fn: () => Promise<string>,
+    retries: number = 3,
+    delayMs: number = 10,
+    delayFactor: number = 10
+  ): Promise<string> {
+    let replay = 0;
+    let res = '';
+    while (replay < retries) {
+      try {
+        const delay = delayMs * (delayFactor ** replay++);
+        console.debug(`Replaying ${replay} of ${retries} with delay ${delay} ms`);
+        await sleep(delay);
+        res = await fn();
+        if (res) {
+          return res;
+        }
+      } catch (error) {
+        console.debug(`Error on replay ${replay} of ${retries}. Retrying...`, error);
+      }
+    }
+    return res;
   }
 
   model = {
