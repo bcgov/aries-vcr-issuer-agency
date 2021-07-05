@@ -137,6 +137,13 @@ configureEnvironment () {
   export CRED_EX_TIMEOUT=${CRED_EX_TIMEOUT:-120000}
   export TRANSACTION_TIMEOUT=${TRANSACTION_TIMEOUT:-120000}
 
+  # agency client
+  export PUBLIC_WEB_HOST_NAME=http://localhost
+  export PUBLIC_WEB_HOST_PORT=8080
+  export PUBLIC_WEB_HOST_TLS=off
+  export PUBLIC_API_HOST=localhost
+  export PUBLIC_API_PORT=3030
+
   # db
   export DB_SERVICE="db"
   export MONGODB_ADMIN_PASSWORD="admin"
@@ -173,7 +180,16 @@ getStartupParams() {
   echo ${ARGS} ${CONTAINERS}
 }
 
+build-agency-client() {
+  echo -e "\nBuilding agency-client image..."
+  docker build \
+    -t 'agency-client' \
+    -f '../docker/agency-client/Dockerfile' '../'
+}
+
 build() {
+  build-agency-client
+
   # Build all containers in the docker-compose file
   echo -e "\nBuilding containers ..."
   echo docker-compose build $@
