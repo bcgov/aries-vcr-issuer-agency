@@ -189,6 +189,23 @@ services:
     entrypoint: /bin/bash
     command: ["-c", "npm install; npm run dev"]
 
+  agency-client:
+    image: agency-client
+    environment:
+      WEB_HOST_NAME: ${PUBLIC_WEB_HOST_NAME}
+      WEB_HOST_PORT: ${PUBLIC_WEB_HOST_PORT}
+      WEB_HOST_TLS: ${PUBLIC_WEB_HOST_TLS}
+      API_HOST: ${PUBLIC_API_HOST}
+      API_PORT: ${PUBLIC_API_PORT}
+    volumes:
+      - ./agency-client/config/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - ${PUBLIC_WEB_HOST_PORT}:${PUBLIC_WEB_HOST_PORT}
+    networks:
+      - vcr-issuer-agency
+    depends_on:
+      - agency-controller-dev
+
   db:
     image: centos/mongodb-36-centos7
     environment:
@@ -214,3 +231,4 @@ volumes:
   db-data:
   agency-controller-data:
   endorser-controller-data:
+  agency-client-data:
