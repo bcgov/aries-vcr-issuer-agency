@@ -9,7 +9,7 @@ A scalable, multi-tenanted issuer service based on Aries Cloud Agent Python to f
 
 #### Docker
 
-Ensure that you have Docker and Docker Compose installed in your environment. This is all you will need to run the Agency.
+Ensure that you have Docker and Docker Compose installed in your environment.
 
 _Please see instructions [here](https://docs.docker.com/desktop/#download-and-install) for installing Docker and instructions [here](https://docs.docker.com/compose/install/) for installing Docker Compose on your system._
 
@@ -29,15 +29,15 @@ _Please see the instructions [here](https://github.com/bcgov/aries-vcr/tree/mast
 
 1. Open a terminal and navigate to the `./docker` directory.
 
-2. Run the command: `./manage build` in your terminal. This command will build all the relevant container environments for the application. Please wait while this completes.
+2. Run the command: `./manage build` in your terminal. This command will build all the relevant container services for the application. Please wait while this completes.
 
-3. Once containers have completed building, run the command: `./manage start` in your terminal. This command will start up the agency. Please wait while this completes.
+3. Once containers have completed building, run the command: `./manage start` in your terminal. This command will start up the Agency. Please wait while this completes.
 
-4. Once the Agency has started, open your browser to `http:localhost:8080`. This is the Issuer web interface. Open another browser tab to `http://localhost:3030/swagger/docs`. This is the Swagger API interface for the Agency Admin. You will need to register an Issuer using the Agency Admin API in order to obtain an Issuer API key. The API key will allow you to log into the Issuer web iterface, create schemas and issue credentials. The Agency Admin API can be authenticated using the API key: `'controller-api-key'`.
+4. Once the Agency has started, open your browser to `http:localhost:8080`. This is the Issuer web interface. Open another browser tab to `http://localhost:3030/swagger/docs`. This is the Swagger API interface for the Agency Admin. You will need to register an Issuer using the Agency Admin API in order to obtain an Issuer API key. The API key will allow you to log into the Issuer web interface, create schemas and issue credentials. The Agency Admin API can be authenticated using the API key: `'controller-api-key'`.
 
 ### Stopping the Agency
 
-1. Navigate to the `./docker` directory if you aren't already in it.
+1. Navigate to the `./docker` directory if you aren't already there.
 
 2. Run the command: `./manage stop` in your terminal. This will stop the running application containers. _Note: this will not remove the containers from your environment._
 
