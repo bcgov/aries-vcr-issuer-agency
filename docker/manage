@@ -139,7 +139,7 @@ configureEnvironment () {
 
   # agency client
   export PUBLIC_WEB_HOST_NAME=http://localhost
-  export PUBLIC_WEB_HOST_PORT=8080
+  export PUBLIC_WEB_HOST_PORT=8090
   export PUBLIC_WEB_HOST_TLS=off
   export PUBLIC_API_HOST=localhost
   export PUBLIC_API_PORT=3030
