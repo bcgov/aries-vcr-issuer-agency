@@ -58,7 +58,7 @@ services:
         --${AGENCY_ADMIN_MODE} \
         --plugin indy_catalyst_issuer_registration;",
       ]
-  
+
   endorser:
     image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.0
     environment:
