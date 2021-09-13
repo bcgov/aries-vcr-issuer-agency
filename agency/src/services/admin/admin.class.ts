@@ -172,6 +172,7 @@ export class Admin implements ServiceSwaggerAddon {
       } as AriesAgentData);
 
       logger.debug(`Created new profile with name ${data.name}`);
+      logger.debug(`   .... with sub-wallet token ${subWallet.token}`);
 
       return { name: data.name, 'api-key': issuerApiKey };
     } catch (e) {
