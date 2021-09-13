@@ -60,7 +60,7 @@ services:
       ]
 
   endorser:
-    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.0rc1
+    image: bcgovimages/aries-cloudagent:py36-1.16-1_0.7.0
     environment:
       - ACAPY_LABEL=${ENDORSER_NAME}
       - ACAPY_ENDPOINT=${ENDORSER_ENDPOINT}
