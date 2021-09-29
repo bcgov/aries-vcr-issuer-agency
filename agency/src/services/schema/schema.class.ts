@@ -309,6 +309,17 @@ export class Schema implements ServiceSwaggerAddon {
               },
             },
           },
+          highlighted_attributes: {
+            type: 'array',
+            description: 'List of additional attributes to be highlighted on the credential',
+            items:{
+              type: 'string'
+            }
+          },
+          credential_title: {
+            type: 'string',
+            description: 'The attribute used to define the credential'
+          },
           cardinality: {
             type: 'array',
             description:

@@ -57,6 +57,8 @@ function formatCredentialTypePayload(
     logo_b64: profile.logo,
     topic: formatTopicMappings(schema.metadata.topic),
     labels: schema.metadata.labels.schema,
+    highlighted_attributes: schema.metadata.highlighted_attributes,
+    credential_title: schema.metadata.credential_title,
     credential: {
       effective_date: {
         input: schema.metadata.date_fields.effective_date,
