@@ -82,6 +82,20 @@ const schema = {
           },
           uniqueItems: true
         },
+        credential_title: {
+          description: 'The primary attribute of the credential',
+          type: 'string',
+          minLength: 1
+        },
+        highlighted_attributes: {
+          description: 'A set of attributes to display on the credential card',
+          type: 'array',
+          items: {
+            type: 'string',
+            minLength: 1
+          },
+          uniqueItems: true
+        },
         cardinality: {
           description: 'A cardinal Schema attribute',
           type: 'array',

@@ -41,6 +41,8 @@ export interface AddressMetadata {
 
 export interface CredentialMetadata {
   topic: SchemaTopic[];
+  highlighted_attributes?: string[];
+  credential_title?: string;
   cardinality: string[];
   date_fields: {
     effective_date: string;
@@ -107,6 +109,8 @@ export interface CredentialTypePayload {
   mapping: ModelMapping[];
   claim_labels: Record<string, Record<string, string>>;
   claim_descriptions: Record<string, Record<string, string>>;
+  highlighted_attributes?: string[];
+  credential_title?: string;
 }
 
 export interface IssuerRegistrationPayload {

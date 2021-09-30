@@ -41,6 +41,8 @@ export interface MetadataTranslation {
 export interface Metadata {
   topic: TopicMetadata[];
   cardinality: string[];
+  highlighted_attributes?: string[];
+  credential_title?:string;
   date_fields: DateMetadata
   address_fields: AddressMetadata[];
   search_fields: string[];
