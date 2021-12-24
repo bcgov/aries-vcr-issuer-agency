@@ -23,7 +23,7 @@ _Otherwise, please see the instructions [here](https://github.com/bcgov/von-netw
 
 The Agency will issue credentials to an instance of Aries VCR running in the same network. Therefore, you will need to have a running instance of Aries-VCR.
 
-_Please see the instructions [here](https://github.com/bcgov/aries-vcr/tree/master/docs) to get Aries VCR up and running on your system._
+_Please see the instructions [here](https://github.com/bcgov/aries-vcr/tree/main/docs) to get Aries VCR up and running on your system._
 
 ### Starting the Agency
 
